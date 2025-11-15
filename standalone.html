@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOP Editor</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+            
+            @page {
+                size: A4;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef, useCallback, useEffect, forwardRef } = React;
+
+        // Component Menu
+        const ComponentMenu = ({ position, onSelect, onClose }) => {
+            const [selectedIndex, setSelectedIndex] = useState(0);
+            const menuRef = useRef(null);
+
+            const components = [
+                { type: 'heading', label: 'Überschrift', icon: 'H' },
+                { type: 'text', label: 'Text', icon: 'T' },
+                { type: 'table', label: 'Tabelle', icon: '⊞' },
+                { type: 'list', label: 'Liste', icon: '•' },
+                { type: 'divider', label: 'Trennlinie', icon: '—' },
+                { type: 'image', label: 'Bild', icon: '🖼' },
+            ];
+
+            useEffect(() => {
+                const handleClickOutside = (event) => {
+                    if (menuRef.current && !menuRef.current.contains(event.target)) {
+                        onClose();
+                    }
+                };
+
+                const handleKeyDown = (e) => {
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        setSelectedIndex((prev) => (prev + 1) % components.length);
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        setSelectedIndex((prev) => (prev - 1 + components.length) % components.length);
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        onSelect(components[selectedIndex].type);
+                    } else if (e.key === 'Escape') {
+                        onClose();
+                    }
+                };
+
+                document.addEventListener('mousedown', handleClickOutside);
+                document.addEventListener('keydown', handleKeyDown);
+
+                return () => {
+                    document.removeEventListener('mousedown', handleClickOutside);
+                    document.removeEventListener('keydown', handleKeyDown);
+                };
+            }, [selectedIndex, onSelect, onClose]);
+
+            return React.createElement('div', {
+                ref: menuRef,
+                className: 'component-menu fixed z-50 bg-white border border-gray-300 rounded-lg shadow-xl py-2 min-w-[200px]',
+                style: {
+                    top: `${position.top}px`,
+                    left: `${position.left}px`,
+                }
+            }, components.map((component, index) =>
+                React.createElement('div', {
+                    key: component.type,
+                    className: `px-4 py-2 cursor-pointer flex items-center gap-3 ${
+                        index === selectedIndex
+                            ? 'bg-blue-100 text-blue-600'
+                            : 'hover:bg-gray-100 text-gray-700'
+                    }`,
+                    onClick: () => onSelect(component.type),
+                    onMouseEnter: () => setSelectedIndex(index)
+                }, [
+                    React.createElement('span', {
+                        key: 'icon',
+                        className: 'w-8 h-8 flex items-center justify-center bg-gray-100 rounded text-sm font-semibold'
+                    }, component.icon),
+                    React.createElement('span', { key: 'label', className: 'font-medium' }, component.label)
+                ])
+            ));
+        };
+
+        // Title Block
+        const TitleBlock = forwardRef(({ content, onChange, onKeyDown }, ref) => {
+            return React.createElement('input', {
+                ref,
+                type: 'text',
+                value: content,
+                onChange: (e) => onChange(e.target.value),
+                onKeyDown,
+                placeholder: 'Titel der SOP',
+                className: 'w-full text-3xl font-bold text-gray-900 border-none outline-none bg-transparent mb-6'
+            });
+        });
+
+        // Heading Block
+        const HeadingBlock = forwardRef(({ content, onChange, onKeyDown }, ref) => {
+            return React.createElement('input', {
+                ref,
+                type: 'text',
+                value: content,
+                onChange: (e) => onChange(e.target.value),
+                onKeyDown,
+                placeholder: 'Überschrift',
+                className: 'w-full text-2xl font-semibold text-gray-900 border-none outline-none bg-transparent mb-4 mt-6'
+            });
+        });
+
+        // Text Block
+        const TextBlock = forwardRef(({ content, onChange, onKeyDown }, ref) => {
+            const textareaRef = useRef(null);
+            React.useImperativeHandle(ref, () => textareaRef.current);
+
+            return React.createElement('textarea', {
+                ref: textareaRef,
+                value: content,
+                onChange: (e) => {
+                    onChange(e.target.value);
+                    e.target.style.height = 'auto';
+                    e.target.style.height = e.target.scrollHeight + 'px';
+                },
+                onKeyDown,
+                placeholder: "Text eingeben... (Tippe '/' für Komponenten)",
+                className: 'w-full text-base text-gray-700 border-none outline-none bg-transparent resize-none min-h-[1.5rem] mb-2',
+                rows: 1,
+                style: { height: 'auto', overflow: 'hidden' }
+            });
+        });
+
+        // Table Block
+        const TableBlock = ({ content, onChange }) => {
+            const [rows, setRows] = useState(
+                content && content.rows ? content.rows : [['', ''], ['', '']]
+            );
+            const [cols, setCols] = useState(content && content.cols ? content.cols : 2);
+
+            const updateCell = (rowIndex, colIndex, value) => {
+                const newRows = rows.map((row, rIdx) =>
+                    rIdx === rowIndex
+                        ? row.map((cell, cIdx) => (cIdx === colIndex ? value : cell))
+                        : row
+                );
+                setRows(newRows);
+                onChange({ rows: newRows, cols });
+            };
+
+            const addRow = () => {
+                const newRow = new Array(cols).fill('');
+                setRows([...rows, newRow]);
+                onChange({ rows: [...rows, newRow], cols });
+            };
+
+            const addColumn = () => {
+                const newRows = rows.map((row) => [...row, '']);
+                setRows(newRows);
+                setCols(cols + 1);
+                onChange({ rows: newRows, cols: cols + 1 });
+            };
+
+            return React.createElement('div', { className: 'table-block my-4' }, [
+                React.createElement('table', {
+                    key: 'table',
+                    className: 'w-full border-collapse border border-gray-300'
+                }, [
+                    React.createElement('thead', { key: 'thead' },
+                        React.createElement('tr', {},
+                            Array.from({ length: cols }).map((_, colIndex) =>
+                                React.createElement('th', {
+                                    key: colIndex,
+                                    className: 'border border-gray-300 p-2 bg-gray-100 font-semibold text-left'
+                                }, React.createElement('input', {
+                                    type: 'text',
+                                    value: rows[0]?.[colIndex] || '',
+                                    onChange: (e) => updateCell(0, colIndex, e.target.value),
+                                    className: 'w-full border-none outline-none bg-transparent',
+                                    placeholder: 'Spaltenüberschrift'
+                                }))
+                            )
+                        )
+                    ),
+                    React.createElement('tbody', { key: 'tbody' },
+                        rows.slice(1).map((row, rowIndex) =>
+                            React.createElement('tr', { key: rowIndex },
+                                Array.from({ length: cols }).map((_, colIndex) =>
+                                    React.createElement('td', {
+                                        key: colIndex,
+                                        className: 'border border-gray-300 p-2'
+                                    }, React.createElement('input', {
+                                        type: 'text',
+                                        value: row[colIndex] || '',
+                                        onChange: (e) => updateCell(rowIndex + 1, colIndex, e.target.value),
+                                        className: 'w-full border-none outline-none bg-transparent',
+                                        placeholder: 'Zelle'
+                                    }))
+                                )
+                            )
+                        )
+                    )
+                ]),
+                React.createElement('div', { key: 'controls', className: 'mt-2 flex gap-2' }, [
+                    React.createElement('button', {
+                        key: 'addRow',
+                        onClick: addRow,
+                        className: 'text-sm text-blue-600 hover:underline'
+                    }, '+ Zeile hinzufügen'),
+                    React.createElement('button', {
+                        key: 'addCol',
+                        onClick: addColumn,
+                        className: 'text-sm text-blue-600 hover:underline'
+                    }, '+ Spalte hinzufügen')
+                ])
+            ]);
+        };
+
+        // List Block
+        const ListBlock = ({ content, onChange }) => {
+            const [items, setItems] = useState(
+                content && Array.isArray(content) ? content : ['']
+            );
+
+            const updateItem = (index, value) => {
+                const newItems = items.map((item, i) => (i === index ? value : item));
+                setItems(newItems);
+                onChange(newItems);
+            };
+
+            const addItem = () => {
+                const newItems = [...items, ''];
+                setItems(newItems);
+                onChange(newItems);
+            };
+
+            return React.createElement('div', { className: 'list-block my-4' }, [
+                React.createElement('ul', {
+                    key: 'list',
+                    className: 'list-none pl-0'
+                }, items.map((item, index) =>
+                    React.createElement('li', {
+                        key: index,
+                        className: 'flex items-start gap-2 mb-2'
+                    }, [
+                        React.createElement('span', {
+                            key: 'bullet',
+                            className: 'text-blue-600 mt-1'
+                        }, '•'),
+                        React.createElement('input', {
+                            key: 'input',
+                            type: 'text',
+                            value: item,
+                            onChange: (e) => updateItem(index, e.target.value),
+                            onKeyDown: (e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    addItem();
+                                } else if (e.key === 'Backspace' && item === '' && items.length > 1) {
+                                    e.preventDefault();
+                                    const newItems = items.filter((_, i) => i !== index);
+                                    setItems(newItems);
+                                    onChange(newItems);
+                                }
+                            },
+                            className: 'flex-1 border-none outline-none bg-transparent text-gray-700',
+                            placeholder: 'Listeneintrag'
+                        })
+                    ])
+                )),
+                React.createElement('button', {
+                    key: 'add',
+                    onClick: addItem,
+                    className: 'text-sm text-blue-600 hover:underline mt-2'
+                }, '+ Eintrag hinzufügen')
+            ]);
+        };
+
+        // Image Block
+        const ImageBlock = ({ content, onChange }) => {
+            const [imageUrl, setImageUrl] = useState(content || '');
+
+            const handleImageChange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const result = reader.result;
+                        setImageUrl(result);
+                        onChange(result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const handleUrlChange = (e) => {
+                const url = e.target.value;
+                setImageUrl(url);
+                onChange(url);
+            };
+
+            return React.createElement('div', { className: 'image-block my-4' },
+                imageUrl ? React.createElement('div', { className: 'relative' }, [
+                    React.createElement('img', {
+                        key: 'img',
+                        src: imageUrl,
+                        alt: 'SOP Image',
+                        className: 'max-w-full h-auto rounded border border-gray-300'
+                    }),
+                    React.createElement('button', {
+                        key: 'remove',
+                        onClick: () => {
+                            setImageUrl('');
+                            onChange('');
+                        },
+                        className: 'absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600'
+                    }, '×')
+                ]) : React.createElement('div', {
+                    className: 'border-2 border-dashed border-gray-300 rounded p-8 text-center'
+                }, React.createElement('label', {
+                    className: 'cursor-pointer'
+                }, [
+                    React.createElement('input', {
+                        key: 'file',
+                        type: 'file',
+                        accept: 'image/*',
+                        onChange: handleImageChange,
+                        className: 'hidden'
+                    }),
+                    React.createElement('div', { key: 'content', className: 'text-gray-700' }, [
+                        React.createElement('p', { key: 'text', className: 'mb-2' }, 'Bild hochladen'),
+                        React.createElement('p', { key: 'subtext', className: 'text-sm text-gray-600' }, 'oder URL eingeben:'),
+                        React.createElement('input', {
+                            key: 'url',
+                            type: 'text',
+                            value: imageUrl,
+                            onChange: handleUrlChange,
+                            placeholder: 'https://...',
+                            className: 'mt-2 w-full px-3 py-2 border border-gray-300 rounded outline-none focus:border-blue-600'
+                        })
+                    ])
+                ]))
+            );
+        };
+
+        // Divider Block
+        const DividerBlock = () => {
+            return React.createElement('div', { className: 'divider-block my-6' },
+                React.createElement('hr', { className: 'border-t border-gray-300' })
+            );
+        };
+
+        // Block Component
+        const Block = ({ block, onUpdate, onDelete, onAddAfter, isLast }) => {
+            const [showMenu, setShowMenu] = useState(false);
+            const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+            const blockRef = useRef(null);
+            const inputRef = useRef(null);
+
+            useEffect(() => {
+                if (block.type === 'title' && inputRef.current) {
+                    inputRef.current.focus();
+                }
+            }, [block.type]);
+
+            const handleKeyDown = (e) => {
+                if (e.key === '/' && !showMenu) {
+                    if (block.content === '' || block.content.endsWith('/')) {
+                        e.preventDefault();
+                        const rect = blockRef.current?.getBoundingClientRect();
+                        if (rect) {
+                            setMenuPosition({
+                                top: rect.top + rect.height + window.scrollY,
+                                left: rect.left + window.scrollX,
+                            });
+                            setShowMenu(true);
+                        }
+                    }
+                } else if (e.key === 'Enter' && !e.shiftKey && block.type === 'text') {
+                    e.preventDefault();
+                    onAddAfter('text', block.id);
+                } else if (e.key === 'Backspace' && e.target.value === '' && block.type !== 'title') {
+                    e.preventDefault();
+                    onDelete(block.id);
+                } else if (e.key === 'Escape' && showMenu) {
+                    setShowMenu(false);
+                }
+            };
+
+            const handleComponentSelect = (componentType) => {
+                setShowMenu(false);
+                if (block.content === '' || block.content === '/' || block.content.trim() === '/') {
+                    onUpdate(block.id, '');
+                    onAddAfter(componentType, block.id);
+                    setTimeout(() => {
+                        onDelete(block.id);
+                    }, 0);
+                } else {
+                    onAddAfter(componentType, block.id);
+                }
+            };
+
+            const renderBlock = () => {
+                switch (block.type) {
+                    case 'title':
+                        return React.createElement(TitleBlock, {
+                            ref: inputRef,
+                            content: block.content,
+                            onChange: (content) => onUpdate(block.id, content),
+                            onKeyDown: handleKeyDown
+                        });
+                    case 'heading':
+                        return React.createElement(HeadingBlock, {
+                            ref: inputRef,
+                            content: block.content,
+                            onChange: (content) => onUpdate(block.id, content),
+                            onKeyDown: handleKeyDown
+                        });
+                    case 'text':
+                        return React.createElement(TextBlock, {
+                            ref: inputRef,
+                            content: block.content,
+                            onChange: (content) => onUpdate(block.id, content),
+                            onKeyDown: handleKeyDown
+                        });
+                    case 'table':
+                        return React.createElement(TableBlock, {
+                            content: block.content,
+                            onChange: (content) => onUpdate(block.id, content)
+                        });
+                    case 'list':
+                        return React.createElement(ListBlock, {
+                            content: block.content,
+                            onChange: (content) => onUpdate(block.id, content)
+                        });
+                    case 'image':
+                        return React.createElement(ImageBlock, {
+                            content: block.content,
+                            onChange: (content) => onUpdate(block.id, content)
+                        });
+                    case 'divider':
+                        return React.createElement(DividerBlock);
+                    default:
+                        return null;
+                }
+            };
+
+            return React.createElement('div', { ref: blockRef, className: 'block-wrapper mb-4 relative' }, [
+                renderBlock(),
+                showMenu && React.createElement(ComponentMenu, {
+                    key: 'menu',
+                    position: menuPosition,
+                    onSelect: handleComponentSelect,
+                    onClose: () => setShowMenu(false)
+                }),
+                isLast && React.createElement('div', {
+                    key: 'empty',
+                    className: 'empty-block h-8 cursor-text',
+                    onClick: () => {
+                        const rect = blockRef.current?.getBoundingClientRect();
+                        if (rect) {
+                            setMenuPosition({
+                                top: rect.top + rect.height + 32 + window.scrollY,
+                                left: rect.left + window.scrollX,
+                            });
+                            setShowMenu(true);
+                        }
+                    }
+                }, React.createElement('span', {
+                    className: 'text-gray-700 opacity-40 text-sm'
+                }, 'Tippe "/" für Komponenten...'))
+            ]);
+        };
+
+        // Editor Component
+        const Editor = () => {
+            const [blocks, setBlocks] = useState([
+                { id: '1', type: 'title', content: '' }
+            ]);
+
+            const addBlock = useCallback((type, afterId = null) => {
+                const newBlock = {
+                    id: Date.now().toString(),
+                    type,
+                    content: '',
+                };
+
+                setBlocks(prevBlocks => {
+                    if (afterId === null) {
+                        return [...prevBlocks, newBlock];
+                    }
+                    const index = prevBlocks.findIndex(b => b.id === afterId);
+                    return [
+                        ...prevBlocks.slice(0, index + 1),
+                        newBlock,
+                        ...prevBlocks.slice(index + 1),
+                    ];
+                });
+
+                return newBlock.id;
+            }, []);
+
+            const updateBlock = useCallback((id, content) => {
+                setBlocks(prevBlocks =>
+                    prevBlocks.map(block =>
+                        block.id === id ? { ...block, content } : block
+                    )
+                );
+            }, []);
+
+            const deleteBlock = useCallback((id) => {
+                setBlocks(prevBlocks => prevBlocks.filter(block => block.id !== id));
+            }, []);
+
+            return React.createElement('div', { className: 'editor' },
+                blocks.map((block, index) =>
+                    React.createElement(Block, {
+                        key: block.id,
+                        block,
+                        onUpdate: updateBlock,
+                        onDelete: deleteBlock,
+                        onAddAfter: addBlock,
+                        isLast: index === blocks.length - 1
+                    })
+                )
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            const componentRef = useRef(null);
+
+            const handlePrint = () => {
+                window.print();
+            };
+
+            return React.createElement('div', { className: 'min-h-screen bg-gray-100 flex flex-col' }, [
+                React.createElement('header', {
+                    key: 'header',
+                    className: 'bg-white shadow-sm border-b border-gray-300 p-4 flex justify-between items-center no-print'
+                }, [
+                    React.createElement('h1', {
+                        key: 'title',
+                        className: 'text-2xl font-bold text-gray-900'
+                    }, 'SOP Editor'),
+                    React.createElement('button', {
+                        key: 'print',
+                        onClick: handlePrint,
+                        className: 'bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium'
+                    }, 'PDF herunterladen')
+                ]),
+                React.createElement('main', {
+                    key: 'main',
+                    className: 'flex-grow p-8 overflow-auto no-print'
+                }, React.createElement('div', {
+                    className: 'max-w-4xl mx-auto'
+                }, React.createElement('div', {
+                    ref: componentRef,
+                    className: 'bg-white mx-auto p-12 shadow-lg rounded-lg print:shadow-none print:p-8',
+                    style: {
+                        width: '210mm',
+                        minHeight: '297mm',
+                        maxWidth: '100%'
+                    }
+                }, React.createElement(Editor))))
+            ]);
+        };
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+    </script>
+</body>
+</html>
+

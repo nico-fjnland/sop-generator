@@ -1,0 +1,685 @@
+/* Custom styles for the SOP Editor */
+
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  @page {
+    size: A4;
+    margin: 8mm; /* Equal margins on all sides */
+  }
+  
+  /* Add padding to all page containers to prevent caption boxes and icons from being cut off */
+  /* First page has less padding to match editor, but enough to show icons */
+  .page-container:first-child {
+    padding-top: 8mm !important;
+  }
+  
+  .page-container:not(:first-child) {
+    padding-top: 18mm !important;
+  }
+  
+  /* Header styles for print */
+  .sop-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    width: 100% !important;
+    margin-bottom: 1.5rem !important;
+  }
+  
+  /* Ensure all content is visible when printing */
+  .editor,
+  .editor *,
+  .block-wrapper,
+  .block-wrapper * {
+    visibility: visible !important;
+    color: #000 !important;
+  }
+  
+  /* Exception: preserve caption box border radius */
+  .content-box-block .caption-box-print {
+    border-radius: 6px !important;
+  }
+  
+  /* Preserve padding for content box content area - must be very specific */
+  .content-box-block .content-box-content,
+  .content-box-block > div > div.content-box-content {
+    padding-top: 24px !important;
+    padding-right: 26px !important;
+    padding-bottom: 20px !important;
+    padding-left: 26px !important;
+  }
+  
+  /* Ensure caption boxes are correctly positioned in print - centered on border */
+  /* Caption box height: 4px (top padding) + 12px (line-height) + 4px (bottom padding) = 20px */
+  /* Border is 1.5px thick, so to center: move up by (20px / 2) = 10px */
+  .content-box-block .caption-container {
+    left: 26px !important;
+    top: -10px !important; /* Center caption box on border (half of 20px height) */
+    position: absolute !important;
+    transform: none !important; /* Ensure no transforms that could shift position */
+  }
+  
+  /* Ensure caption box border radius matches editor exactly (6px) - very specific selector */
+  .content-box-block .caption-container .caption-box-print,
+  .content-box-block .caption-box-print[class*="print:block"],
+  .content-box-block .caption-container .hidden.print\:block {
+    border-radius: 6px !important;
+    -webkit-border-radius: 6px !important;
+    -moz-border-radius: 6px !important;
+    border-top-left-radius: 6px !important;
+    border-top-right-radius: 6px !important;
+    border-bottom-left-radius: 6px !important;
+    border-bottom-right-radius: 6px !important;
+  }
+  
+  /* Ensure the parent container allows absolute positioning */
+  .content-box-block > div > div[style*="borderColor"] {
+    position: relative !important;
+  }
+  
+  /* Prevent icon from being cut off in print - ensure all parent containers allow overflow */
+  .content-box-block,
+  .content-box-block > div,
+  .content-box-block > div > div {
+    overflow: visible !important;
+  }
+  
+  /* Specifically target the icon container */
+  .content-box-block .icon-container,
+  .content-box-block > div > div[class*="mr-[-14px]"],
+  .content-box-block > div > div[style*="margin-right: -14px"] {
+    margin-right: -14px !important;
+    overflow: visible !important;
+    clip-path: none !important;
+    clip: auto !important;
+  }
+  
+  /* Ensure page container and editor don't clip icons */
+  .page-container,
+  .editor {
+    overflow: visible !important;
+  }
+  
+  /* Caption boxes should have white text in print - override general black text rule */
+  .content-box-block div[class*="print:block"] p,
+  .content-box-block .hidden.print\:block p {
+    color: #fff !important;
+  }
+  
+  /* Ensure header text colors are correct in print */
+  .sop-header span[class*="print:inline"],
+  .sop-header div[class*="print:block"] {
+    color: #003366 !important;
+  }
+  
+  /* Ensure text blocks inside content boxes have correct color in print */
+  .content-box-block textarea,
+  .content-box-block div[style*="color: '#003366'"],
+  .content-box-block div[style*="color: \"#003366\""] {
+    color: #003366 !important;
+  }
+  
+  /* Keep text and borders visible */
+  input, textarea {
+    border: 1px solid transparent !important;
+    color: #000 !important;
+    background: transparent !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Make inputs look like text when printing */
+  input[type="text"],
+  textarea {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+  }
+  
+  /* Table styles for printing */
+  table, th, td {
+    border: 1px solid #000 !important;
+    color: #000 !important;
+    background: transparent !important;
+  }
+  
+  th {
+    background: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Ensure images are visible */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+  }
+
+  /* A4 Page Layout with padding */
+  .editor {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+
+  /* Page container with padding for print */
+  .page-container {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 12mm 8mm 12mm; /* Padding-top is set separately above, horizontal and bottom padding to prevent clipping */
+    min-height: auto;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important; /* Remove border radius in print */
+    page-break-after: always;
+    break-after: page;
+    box-sizing: border-box;
+  }
+  
+  /* Row layout for print - dynamically single or two column */
+  .block-row {
+    display: flex !important;
+    align-items: flex-start !important;
+  }
+  
+  .block-row.two-columns {
+    gap: 16px !important;
+  }
+  
+  .block-row.single-column {
+    gap: 0 !important;
+  }
+
+  /* Last page should not have page break after */
+  .page-container:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  /* Prevent content boxes from breaking across pages */
+  .content-box-block {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-bottom: 1.5rem !important; /* Increased spacing between boxes in print */
+    display: block;
+    overflow: visible !important; /* Allow icon to extend beyond container */
+  }
+
+  /* Ensure boxes don't break across pages */
+  .content-box-block > div {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Prevent blocks from breaking */
+  .block-wrapper {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  /* Ensure text inside content boxes maintains correct size and spacing in print */
+  /* Only apply to textarea and text divs, NOT the content container */
+  .content-box-block textarea {
+    font-size: 12px !important;
+    line-height: 18px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .content-box-block .block-wrapper > div[style*="fontSize: '12px'"],
+  .content-box-block .block-wrapper > div[style*="font-size: 12px"] {
+    font-size: 12px !important;
+    line-height: 18px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Ensure content area padding is correct in print - already set above, just ensure font size */
+  .content-box-block .content-box-content {
+    font-size: 12px !important;
+    line-height: 18px !important;
+  }
+  
+  /* Ensure text blocks inside content boxes have correct margins */
+  .content-box-block .block-wrapper {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .content-box-block textarea,
+  .content-box-block div[class*="mb-2"] {
+    margin-bottom: 0.5rem !important;
+  }
+}
+
+/* Screen view - simulate A4 pages with visible page breaks */
+@media screen {
+  .editor {
+    width: 210mm;
+    margin: 0 auto;
+    padding: 0;
+    background: #f5f5f5;
+  }
+  
+  /* Drag and Drop styles */
+.drop-indicator {
+  position: fixed;
+  height: 4px;
+  background: #3b82f6;
+  z-index: 10000;
+  pointer-events: none;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  will-change: top, left, width, height;
+}
+  
+  .drop-target {
+    opacity: 0.9;
+  }
+  
+  .dragging {
+    opacity: 0.5;
+    transform: scale(0.98);
+  }
+  
+.dragging-box {
+  opacity: 0.5 !important;
+  transform: scale(0.98);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  will-change: opacity, transform;
+}
+  
+  .icon-container:active {
+    cursor: grabbing !important;
+  }
+  
+  .content-box-block[draggable="true"] {
+    cursor: grab;
+  }
+  
+  .content-box-block[draggable="true"]:active {
+    cursor: grabbing;
+  }
+
+  /* Page container styling for screen view */
+  .page-container {
+    width: 210mm;
+    min-height: calc(297mm - 40mm); /* A4 height minus padding */
+    margin: 0 auto 20mm auto; /* Space between pages */
+    padding: 20mm 15mm;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    position: relative;
+    border-radius: 6px; /* Match the border radius of content boxes */
+    z-index: 10; /* Ensure page is above controls when hidden */
+  }
+
+  /* Visual page break indicator */
+  .page-break-indicator {
+    position: absolute;
+    top: -10mm;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: repeating-linear-gradient(
+      to right,
+      #3b82f6 0px,
+      #3b82f6 10px,
+      transparent 10px,
+      transparent 20px
+    );
+    pointer-events: none;
+  }
+
+  /* Page number indicator (optional) */
+  .page-container::before {
+    content: attr(data-page-number);
+    position: absolute;
+    top: 10mm;
+    right: 15mm;
+    color: #9ca3af;
+    font-size: 12px;
+    font-weight: 500;
+  }
+}
+
+/* Inline content editor styles */
+.content-editable[contenteditable="true"] {
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.content-editable[contenteditable="true"]:empty::before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+  pointer-events: none;
+  font-style: normal;
+}
+
+/* Floating toolbar for inline formatting */
+.inline-text-toolbar {
+  position: fixed;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 9999px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
+  transform: translate(-50%, -120%);
+  z-index: 10020;
+}
+
+.inline-toolbar-button {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.inline-toolbar-button:hover {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+}
+
+.inline-toolbar-button.active {
+  background: #003366;
+  color: #ffffff;
+}
+
+/* Row layout - dynamically single or two column */
+.block-row {
+  display: flex;
+  align-items: flex-start;
+}
+
+.block-row.two-columns {
+  gap: 20px;
+}
+
+.block-row.single-column {
+  gap: 0;
+}
+
+/* Notion-like box controls */
+.content-box-block {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.content-box-block:focus-within .notion-box-controls,
+.content-box-block:hover .notion-box-controls,
+.notion-box-controls:hover {
+  opacity: 1;
+  transform: translateX(-50px) translateY(-50%);
+  z-index: 5;
+  pointer-events: auto !important;
+  transition: opacity 0.15s ease, transform 0.15s ease, pointer-events 0s 0s !important;
+}
+
+.notion-box-controls {
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(0) translateY(-50%);
+  transition: opacity 0.15s ease 0.15s, transform 0.15s ease 0.15s, pointer-events 0s 0.3s;
+  z-index: 5;
+  will-change: opacity, transform;
+}
+
+/* Right column controls - positioned on the right side */
+.notion-box-controls-right {
+  left: auto;
+  right: -10px;
+  transform: translateX(0) translateY(-50%);
+  pointer-events: none;
+  transition: opacity 0.15s ease 0.15s, transform 0.15s ease 0.15s, pointer-events 0s 0.3s;
+  will-change: opacity, transform;
+}
+
+.content-box-block:focus-within .notion-box-controls-right,
+.content-box-block:hover .notion-box-controls-right,
+.notion-box-controls-right:hover {
+  opacity: 1;
+  transform: translateX(50px) translateY(-50%);
+  z-index: 5;
+  pointer-events: auto !important;
+  transition: opacity 0.15s ease, transform 0.15s ease, pointer-events 0s 0s !important;
+}
+
+.notion-control-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: none;
+  background: #ffffff;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateX(10px);
+  transition: transform 0.15s ease 0.15s, opacity 0.15s ease 0.15s;
+  pointer-events: auto;
+  will-change: opacity, transform;
+}
+
+/* Stagger effect for buttons appearing */
+/* First button (Drag) */
+.content-box-block:hover .notion-box-controls > .notion-control-button:nth-child(1),
+.content-box-block:focus-within .notion-box-controls > .notion-control-button:nth-child(1),
+.notion-box-controls:hover > .notion-control-button:nth-child(1) {
+  opacity: 1;
+  transform: translateX(0);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition-delay: 0s;
+}
+
+/* Second button (Add) - inside notion-control-with-menu wrapper - inherits from wrapper */
+.notion-control-with-menu .notion-control-button {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Third button (Delete) */
+.content-box-block:hover .notion-box-controls > .notion-control-button:nth-child(3),
+.content-box-block:focus-within .notion-box-controls > .notion-control-button:nth-child(3),
+.notion-box-controls:hover > .notion-control-button:nth-child(3) {
+  opacity: 1;
+  transform: translateX(0);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition-delay: 0.1s;
+}
+
+/* Right column stagger - reverse direction */
+.notion-box-controls-right .notion-control-button {
+  transform: translateX(-10px);
+  transition: transform 0.15s ease 0.15s, opacity 0.15s ease 0.15s;
+}
+
+/* First button (Drag) - right column */
+.content-box-block:hover .notion-box-controls-right > .notion-control-button:nth-child(1),
+.content-box-block:focus-within .notion-box-controls-right > .notion-control-button:nth-child(1),
+.notion-box-controls-right:hover > .notion-control-button:nth-child(1) {
+  opacity: 1;
+  transform: translateX(0);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition-delay: 0s;
+}
+
+/* Second button (Add) - right column - inside notion-control-with-menu wrapper - inherits from wrapper */
+.notion-box-controls-right .notion-control-with-menu .notion-control-button {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Third button (Delete) - right column */
+.content-box-block:hover .notion-box-controls-right > .notion-control-button:nth-child(3),
+.content-box-block:focus-within .notion-box-controls-right > .notion-control-button:nth-child(3),
+.notion-box-controls-right:hover > .notion-control-button:nth-child(3) {
+  opacity: 1;
+  transform: translateX(0);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition-delay: 0.1s;
+}
+
+.notion-control-button:hover {
+  transform: scale(1.05) !important;
+  opacity: 1 !important;
+}
+
+.notion-control-button:active {
+  transform: scale(0.97);
+}
+
+.notion-control-button[draggable="true"] {
+  cursor: grab;
+}
+
+.notion-control-button[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.notion-box-shell {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.content-box-block:hover .notion-box-shell,
+.content-box-block:focus-within .notion-box-shell {
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.notion-control-with-menu {
+  position: relative;
+  opacity: 0;
+  transform: translateX(10px);
+  transition: transform 0.15s ease 0.15s, opacity 0.15s ease 0.15s;
+  pointer-events: auto;
+  will-change: opacity, transform;
+}
+
+/* Stagger for the wrapper itself */
+.content-box-block:hover .notion-control-with-menu,
+.content-box-block:focus-within .notion-control-with-menu,
+.notion-box-controls:hover .notion-control-with-menu {
+  opacity: 1;
+  transform: translateX(0);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition-delay: 0.05s;
+}
+
+/* Right column wrapper stagger */
+.notion-box-controls-right .notion-control-with-menu {
+  transform: translateX(-10px);
+  transition: transform 0.15s ease 0.15s, opacity 0.15s ease 0.15s;
+}
+
+.content-box-block:hover .notion-box-controls-right .notion-control-with-menu,
+.content-box-block:focus-within .notion-box-controls-right .notion-control-with-menu,
+.notion-box-controls-right:hover .notion-control-with-menu {
+  opacity: 1;
+  transform: translateX(0);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition-delay: 0.05s;
+}
+
+.notion-add-box-menu {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 0;
+  width: 220px;
+  max-height: 300px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
+  padding: 10px;
+  z-index: 10000;
+}
+
+.notion-add-box-menu__label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.notion-add-box-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 4px 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.notion-add-box-menu__item:hover:not(.disabled) {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.notion-add-box-menu__item.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.notion-add-box-menu__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
+.notion-add-box-menu__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.notion-add-box-menu__text {
+  flex: 1;
+  text-align: left;
+}
+
+.notion-add-box-menu__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #3399FF;
+  margin-left: auto;
+}
+
+
