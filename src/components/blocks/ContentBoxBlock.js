@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GripVertical, X, Plus, Check } from 'lucide-react';
 import Block from '../Block';
 import { CategoryIcons } from '../icons/CategoryIcons';
+import { useDropdownPosition } from '../../hooks/useDropdownPosition';
+import { useClickOutside } from '../../hooks/useClickOutside';
 
 // Category configurations based on Figma design
 export const CATEGORIES = [
@@ -88,6 +90,7 @@ const ContentBoxBlock = ({
   usedCategories = [],
   onAddBoxAfter,
   isRightColumn = false,
+  iconOnRight = false,
 }) => {
   // Initialize content structure helper
   const getInitializedContent = (contentToInit) => {
@@ -108,12 +111,40 @@ const ContentBoxBlock = ({
   const [innerBlocks, setInnerBlocks] = useState(
     initialContent.blocks || [{ id: Date.now().toString(), type: 'text', content: '' }]
   );
+  // OPTIMIZED: Grouped related state together
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAddBoxMenuOpen, setIsAddBoxMenuOpen] = useState(false);
-  const dropdownRef = useRef(null);
   const captionRef = useRef(null);
   const addBoxButtonRef = useRef(null);
-  const addBoxMenuRef = useRef(null);
+  
+  // Collision detection for caption dropdown
+  const { dropdownRef: captionDropdownRef, position: captionPosition } = useDropdownPosition(
+    isDropdownOpen,
+    captionRef,
+    'bottom',
+    4
+  );
+  
+  // Collision detection for add box dropdown
+  const { dropdownRef: addBoxDropdownRef, position: addBoxPosition } = useDropdownPosition(
+    isAddBoxMenuOpen,
+    addBoxButtonRef,
+    'right',
+    10
+  );
+  
+  // OPTIMIZED: Use custom useClickOutside hook to consolidate duplicate logic
+  useClickOutside(
+    [captionDropdownRef, captionRef],
+    () => setIsDropdownOpen(false),
+    isDropdownOpen
+  );
+  
+  useClickOutside(
+    [addBoxDropdownRef, addBoxButtonRef],
+    () => setIsAddBoxMenuOpen(false),
+    isAddBoxMenuOpen
+  );
   
   // Use ref to track if we're updating from parent to prevent infinite loop
   const isUpdatingFromParent = useRef(false);
@@ -211,26 +242,7 @@ const ContentBoxBlock = ({
     });
   }, [selectedCategory, updateContent]);
 
-  // Handle click outside to close dropdown
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target) &&
-        captionRef.current &&
-        !captionRef.current.contains(event.target)
-      ) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    if (isDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [isDropdownOpen]);
+  // REMOVED: Old click-outside logic - now using useClickOutside hook
 
   const handleCaptionClick = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -254,26 +266,7 @@ const ContentBoxBlock = ({
     setIsAddBoxMenuOpen(false);
   };
 
-  useEffect(() => {
-    if (!isAddBoxMenuOpen) {
-      return;
-    }
-    const handleClickOutside = (event) => {
-      if (
-        addBoxMenuRef.current &&
-        !addBoxMenuRef.current.contains(event.target) &&
-        addBoxButtonRef.current &&
-        !addBoxButtonRef.current.contains(event.target)
-      ) {
-        setIsAddBoxMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isAddBoxMenuOpen]);
+  // REMOVED: Old click-outside logic - now using useClickOutside hook
 
   return (
     <div 
@@ -288,7 +281,7 @@ const ContentBoxBlock = ({
     >
       {/* Hover controls similar to Notion */}
       <div 
-        className={`notion-box-controls no-print ${isRightColumn ? 'notion-box-controls-right' : ''}`} 
+        className={`notion-box-controls no-print ${!isRightColumn ? 'notion-box-controls-left' : ''}`} 
         style={{ zIndex: isAddBoxMenuOpen ? 10001 : undefined }}
       >
         <button
@@ -333,7 +326,7 @@ const ContentBoxBlock = ({
             <Plus className="h-4 w-4 text-white" strokeWidth={2} />
           </button>
           {isAddBoxMenuOpen && (
-            <div className="notion-add-box-menu" ref={addBoxMenuRef}>
+            <div className="notion-add-box-menu" ref={addBoxDropdownRef} style={addBoxPosition}>
               <div className="notion-add-box-menu__label">Box hinzufügen</div>
               {CATEGORIES.map((cat) => {
                 const isUsed = usedCategories.includes(cat.id);
@@ -381,11 +374,11 @@ const ContentBoxBlock = ({
         </button>
       </div>
 
-      {/* Content Box - Figma Structure: Icon left, Box right, Caption on top border */}
-      <div className={`flex items-center mb-[-7px] relative w-full ${isRightColumn ? 'flex-row-reverse' : ''}`} style={{ overflow: 'visible' }}>
-        {/* Icon on the left (or right if isRightColumn) - Oval - Draggable (Editor only) */}
+      {/* Content Box - Figma Structure: Icon left (or right for right column in two-column layout), Box, Caption on top border */}
+      <div className={`flex items-center mb-[-7px] relative w-full ${iconOnRight ? 'flex-row-reverse' : ''}`} style={{ overflow: 'visible' }}>
+        {/* Icon - Oval - Draggable (Editor only) */}
         <div 
-          className={`icon-container flex items-center justify-center ${isRightColumn ? 'ml-[-14px]' : 'mr-[-14px]'} relative shrink-0 z-10 no-print`} 
+          className={`icon-container flex items-center justify-center ${iconOnRight ? 'ml-[-14px]' : 'mr-[-14px]'} relative shrink-0 z-10 no-print`} 
           style={{ overflow: 'visible', cursor: 'grab' }}
           draggable={true}
           onDragStart={(e) => {
@@ -432,7 +425,7 @@ const ContentBoxBlock = ({
         
         {/* Icon for print */}
         <div 
-          className={`hidden print:flex items-center justify-center ${isRightColumn ? 'ml-[-14px]' : 'mr-[-14px]'} relative shrink-0 z-10`}
+          className={`hidden print:flex items-center justify-center ${iconOnRight ? 'ml-[-14px]' : 'mr-[-14px]'} relative shrink-0 z-10`}
           style={{ overflow: 'visible' }}
         >
           <div 
@@ -502,9 +495,9 @@ const ContentBoxBlock = ({
                 {/* Dropdown Menu - only in editor */}
                 {isDropdownOpen && (
                   <div
-                    ref={dropdownRef}
+                    ref={captionDropdownRef}
                     className="notion-add-box-menu no-print"
-                    style={{ position: 'absolute', top: '100%', left: '0', marginTop: '4px', zIndex: 10000 }}
+                    style={{ ...captionPosition, zIndex: 10000 }}
                   >
                     <div className="notion-add-box-menu__label">Box hinzufügen</div>
                     {CATEGORIES.map((cat) => {

@@ -1,35 +1,32 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { debounce } from '../utils/performance';
+import { PAGE, FOOTER } from '../constants/layout';
 
-// A4 page height in pixels (297mm at 96 DPI ≈ 1123px)
-// Account for margins and padding: 297mm - 40mm (top/bottom padding) = 257mm
-// At 96 DPI: 257mm ≈ 970px
-const A4_PAGE_HEIGHT_PX = 970; // Printable height for one A4 page with padding
-
-export const usePageBreaks = (blocks, containerRef) => {
+export const usePageBreaks = (blocks, containerRef, footerVariant = 'tiny') => {
   const blockRefs = useRef({});
   const [pageBreaks, setPageBreaks] = useState({});
 
-  useEffect(() => {
-    if (!containerRef.current || blocks.length === 0) return;
+  // Memoize the debounced calculation function
+  const debouncedCalculate = useMemo(
+    () => debounce(() => {
+      if (!containerRef.current || blocks.length === 0) return;
 
-    // Function to calculate and set page breaks
-    const calculatePageBreaks = () => {
       const newPageBreaks = {};
       let currentPageHeight = 0;
-      let isNewPage = true; // Track if we're starting a new page
+      let isNewPage = true;
       
-      // Account for page container padding (20mm top + 20mm bottom = 40mm ≈ 151px at 96 DPI)
-      // But we only need to account for top padding when starting a new page
-      const PAGE_TOP_PADDING = 20; // Top padding in pixels (20mm)
+      // Get footer height for current variant
+      const footerHeight = FOOTER.HEIGHTS[footerVariant] || FOOTER.HEIGHTS.tiny;
+      
+      // Calculate available height per page (total height minus footer)
+      const availablePageHeight = PAGE.HEIGHT_PX - footerHeight;
       
       blocks.forEach((block, index) => {
         const blockRef = blockRefs.current[block.id];
         if (!blockRef || !blockRef.current) {
-          // If block ref is not ready, skip but continue with next block
           return;
         }
 
-        // Get the actual rendered height of the block including margins
         const blockElement = blockRef.current;
         const blockHeight = blockElement.offsetHeight;
         const blockMarginBottom = parseInt(window.getComputedStyle(blockElement).marginBottom) || 0;
@@ -37,51 +34,52 @@ export const usePageBreaks = (blocks, containerRef) => {
         
         // If starting a new page, add top padding
         if (isNewPage) {
-          currentPageHeight = PAGE_TOP_PADDING;
+          currentPageHeight = PAGE.TOP_PADDING;
           isNewPage = false;
         }
         
-        // Check if adding this block would exceed page height
-        if (index > 0 && currentPageHeight + totalBlockHeight > A4_PAGE_HEIGHT_PX) {
-          // Add page break before this block
+        // Check if adding this block would exceed available page height
+        if (index > 0 && currentPageHeight + totalBlockHeight > availablePageHeight) {
           newPageBreaks[block.id] = true;
-          isNewPage = true; // Mark that we're starting a new page
-          currentPageHeight = PAGE_TOP_PADDING + totalBlockHeight; // Start new page with this block
+          isNewPage = true;
+          currentPageHeight = PAGE.TOP_PADDING + totalBlockHeight;
         } else {
-          // Add block to current page
           currentPageHeight += totalBlockHeight;
         }
       });
 
       setPageBreaks(newPageBreaks);
-    };
+    }, 150), // 150ms debounce
+    [blocks, footerVariant]
+  );
 
-    // Initial calculation with delay to ensure DOM is rendered
-    const timeoutId = setTimeout(calculatePageBreaks, 100);
+  useEffect(() => {
+    if (!containerRef.current || blocks.length === 0) return;
 
-    // Also recalculate when window is resized or content changes
-    window.addEventListener('resize', calculatePageBreaks);
+    // Initial calculation with small delay to ensure DOM is rendered
+    const timeoutId = setTimeout(() => debouncedCalculate(), 100);
+
+    // Resize handler - use the debounced function
+    window.addEventListener('resize', debouncedCalculate);
     
-    // Use MutationObserver to detect content changes
-    const observer = new MutationObserver(() => {
-      setTimeout(calculatePageBreaks, 50);
-    });
+    // MutationObserver with debounced callback - much more performant
+    const observer = new MutationObserver(debouncedCalculate);
 
     if (containerRef.current) {
       observer.observe(containerRef.current, {
         childList: true,
         subtree: true,
-        attributes: true,
-        attributeFilter: ['style', 'class']
+        // Remove 'attributes' to reduce triggers - we mainly care about structure changes
+        attributeFilter: ['style'] // Only watch style changes
       });
     }
 
     return () => {
       clearTimeout(timeoutId);
-      window.removeEventListener('resize', calculatePageBreaks);
+      window.removeEventListener('resize', debouncedCalculate);
       observer.disconnect();
     };
-  }, [blocks, containerRef]);
+  }, [blocks, containerRef, footerVariant, debouncedCalculate]);
 
   const setBlockRef = (blockId, ref) => {
     if (ref) {

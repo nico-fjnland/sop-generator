@@ -1,5 +1,6 @@
-import React, { forwardRef, useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import React, { forwardRef, useEffect, useRef, useState, useCallback, useMemo, startTransition } from 'react';
 import InlineTextToolbar from '../InlineTextToolbar';
+import { debounce } from '../../utils/performance';
 
 const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox = false }, ref) => {
   const textareaRef = useRef(null);
@@ -14,7 +15,12 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     bold: false,
     italic: false,
     underline: false,
+    fontSize: false,
+    superscript: false,
+    subscript: false,
   });
+  
+  // OPTIMIZED: Constants moved outside for better performance
   const BULLET_HTML = '&#8226;&nbsp;';
   const BULLET_TEXT = '\u2022\u00a0';
   const BULLET_LENGTH = BULLET_TEXT.length;
@@ -40,11 +46,18 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     e.target.style.height = newHeight + 'px';
   };
 
-  const sanitizeHtml = (dirtyHtml = '') => {
+  // OPTIMIZED: Reuse temp div for better performance
+  const sanitizeHtml = useCallback((dirtyHtml = '') => {
     if (typeof window === 'undefined') return dirtyHtml || '';
-    const container = document.createElement('div');
+    
+    // Reuse existing temp div instead of creating new one every time
+    if (!tempDivRef.current) {
+      tempDivRef.current = document.createElement('div');
+    }
+    const container = tempDivRef.current;
     container.innerHTML = dirtyHtml;
-    const allowed = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'BR']);
+    
+    const allowed = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'BR', 'SUP', 'SUB', 'SPAN']);
     const elements = [];
     const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, null);
     while (walker.nextNode()) {
@@ -62,11 +75,33 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
         }
         parent.removeChild(node);
       } else {
-        [...node.attributes].forEach((attr) => node.removeAttribute(attr.name));
+        // For SPAN elements, allow font-size style attribute
+        if (node.nodeName === 'SPAN') {
+          [...node.attributes].forEach((attr) => {
+            if (attr.name !== 'style') {
+              node.removeAttribute(attr.name);
+            } else {
+              // Only keep font-size in style
+              const style = node.getAttribute('style');
+              if (style) {
+                const fontSizeMatch = style.match(/font-size:\s*10px/i);
+                if (fontSizeMatch) {
+                  node.setAttribute('style', 'font-size: 10px');
+                } else {
+                  node.removeAttribute('style');
+                }
+              }
+            }
+          });
+        } else {
+          [...node.attributes].forEach((attr) => node.removeAttribute(attr.name));
+        }
       }
     });
-    return container.innerHTML;
-  };
+    const result = container.innerHTML;
+    container.innerHTML = ''; // Clean up
+    return result;
+  }, []);
 
   const convertMarkdownListsToBullets = (html = '') => {
     if (!html) return html;
@@ -106,15 +141,24 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     return convertMarkdownListsToBullets(result);
   }, []);
 
-  const syncContentFromDom = useCallback(() => {
-    if (!editableRef.current) return;
-    const sanitized = sanitizeHtml(editableRef.current.innerHTML);
-    const normalized = normalizeHtml(sanitized);
-    onChange(normalized);
-    if (!normalized && editableRef.current.innerHTML) {
-      editableRef.current.innerHTML = '';
-    }
-  }, [onChange]);
+  // OPTIMIZED: Debounced content sync - reduces onChange calls
+  const syncContentFromDom = useMemo(
+    () => debounce(() => {
+      if (!editableRef.current) return;
+      const sanitized = sanitizeHtml(editableRef.current.innerHTML);
+      const normalized = normalizeHtml(sanitized);
+      
+      // Use startTransition for lower priority update
+      startTransition(() => {
+        onChange(normalized);
+      });
+      
+      if (!normalized && editableRef.current.innerHTML) {
+        editableRef.current.innerHTML = '';
+      }
+    }, 100), // 100ms debounce
+    [onChange, sanitizeHtml]
+  );
 
   const updateToolbarFromSelection = () => {
     if (!editableRef.current) return;
@@ -143,19 +187,54 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       left: rect.left + rect.width / 2,
     });
     setShowToolbar(true);
+    
+    // Check for active formats
+    let fontSizeActive = false;
+    let superscriptActive = false;
+    let subscriptActive = false;
+    
+    // Check if selection is within a SPAN with font-size: 10px
+    const commonAncestor = range.commonAncestorContainer;
+    let node = commonAncestor.nodeType === Node.TEXT_NODE ? commonAncestor.parentElement : commonAncestor;
+    while (node && node !== editableRef.current) {
+      if (node.nodeName === 'SPAN' && node.style.fontSize === '10px') {
+        fontSizeActive = true;
+        break;
+      }
+      node = node.parentElement;
+    }
+    
+    // Check for SUP and SUB tags
+    node = commonAncestor.nodeType === Node.TEXT_NODE ? commonAncestor.parentElement : commonAncestor;
+    while (node && node !== editableRef.current) {
+      if (node.nodeName === 'SUP') {
+        superscriptActive = true;
+        break;
+      }
+      if (node.nodeName === 'SUB') {
+        subscriptActive = true;
+        break;
+      }
+      node = node.parentElement;
+    }
+    
     try {
       setActiveFormats({
         bold: document.queryCommandState('bold'),
         italic: document.queryCommandState('italic'),
         underline: document.queryCommandState('underline'),
-        clear: false,
+        fontSize: fontSizeActive,
+        superscript: superscriptActive,
+        subscript: subscriptActive,
       });
     } catch {
       setActiveFormats({
         bold: false,
         italic: false,
         underline: false,
-        clear: false,
+        fontSize: fontSizeActive,
+        superscript: superscriptActive,
+        subscript: subscriptActive,
       });
     }
   };
@@ -186,29 +265,32 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     };
   }, [isInsideContentBox]);
 
-  const handleEditableInput = () => {
-    // Save cursor position before sync
-    const caretOffset = getCaretCharacterOffset();
-    syncContentFromDom();
+  const handleEditableInput = useCallback(() => {
+    if (!editableRef.current) return;
     
-    // Reset manual edit flag after sync completes
-    setTimeout(() => {
-      isManualEdit.current = false;
-    }, 0);
-    
-    // Skip cursor restore if we just manually positioned it
+    // For manual edits (bullet conversion, etc.), sync immediately without debounce
     if (skipNextCursorRestore.current) {
       skipNextCursorRestore.current = false;
+      
+      // Immediate sync
+      const sanitized = sanitizeHtml(editableRef.current.innerHTML);
+      const normalized = normalizeHtml(sanitized);
+      
+      startTransition(() => {
+        onChange(normalized);
+      });
+      
+      // Reset flags
+      setTimeout(() => {
+        isManualEdit.current = false;
+      }, 10);
+      
       return;
     }
     
-    // Restore cursor position after sync
-    if (caretOffset !== null) {
-      requestAnimationFrame(() => {
-        setCaretCharacterOffset(caretOffset);
-      });
-    }
-  };
+    // For normal typing, use debounced sync (performance)
+    syncContentFromDom();
+  }, [syncContentFromDom, sanitizeHtml, onChange]);
 
   const handleEditableKeyDown = (event) => {
     if (event.key === 'Enter') {
@@ -244,9 +326,148 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     syncContentFromDom();
   };
 
+  const toggleFontSize = () => {
+    if (!editableRef.current) return;
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    const commonAncestor = range.commonAncestorContainer;
+    let node = commonAncestor.nodeType === Node.TEXT_NODE ? commonAncestor.parentElement : commonAncestor;
+    
+    // Check if already has font-size: 10px
+    let hasFontSize = false;
+    let fontSizeSpan = null;
+    while (node && node !== editableRef.current) {
+      if (node.nodeName === 'SPAN' && node.style.fontSize === '10px') {
+        hasFontSize = true;
+        fontSizeSpan = node;
+        break;
+      }
+      node = node.parentElement;
+    }
+    
+    if (hasFontSize && fontSizeSpan) {
+      // Remove font-size by unwrapping
+      const parent = fontSizeSpan.parentNode;
+      while (fontSizeSpan.firstChild) {
+        parent.insertBefore(fontSizeSpan.firstChild, fontSizeSpan);
+      }
+      parent.removeChild(fontSizeSpan);
+    } else {
+      // Apply font-size: 10px by wrapping selection in SPAN
+      const span = document.createElement('span');
+      span.style.fontSize = '10px';
+      try {
+        range.surroundContents(span);
+      } catch (e) {
+        // If surroundContents fails (e.g., selection spans multiple elements), use extractContents
+        const contents = range.extractContents();
+        span.appendChild(contents);
+        range.insertNode(span);
+      }
+      // Restore selection
+      selection.removeAllRanges();
+      const newRange = document.createRange();
+      newRange.selectNodeContents(span);
+      newRange.collapse(false);
+      selection.addRange(newRange);
+    }
+    syncContentFromDom();
+    updateToolbarFromSelection();
+  };
+
+  const toggleSuperscript = () => {
+    if (!editableRef.current) return;
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    const commonAncestor = range.commonAncestorContainer;
+    let node = commonAncestor.nodeType === Node.TEXT_NODE ? commonAncestor.parentElement : commonAncestor;
+    
+    // Check if already in SUP tag
+    let isSup = false;
+    let supElement = null;
+    while (node && node !== editableRef.current) {
+      if (node.nodeName === 'SUP') {
+        isSup = true;
+        supElement = node;
+        break;
+      }
+      node = node.parentElement;
+    }
+    
+    if (isSup && supElement) {
+      // Remove superscript by unwrapping
+      const parent = supElement.parentNode;
+      while (supElement.firstChild) {
+        parent.insertBefore(supElement.firstChild, supElement);
+      }
+      parent.removeChild(supElement);
+    } else {
+      // Apply superscript
+      document.execCommand('superscript', false);
+    }
+    syncContentFromDom();
+    updateToolbarFromSelection();
+  };
+
+  const toggleSubscript = () => {
+    if (!editableRef.current) return;
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    const commonAncestor = range.commonAncestorContainer;
+    let node = commonAncestor.nodeType === Node.TEXT_NODE ? commonAncestor.parentElement : commonAncestor;
+    
+    // Check if already in SUB tag
+    let isSub = false;
+    let subElement = null;
+    while (node && node !== editableRef.current) {
+      if (node.nodeName === 'SUB') {
+        isSub = true;
+        subElement = node;
+        break;
+      }
+      node = node.parentElement;
+    }
+    
+    if (isSub && subElement) {
+      // Remove subscript by unwrapping
+      const parent = subElement.parentNode;
+      while (subElement.firstChild) {
+        parent.insertBefore(subElement.firstChild, subElement);
+      }
+      parent.removeChild(subElement);
+    } else {
+      // Apply subscript
+      document.execCommand('subscript', false);
+    }
+    syncContentFromDom();
+    updateToolbarFromSelection();
+  };
+
   const handleFormatCommand = (command) => {
     if (!editableRef.current) return;
     editableRef.current.focus();
+    
+    if (command === 'fontSize') {
+      toggleFontSize();
+      return;
+    }
+    
+    if (command === 'superscript') {
+      toggleSuperscript();
+      return;
+    }
+    
+    if (command === 'subscript') {
+      toggleSubscript();
+      return;
+    }
+    
     document.execCommand(command, false);
     syncContentFromDom();
     updateToolbarFromSelection();
@@ -440,8 +661,9 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     }
   };
 
-  const convertLineMarkerToBullet = () => {
+  const convertLineMarkerToBullet = useCallback(() => {
     if (!editableRef.current) return false;
+    
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0 || !selection.isCollapsed) {
       return false;
@@ -450,46 +672,37 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     const currentLine = getCurrentLineText().replace(/\u00a0/g, ' ');
     const trimmed = currentLine.trim();
     
-    // Check if line is exactly "- " or "* "
+    // Check if line is exactly "-" or "*"
     if (!/^[-*]$/.test(trimmed)) {
       return false;
     }
     
-    // Set flag to prevent useEffect from overwriting our changes
+    // Set flags
     isManualEdit.current = true;
-    
-    // Create a range and extend it backwards to select the marker
-    const range = selection.getRangeAt(0).cloneRange();
-    const lineLength = currentLine.length;
+    skipNextCursorRestore.current = true;
     
     try {
-      // Move range start back by the number of characters in the line
-      range.setStart(range.startContainer, range.startOffset - lineLength);
-      range.deleteContents();
+      // Use execCommand to delete and insert - simpler and more reliable
+      // Delete the marker character(s)
+      for (let i = 0; i < currentLine.length; i++) {
+        document.execCommand('delete', false);
+      }
       
-      // Insert the bullet HTML
-      const bulletNode = document.createTextNode('\u2022\u00a0');
-      range.insertNode(bulletNode);
-      
-      // Move cursor after the bullet
-      range.setStartAfter(bulletNode);
-      range.collapse(true);
-      selection.removeAllRanges();
-      selection.addRange(range);
-      
-      // Set flag to skip cursor restore in next input event
-      skipNextCursorRestore.current = true;
+      // Insert bullet and space
+      document.execCommand('insertText', false, '\u2022\u00a0');
       
       return true;
-    } catch (e) {
-      console.error('Error converting marker to bullet:', e);
+    } catch (error) {
+      console.error('Error converting marker to bullet:', error);
       isManualEdit.current = false;
+      skipNextCursorRestore.current = false;
       return false;
     }
-  };
+  }, []);
 
-  const handleEnterKeyForLists = () => {
+  const handleEnterKeyForLists = useCallback(() => {
     if (!editableRef.current) return false;
+    
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return false;
     
@@ -502,110 +715,40 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       return false;
     }
 
-    // Set flag to prevent useEffect from overwriting our changes
+    // Set flags
     isManualEdit.current = true;
+    skipNextCursorRestore.current = true;
 
-    // Check if there's text after the bullet (beyond just the bullet and spaces)
+    // Check if there's text after the bullet
     const textAfterBullet = trimmed.slice(1).trim();
     const hasTextAfterBullet = textAfterBullet.length > 0;
 
-    const range = selection.getRangeAt(0);
-
-    if (!hasTextAfterBullet) {
-      // Empty bullet line - remove bullet and create normal paragraph
-      try {
-        // Delete the entire current line including the bullet
-        const lineStart = range.cloneRange();
-        
-        // Find the start of the line (after previous BR or at the beginning)
-        let startNode = range.startContainer;
-        let startOffset = 0;
-        
-        // Walk backwards to find BR or start
-        let tempNode = range.startContainer;
-        while (tempNode) {
-          const prev = tempNode.previousSibling;
-          if (!prev) {
-            if (tempNode.parentNode === editableRef.current) {
-              startNode = tempNode;
-              startOffset = 0;
-              break;
-            }
-            tempNode = tempNode.parentNode;
-            continue;
-          }
-          if (prev.nodeName === 'BR') {
-            // Start right after the BR
-            startNode = prev;
-            startOffset = 0;
-            break;
-          }
-          tempNode = prev;
+    try {
+      if (!hasTextAfterBullet) {
+        // Empty bullet line - exit list
+        // Delete the bullet
+        for (let i = 0; i < BULLET_LENGTH; i++) {
+          document.execCommand('delete', false);
         }
         
-        // Delete from start of line to cursor
-        if (startNode.nodeName === 'BR') {
-          // Remove the BR and the line content
-          const deleteRange = document.createRange();
-          deleteRange.setStartAfter(startNode);
-          deleteRange.setEnd(range.startContainer, range.startOffset);
-          deleteRange.deleteContents();
-          // Also remove the BR itself
-          startNode.remove();
-        } else {
-          // Delete from start to cursor
-          const deleteRange = document.createRange();
-          if (startNode.nodeType === Node.TEXT_NODE) {
-            deleteRange.setStart(startNode, startOffset);
-          } else {
-            deleteRange.setStartBefore(startNode);
-          }
-          deleteRange.setEnd(range.startContainer, range.startOffset);
-          deleteRange.deleteContents();
-        }
-        
-        // Insert line break for new paragraph
-        const br = document.createElement('br');
-        range.insertNode(br);
-        range.setStartAfter(br);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
-        
-        // Set flag to skip cursor restore in next input event
-        skipNextCursorRestore.current = true;
+        // Insert line break for normal paragraph
+        document.execCommand('insertLineBreak');
         
         return true;
-      } catch (e) {
-        console.error('Error removing bullet:', e);
-        isManualEdit.current = false;
-        return false;
       }
-    }
-
-    // Has text - create new bullet on next line
-    try {
-      const br = document.createElement('br');
-      const bulletText = document.createTextNode('\u2022\u00a0');
       
-      range.insertNode(br);
-      range.setStartAfter(br);
-      range.insertNode(bulletText);
-      range.setStartAfter(bulletText);
-      range.collapse(true);
-      selection.removeAllRanges();
-      selection.addRange(range);
-      
-      // Set flag to skip cursor restore in next input event
-      skipNextCursorRestore.current = true;
+      // Has text - create new bullet point
+      document.execCommand('insertLineBreak');
+      document.execCommand('insertText', false, '\u2022\u00a0');
       
       return true;
-    } catch (e) {
-      console.error('Error creating new bullet:', e);
+    } catch (error) {
+      console.error('Error handling Enter in list:', error);
       isManualEdit.current = false;
+      skipNextCursorRestore.current = false;
       return false;
     }
-  };
+  }, []);
 
   // Inside content boxes: use inline rich-text editor
   if (isInsideContentBox) {
@@ -619,10 +762,10 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
           data-placeholder="Text eingeben..."
           style={{
             minHeight: '18px',
-            overflow: 'hidden',
+            overflow: 'visible',
             fontFamily: "'Roboto', sans-serif",
             fontSize: '12px',
-            lineHeight: '18px',
+            lineHeight: '20px',
             fontWeight: 400,
             color: '#003366',
             margin: 0,

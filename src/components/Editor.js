@@ -1,15 +1,15 @@
-import React, { useState, useCallback, useRef, useEffect, memo } from 'react';
+import React, { useState, useCallback, useRef, useEffect, memo, useMemo } from 'react';
 import Block from './Block';
 import SOPHeader from './SOPHeader';
+import SOPFooter from './SOPFooter';
 import { usePageBreaks } from '../hooks/usePageBreaks';
 
 // Wrapper component for blocks to handle refs
-const BlockWrapper = memo(({ block, pageBreak, onUpdate, onDelete, onAddAfter, setBlockRef, onMove, allBlocks, getUsedCategories, isRightColumn = false }) => {
+const BlockWrapper = memo(({ block, pageBreak, onUpdate, onDelete, onAddAfter, setBlockRef, onMove, allBlocks, usedCategories = [], isRightColumn = false, iconOnRight = false }) => {
   const blockRef = useRef(null);
   const indicatorRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-  const usedCategories = getUsedCategories ? getUsedCategories() : [];
   
   useEffect(() => {
     if (blockRef.current) {
@@ -17,87 +17,27 @@ const BlockWrapper = memo(({ block, pageBreak, onUpdate, onDelete, onAddAfter, s
     }
   }, [block.id, setBlockRef]);
 
-  const handleDragStart = (e) => {
+  const handleDragStart = useCallback((e) => {
     if (block.type !== 'contentbox') return;
     setIsDragging(true);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', block.id);
     e.dataTransfer.setData('blockId', block.id);
-    e.dataTransfer.setData('application/react-dnd', block.id);
     
-    // Store blockId for later use - store on the wrapper div
+    // Store blockId for later use
     if (blockRef.current) {
       blockRef.current.setAttribute('data-dragged-block-id', block.id);
     }
     
-    // Create a custom drag image showing both icon and textbox, but shadow only on textbox
-    if (blockRef.current) {
-      // Find the content-box-block element inside the wrapper
-      const contentBox = blockRef.current.querySelector('.content-box-block');
-      if (!contentBox) return;
-      
-      // Find the flex container that holds both icon and textbox
-      const flexContainer = contentBox.querySelector('div.flex.items-center');
-      
-      if (!flexContainer) return;
-      
-      // Clone the entire flex container (icon + textbox)
-      const dragImage = flexContainer.cloneNode(true);
-      dragImage.style.width = `${flexContainer.offsetWidth}px`;
-      dragImage.style.maxWidth = `${flexContainer.offsetWidth}px`;
-      dragImage.style.opacity = '0.95';
-      dragImage.style.transform = 'rotate(1deg)';
-      dragImage.style.pointerEvents = 'none';
-      dragImage.style.position = 'fixed';
-      dragImage.style.top = '-9999px';
-      dragImage.style.left = '-9999px';
-      dragImage.style.zIndex = '10001';
-      dragImage.style.backgroundColor = 'transparent';
-      dragImage.style.margin = '0';
-      dragImage.style.padding = '0';
-      dragImage.style.display = 'flex';
-      dragImage.style.alignItems = 'center';
-      
-      // Find the textbox inside the cloned element and apply shadow only to it
-      const clonedTextBox = dragImage.querySelector('div.relative.flex-1') ||
-                           Array.from(dragImage.children).find(child => 
-                             child.classList.contains('relative') && 
-                             (child.classList.contains('flex-1') || child.querySelector('.bg-white'))
-                           );
-      
-      if (clonedTextBox) {
-        clonedTextBox.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)'; // Subtle shadow only on textbox
-      }
-      
-      // Remove no-print classes from clone so it's visible during drag
-      dragImage.querySelectorAll('.no-print').forEach(el => {
-        el.style.display = 'block';
-      });
-      
-      document.body.appendChild(dragImage);
-      
-      // Calculate offset from icon click position
-      const iconRect = e.currentTarget.getBoundingClientRect();
-      const flexContainerRect = flexContainer.getBoundingClientRect();
-      // Offset so the drag image appears centered on the cursor
-      const offsetX = Math.min(iconRect.left - flexContainerRect.left + iconRect.width / 2, flexContainerRect.width / 2);
-      const offsetY = Math.min(iconRect.top - flexContainerRect.top + iconRect.height / 2, 30);
-      
-      e.dataTransfer.setDragImage(dragImage, offsetX, offsetY);
-      
-      // Clean up after a short delay
-      setTimeout(() => {
-        if (document.body.contains(dragImage)) {
-          document.body.removeChild(dragImage);
-        }
-      }, 0);
-    }
+    // OPTIMIZED: Simplified drag image creation - removed complex cloning
+    // The browser's default drag image is actually quite good for our use case
+    // This removes ~50 lines of DOM manipulation per drag operation
     
     // Make the original box semi-transparent during drag
     if (blockRef.current) {
       blockRef.current.style.opacity = '0.4';
     }
-  };
+  }, [block.id, block.type]);
 
   const handleDragEnd = useCallback((e) => {
     setIsDragging(false);
@@ -267,6 +207,7 @@ const BlockWrapper = memo(({ block, pageBreak, onUpdate, onDelete, onAddAfter, s
       isDragging={isDragging}
       usedCategories={usedCategories}
       isRightColumn={isRightColumn}
+      iconOnRight={iconOnRight}
     />
   </div>
   );
@@ -279,6 +220,7 @@ const Editor = () => {
   const [headerTitle, setHeaderTitle] = useState('SOP Überschrift');
   const [headerStand, setHeaderStand] = useState('STAND 12/22');
   const [headerLogo, setHeaderLogo] = useState(null);
+  const [footerVariant, setFooterVariant] = useState('tiny');
   // Blocks are organized in rows. Each row can contain 1 or 2 blocks.
   // Single block = full width, two blocks = side by side
   const [rows, setRows] = useState([
@@ -300,7 +242,7 @@ const Editor = () => {
   // Flatten rows into blocks array for pageBreaks calculation
   const blocks = rows.flatMap(row => row.blocks);
   
-  const { setBlockRef, pageBreaks } = usePageBreaks(blocks, containerRef);
+  const { setBlockRef, pageBreaks } = usePageBreaks(blocks, containerRef, footerVariant);
 
   const addBlock = useCallback((type, afterId = null, category = 'definition') => {
     const newBlock = type === 'contentbox' 
@@ -345,12 +287,13 @@ const Editor = () => {
     return newBlock.id;
   }, []);
 
-  // Get list of already used box categories
-  const getUsedCategories = useCallback(() => {
+  // Get list of already used box categories - MEMOIZED for performance
+  const usedCategories = useMemo(() => {
     return blocks
       .filter(block => block.type === 'contentbox' && block.content?.category)
       .map(block => block.content.category);
   }, [blocks]);
+
 
   const updateBlock = useCallback((id, content) => {
     setRows(prevRows =>
@@ -507,6 +450,12 @@ const Editor = () => {
           key={`page-${page.pageNumber}`}
           className="page-container"
           data-page-number={pageIndex === 0 ? '' : `Seite ${page.pageNumber}`}
+          style={{
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: '297mm'
+          }}
         >
           {pageIndex > 0 && (
             <div className="page-break-indicator no-print" />
@@ -523,6 +472,8 @@ const Editor = () => {
             />
           )}
           
+          {/* Content area - flex grow to push footer down */}
+          <div style={{ flex: '1 1 auto', paddingBottom: '100px', minHeight: 0 }}>
           {/* Render rows - each row can have 1 or 2 blocks */}
           {page.rows.map((row) => (
             <div 
@@ -536,7 +487,13 @@ const Editor = () => {
               }}
             >
               {row.blocks.map((block, blockIndex) => {
-                const isRightColumn = row.blocks.length === 2 && blockIndex === 1;
+                // Buttons should be on the right by default (single column + right column in two-column)
+                // Only show on left for left column in two-column layout
+                const isRightColumn = row.blocks.length !== 2 || blockIndex === 1;
+                
+                // Icon position: In two-column layout, right box has icon on right side
+                const iconOnRight = row.blocks.length === 2 && blockIndex === 1;
+                
                 return (
                   <div 
                     key={block.id}
@@ -554,14 +511,22 @@ const Editor = () => {
                       setBlockRef={setBlockRef}
                       onMove={moveBlock}
                       allBlocks={blocks}
-                      getUsedCategories={getUsedCategories}
+                      usedCategories={usedCategories}
                       isRightColumn={isRightColumn}
+                      iconOnRight={iconOnRight}
                     />
                   </div>
                 );
               })}
             </div>
           ))}
+          </div>
+          
+          {/* Footer on every page - positioned at bottom */}
+          <SOPFooter 
+            variant={footerVariant}
+            onVariantChange={setFooterVariant}
+          />
         </div>
       ))}
     </div>

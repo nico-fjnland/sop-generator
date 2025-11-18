@@ -1,24 +1,28 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Plus, ChevronDown, Check } from 'lucide-react';
 import { Button } from './ui/button';
+import { useDropdownPosition } from '../hooks/useDropdownPosition';
+import { useClickOutside } from '../hooks/useClickOutside';
 import { CATEGORIES } from './blocks/ContentBoxBlock';
 
 const BoxTypeDropdown = ({ onSelect, usedCategories = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  const buttonRef = useRef(null);
+  
+  // Collision detection for dropdown
+  const { dropdownRef, position } = useDropdownPosition(
+    isOpen,
+    buttonRef,
+    'bottom',
+    8
+  );
+  
+  // OPTIMIZED: Use custom useClickOutside hook
+  useClickOutside(
+    [dropdownRef, buttonRef],
+    () => setIsOpen(false),
+    isOpen
+  );
 
   const handleSelect = (categoryId) => {
     // Don't allow selecting already used categories
@@ -30,8 +34,9 @@ const BoxTypeDropdown = ({ onSelect, usedCategories = [] }) => {
   };
 
   return (
-    <div className="relative inline-block" ref={dropdownRef}>
+    <div className="relative inline-block">
       <Button
+        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
         variant="outline"
         size="sm"
@@ -45,7 +50,7 @@ const BoxTypeDropdown = ({ onSelect, usedCategories = [] }) => {
       </Button>
 
       {isOpen && (
-        <div className="notion-add-box-menu" style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: '8px' }}>
+        <div className="notion-add-box-menu" ref={dropdownRef} style={position}>
           <div className="notion-add-box-menu__label">Box hinzufügen</div>
           {CATEGORIES.map((cat) => {
             const isUsed = usedCategories.includes(cat.id);

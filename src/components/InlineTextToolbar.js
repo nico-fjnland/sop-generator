@@ -1,12 +1,15 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Bold, Italic, Underline, Pilcrow } from 'lucide-react';
+import { TextB, TextItalic, TextUnderline, TextTSlash, TextSuperscript, TextSubscript, TextAa } from '@phosphor-icons/react';
 
 const TOOLBAR_BUTTONS = [
-  { id: 'bold', icon: Bold, label: 'Fett', command: 'bold' },
-  { id: 'italic', icon: Italic, label: 'Kursiv', command: 'italic' },
-  { id: 'underline', icon: Underline, label: 'Unterstreichen', command: 'underline' },
-  { id: 'clear', icon: Pilcrow, label: 'Formatierung entfernen', command: 'removeFormat' },
+  { id: 'bold', icon: TextB, label: 'Fett', command: 'bold' },
+  { id: 'italic', icon: TextItalic, label: 'Kursiv', command: 'italic' },
+  { id: 'underline', icon: TextUnderline, label: 'Unterstreichen', command: 'underline' },
+  { id: 'fontSize', icon: TextAa, label: 'Kleinere Schrift', command: 'fontSize' },
+  { id: 'superscript', icon: TextSuperscript, label: 'Hochgestellt', command: 'superscript' },
+  { id: 'subscript', icon: TextSubscript, label: 'Tiefgestellt', command: 'subscript' },
+  { id: 'clear', icon: TextTSlash, label: 'Formatierung entfernen', command: 'removeFormat' },
 ];
 
 const InlineTextToolbar = ({
@@ -41,7 +44,7 @@ const InlineTextToolbar = ({
               onCommand(button.command);
             }}
           >
-            <Icon className="h-4 w-4" strokeWidth={2} />
+            <Icon size={16} weight="bold" />
           </button>
         );
       })}

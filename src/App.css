@@ -17,14 +17,21 @@
     margin: 8mm; /* Equal margins on all sides */
   }
   
-  /* Add padding to all page containers to prevent caption boxes and icons from being cut off */
-  /* First page has less padding to match editor, but enough to show icons */
+  /* Unified padding for all pages in print - 32px on all sides */
+  .page-container {
+    padding: 32px !important;
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 297mm !important;
+  }
+  
   .page-container:first-child {
-    padding-top: 8mm !important;
+    padding-top: 32px !important;
   }
   
   .page-container:not(:first-child) {
-    padding-top: 18mm !important;
+    padding-top: 32px !important;
   }
   
   /* Header styles for print */
@@ -34,6 +41,37 @@
     align-items: flex-start !important;
     width: 100% !important;
     margin-bottom: 1.5rem !important;
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+  
+  /* Footer styles for print */
+  .sop-footer {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    padding-top: 16px !important;
+    padding-left: 46px !important;
+    padding-right: 46px !important;
+    padding-bottom: 32px !important;
+    overflow: visible !important;
+  }
+  
+  /* Footer clickable in screen mode only */
+  @media screen {
+    .sop-footer {
+      cursor: pointer !important;
+    }
+  }
+  
+  @media print {
+    .sop-footer {
+      cursor: default !important;
+    }
   }
   
   /* Ensure all content is visible when printing */
@@ -202,6 +240,11 @@
   .block-row.single-column {
     gap: 0 !important;
   }
+  
+  /* Single column boxes should be indented 14px on the right side */
+  .block-row.single-column .content-box-block {
+    margin-right: 14px !important;
+  }
 
   /* Last page should not have page break after */
   .page-container:last-child {
@@ -234,28 +277,83 @@
   /* Only apply to textarea and text divs, NOT the content container */
   .content-box-block textarea {
     font-size: 12px !important;
-    line-height: 18px !important;
+    line-height: 20px !important;
     margin: 0 !important;
     padding: 0 !important;
+    overflow: visible !important;
   }
   
   .content-box-block .block-wrapper > div[style*="fontSize: '12px'"],
   .content-box-block .block-wrapper > div[style*="font-size: 12px"] {
     font-size: 12px !important;
-    line-height: 18px !important;
+    line-height: 20px !important;
     margin: 0 !important;
     padding: 0 !important;
+    overflow: visible !important;
   }
   
   /* Ensure content area padding is correct in print - already set above, just ensure font size */
   .content-box-block .content-box-content {
     font-size: 12px !important;
-    line-height: 18px !important;
+    line-height: 20px !important;
+    overflow: visible !important;
+  }
+  
+  /* Ensure content-editable has enough line-height for superscript/subscript in print */
+  .content-box-block .content-editable {
+    line-height: 20px !important;
+    overflow: visible !important;
+  }
+  
+  /* Support for smaller font size (10px) in content boxes */
+  .content-box-block span[style*="font-size: 10px"],
+  .content-box-block span[style*="font-size:10px"] {
+    font-size: 10px !important;
+    line-height: 15px !important;
+  }
+  
+  /* Support for superscript and subscript in content boxes */
+  .content-box-block sup {
+    vertical-align: super !important;
+    font-size: 0.7em !important;
+    line-height: 1 !important;
+    position: relative !important;
+    top: -0.2em !important;
+    display: inline-block !important;
+  }
+  
+  .content-box-block sub {
+    vertical-align: sub !important;
+    font-size: 0.7em !important;
+    line-height: 1 !important;
+    position: relative !important;
+    bottom: -0.1em !important;
+    display: inline-block !important;
+  }
+  
+  /* Ensure parent elements have enough line-height for superscript/subscript */
+  .content-box-block .content-editable:has(sup),
+  .content-box-block .content-editable:has(sub) {
+    line-height: 1.5 !important;
+    overflow: visible !important;
+  }
+  
+  /* Ensure content-box-content has enough space for sup/sub */
+  .content-box-block .content-box-content:has(sup),
+  .content-box-block .content-box-content:has(sub) {
+    overflow: visible !important;
+  }
+  
+  /* Ensure block-wrapper doesn't clip sup/sub */
+  .content-box-block .block-wrapper:has(sup),
+  .content-box-block .block-wrapper:has(sub) {
+    overflow: visible !important;
   }
   
   /* Ensure text blocks inside content boxes have correct margins */
   .content-box-block .block-wrapper {
     margin-bottom: 0.5rem !important;
+    overflow: visible !important;
   }
   
   .content-box-block textarea,
@@ -264,25 +362,92 @@
   }
 }
 
+/* Header editable elements hover and click states - applies to both screen and print */
+.sop-header-editable {
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+.sop-header-editable:hover {
+  border: 1px solid #3399FF !important;
+  background: white !important;
+}
+
+.sop-header-editable:active {
+  border: 1px solid #3399FF !important;
+  background: white !important;
+}
+
+.sop-header-title-editable {
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.sop-header-title-editable:hover {
+  border: 1px solid #3399FF !important;
+  background: white !important;
+}
+
+.sop-header-title-editable:active {
+  border: 1px solid #3399FF !important;
+  background: white !important;
+}
+
+.sop-header-logo-editable {
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.sop-header-logo-editable:hover {
+  border: 1px solid #3399FF !important;
+  background: white !important;
+}
+
+.sop-header-logo-editable:active {
+  border: 1px solid #3399FF !important;
+  background: white !important;
+}
+
+/* Light mode gradient background */
+.light-gradient-bg {
+  background: linear-gradient(180deg, #E5F2FF 0%, #F4F4F4 100%);
+}
+
+/* Dark mode gradient background - only active when dark class is present */
+.dark .dark-gradient-bg {
+  background: linear-gradient(180deg, #003366 0%, #004D99 100%) !important;
+}
+
 /* Screen view - simulate A4 pages with visible page breaks */
 @media screen {
   .editor {
     width: 210mm;
     margin: 0 auto;
     padding: 0;
-    background: #f5f5f5;
+    background: transparent;
+    display: block;
+    position: relative;
+  }
+  
+  /* Ensure editor content stays white in dark mode */
+  .editor * {
+    /* Pages and content remain white for PDF preview */
   }
   
   /* Drag and Drop styles */
 .drop-indicator {
   position: fixed;
   height: 4px;
-  background: #3b82f6;
+  background: #3399FF; /* SOP Accent Light Blue */
   z-index: 10000;
   pointer-events: none;
   border-radius: 2px;
   transition: all 0.2s ease;
   will-change: top, left, width, height;
+  box-shadow: 0 0 8px rgba(51, 153, 255, 0.4);
 }
   
   .drop-target {
@@ -314,34 +479,44 @@
   }
 
   /* Page container styling for screen view */
+  /* Editor pages always stay white, even in dark mode */
   .page-container {
     width: 210mm;
-    min-height: calc(297mm - 40mm); /* A4 height minus padding */
-    margin: 0 auto 20mm auto; /* Space between pages */
-    padding: 20mm 15mm;
-    background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: 297mm; /* Full A4 height - always maintain minimum A4 dimensions */
+    margin: 0 auto 24mm auto; /* Increased space between pages for better breathing room */
+    padding: 32px !important; /* Unified padding on all sides */
+    background: white !important; /* Always white for PDF preview */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
     box-sizing: border-box;
     position: relative;
-    border-radius: 6px; /* Match the border radius of content boxes */
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px; /* Significantly increased border radius for modern, rounded look */
     z-index: 10; /* Ensure page is above controls when hidden */
+    border: 1px solid rgba(0, 51, 102, 0.04); /* Subtle border with brand color */
+  }
+  
+  /* In dark mode, add stronger shadow for better visibility */
+  .dark .page-container {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.15);
   }
 
   /* Visual page break indicator */
   .page-break-indicator {
     position: absolute;
-    top: -10mm;
+    top: -12mm;
     left: 0;
     right: 0;
     height: 2px;
     background: repeating-linear-gradient(
       to right,
-      #3b82f6 0px,
-      #3b82f6 10px,
+      #3399FF 0px, /* SOP Accent Light Blue */
+      #3399FF 10px,
       transparent 10px,
       transparent 20px
     );
     pointer-events: none;
+    opacity: 0.6;
   }
 
   /* Page number indicator (optional) */
@@ -350,9 +525,10 @@
     position: absolute;
     top: 10mm;
     right: 15mm;
-    color: #9ca3af;
-    font-size: 12px;
+    color: rgba(0, 51, 102, 0.4); /* SOP Primary with reduced opacity */
+    font-size: 11px;
     font-weight: 500;
+    letter-spacing: 0.5px;
   }
 }
 
@@ -361,6 +537,7 @@
   outline: none;
   white-space: pre-wrap;
   word-break: break-word;
+  overflow: visible;
 }
 
 .content-editable[contenteditable="true"]:empty::before {
@@ -376,12 +553,20 @@
   display: flex;
   gap: 4px;
   padding: 4px;
-  background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff !important; /* Always white, even in dark mode - part of editor */
+  border: 1px solid rgba(0, 51, 102, 0.08); /* SOP Primary with reduced opacity */
   border-radius: 9999px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 51, 102, 0.12), 0 2px 4px rgba(0, 51, 102, 0.08);
   transform: translate(-50%, -120%);
   z-index: 10020;
+  backdrop-filter: blur(8px);
+}
+
+/* Editor inline toolbar stays white even in dark mode */
+.dark .inline-text-toolbar {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 51, 102, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 51, 102, 0.12), 0 2px 4px rgba(0, 51, 102, 0.08);
 }
 
 .inline-toolbar-button {
@@ -393,18 +578,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #475569;
-  transition: background 0.15s ease, color 0.15s ease;
+  color: rgba(0, 51, 102, 0.7) !important; /* Always dark text, even in dark mode - part of editor */
+  transition: all 0.15s ease;
 }
 
 .inline-toolbar-button:hover {
-  background: rgba(59, 130, 246, 0.12);
-  color: #1d4ed8;
+  background: rgba(51, 153, 255, 0.12); /* SOP Accent Light Blue */
+  color: #003366 !important; /* SOP Primary */
 }
 
 .inline-toolbar-button.active {
-  background: #003366;
-  color: #ffffff;
+  background: #003366 !important; /* SOP Primary */
+  color: #ffffff !important;
+}
+
+/* Editor inline toolbar buttons stay with dark text even in dark mode */
+.dark .inline-toolbar-button {
+  color: rgba(0, 51, 102, 0.7) !important;
+}
+
+.dark .inline-toolbar-button:hover {
+  background: rgba(51, 153, 255, 0.12);
+  color: #003366 !important;
+}
+
+.dark .inline-toolbar-button.active {
+  background: #003366 !important; /* SOP Primary */
+  color: #ffffff !important;
 }
 
 /* Row layout - dynamically single or two column */
@@ -421,24 +621,76 @@
   gap: 0;
 }
 
+/* Single column boxes should be indented 14px on the right side */
+.block-row.single-column .content-box-block {
+  margin-right: 14px;
+}
+
 /* Notion-like box controls */
 .content-box-block {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* Support for smaller font size (10px) in content boxes - screen mode */
+.content-box-block span[style*="font-size: 10px"],
+.content-box-block span[style*="font-size:10px"] {
+  font-size: 10px;
+  line-height: 15px;
+}
+
+/* Support for superscript and subscript in content boxes - screen mode */
+.content-box-block sup {
+  vertical-align: super;
+  font-size: 0.7em;
+  line-height: 1;
+  position: relative;
+  top: -0.2em;
+  display: inline-block;
+}
+
+.content-box-block sub {
+  vertical-align: sub;
+  font-size: 0.7em;
+  line-height: 1;
+  position: relative;
+  bottom: -0.1em;
+  display: inline-block;
+}
+
+/* Ensure parent elements have enough line-height for superscript/subscript */
+.content-box-block .content-editable:has(sup),
+.content-box-block .content-editable:has(sub) {
+  line-height: 1.5;
+  overflow: visible;
+}
+
+/* Ensure content-box-content has enough space for sup/sub */
+.content-box-block .content-box-content:has(sup),
+.content-box-block .content-box-content:has(sub) {
+  overflow: visible;
+}
+
+/* Ensure block-wrapper doesn't clip sup/sub */
+.content-box-block .block-wrapper:has(sup),
+.content-box-block .block-wrapper:has(sub) {
+  overflow: visible;
+}
+
+/* Default hover state - slide out to the right */
 .content-box-block:focus-within .notion-box-controls,
 .content-box-block:hover .notion-box-controls,
 .notion-box-controls:hover {
   opacity: 1;
-  transform: translateX(-50px) translateY(-50%);
+  transform: translateX(50px) translateY(-50%);
   z-index: 5;
   pointer-events: auto !important;
   transition: opacity 0.15s ease, transform 0.15s ease, pointer-events 0s 0s !important;
 }
 
+/* Default: Buttons on the right (for single column and right column in two-column) */
 .notion-box-controls {
   position: absolute;
-  left: -10px;
+  right: -10px;
   top: 50%;
   display: flex;
   flex-direction: column;
@@ -451,21 +703,22 @@
   will-change: opacity, transform;
 }
 
-/* Right column controls - positioned on the right side */
-.notion-box-controls-right {
-  left: auto;
-  right: -10px;
+/* Left column in two-column layout - positioned on the left side */
+.notion-box-controls-left {
+  left: -10px;
+  right: auto;
   transform: translateX(0) translateY(-50%);
   pointer-events: none;
   transition: opacity 0.15s ease 0.15s, transform 0.15s ease 0.15s, pointer-events 0s 0.3s;
   will-change: opacity, transform;
 }
 
-.content-box-block:focus-within .notion-box-controls-right,
-.content-box-block:hover .notion-box-controls-right,
-.notion-box-controls-right:hover {
+/* Left column hover state - slide out to the left */
+.content-box-block:focus-within .notion-box-controls-left,
+.content-box-block:hover .notion-box-controls-left,
+.notion-box-controls-left:hover {
   opacity: 1;
-  transform: translateX(50px) translateY(-50%);
+  transform: translateX(-50px) translateY(-50%);
   z-index: 5;
   pointer-events: auto !important;
   transition: opacity 0.15s ease, transform 0.15s ease, pointer-events 0s 0s !important;
@@ -476,7 +729,7 @@
   height: 32px;
   border-radius: 999px;
   border: none;
-  background: #ffffff;
+  background: #ffffff; /* Default white, but can be overridden by inline styles with category color */
   box-shadow: none;
   display: flex;
   align-items: center;
@@ -487,6 +740,11 @@
   transition: transform 0.15s ease 0.15s, opacity 0.15s ease 0.15s;
   pointer-events: auto;
   will-change: opacity, transform;
+}
+
+/* In dark mode, buttons keep their category colors (set via inline styles) */
+.dark .notion-control-button {
+  /* Don't override - let inline styles with category colors take precedence */
 }
 
 /* Stagger effect for buttons appearing */
@@ -516,32 +774,32 @@
   transition-delay: 0.1s;
 }
 
-/* Right column stagger - reverse direction */
-.notion-box-controls-right .notion-control-button {
-  transform: translateX(-10px);
+/* Left column stagger - slide from left */
+.notion-box-controls-left .notion-control-button {
+  transform: translateX(10px);
   transition: transform 0.15s ease 0.15s, opacity 0.15s ease 0.15s;
 }
 
-/* First button (Drag) - right column */
-.content-box-block:hover .notion-box-controls-right > .notion-control-button:nth-child(1),
-.content-box-block:focus-within .notion-box-controls-right > .notion-control-button:nth-child(1),
-.notion-box-controls-right:hover > .notion-control-button:nth-child(1) {
+/* First button (Drag) - left column */
+.content-box-block:hover .notion-box-controls-left > .notion-control-button:nth-child(1),
+.content-box-block:focus-within .notion-box-controls-left > .notion-control-button:nth-child(1),
+.notion-box-controls-left:hover > .notion-control-button:nth-child(1) {
   opacity: 1;
   transform: translateX(0);
   transition: transform 0.2s ease, opacity 0.2s ease;
   transition-delay: 0s;
 }
 
-/* Second button (Add) - right column - inside notion-control-with-menu wrapper - inherits from wrapper */
-.notion-box-controls-right .notion-control-with-menu .notion-control-button {
+/* Second button (Add) - left column - inside notion-control-with-menu wrapper - inherits from wrapper */
+.notion-box-controls-left .notion-control-with-menu .notion-control-button {
   opacity: 1;
   transform: translateX(0);
 }
 
-/* Third button (Delete) - right column */
-.content-box-block:hover .notion-box-controls-right > .notion-control-button:nth-child(3),
-.content-box-block:focus-within .notion-box-controls-right > .notion-control-button:nth-child(3),
-.notion-box-controls-right:hover > .notion-control-button:nth-child(3) {
+/* Third button (Delete) - left column */
+.content-box-block:hover .notion-box-controls-left > .notion-control-button:nth-child(3),
+.content-box-block:focus-within .notion-box-controls-left > .notion-control-button:nth-child(3),
+.notion-box-controls-left:hover > .notion-control-button:nth-child(3) {
   opacity: 1;
   transform: translateX(0);
   transition: transform 0.2s ease, opacity 0.2s ease;
@@ -571,7 +829,7 @@
 
 .content-box-block:hover .notion-box-shell,
 .content-box-block:focus-within .notion-box-shell {
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 51, 102, 0.08), 0 2px 8px rgba(0, 51, 102, 0.04);
 }
 
 .notion-control-with-menu {
@@ -593,15 +851,15 @@
   transition-delay: 0.05s;
 }
 
-/* Right column wrapper stagger */
-.notion-box-controls-right .notion-control-with-menu {
-  transform: translateX(-10px);
+/* Left column wrapper stagger */
+.notion-box-controls-left .notion-control-with-menu {
+  transform: translateX(10px);
   transition: transform 0.15s ease 0.15s, opacity 0.15s ease 0.15s;
 }
 
-.content-box-block:hover .notion-box-controls-right .notion-control-with-menu,
-.content-box-block:focus-within .notion-box-controls-right .notion-control-with-menu,
-.notion-box-controls-right:hover .notion-control-with-menu {
+.content-box-block:hover .notion-box-controls-left .notion-control-with-menu,
+.content-box-block:focus-within .notion-box-controls-left .notion-control-with-menu,
+.notion-box-controls-left:hover .notion-control-with-menu {
   opacity: 1;
   transform: translateX(0);
   transition: transform 0.2s ease, opacity 0.2s ease;
@@ -615,12 +873,20 @@
   width: 220px;
   max-height: 300px;
   overflow-y: auto;
-  background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff !important; /* Always white, even in dark mode - part of editor */
+  border: 1px solid rgba(0, 51, 102, 0.08); /* SOP Primary with reduced opacity */
   border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
-  padding: 10px;
+  box-shadow: 0 12px 32px rgba(0, 51, 102, 0.12), 0 4px 8px rgba(0, 51, 102, 0.06);
+  padding: 12px;
   z-index: 10000;
+  backdrop-filter: blur(8px);
+}
+
+/* Editor menus stay white even in dark mode */
+.dark .notion-add-box-menu {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 51, 102, 0.08);
+  box-shadow: 0 12px 32px rgba(0, 51, 102, 0.12), 0 4px 8px rgba(0, 51, 102, 0.06);
 }
 
 .notion-add-box-menu__label {
@@ -628,8 +894,14 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #94a3b8;
-  margin-bottom: 6px;
+  color: #94a3b8 !important; /* Always same color, even in dark mode - part of editor */
+  margin-bottom: 8px;
+  padding: 0 2px;
+}
+
+/* Editor menu labels stay same color even in dark mode */
+.dark .notion-add-box-menu__label {
+  color: #94a3b8 !important;
 }
 
 .notion-add-box-menu__item {
@@ -639,16 +911,28 @@
   width: 100%;
   border: none;
   background: transparent;
-  padding: 4px 4px;
+  padding: 6px 8px;
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
-  color: #0f172a;
+  color: #0f172a !important; /* Always dark text, even in dark mode - part of editor */
   font-size: 13px;
+  min-height: 32px;
 }
 
 .notion-add-box-menu__item:hover:not(.disabled) {
-  background: rgba(59, 130, 246, 0.08);
+  background: rgba(51, 153, 255, 0.1); /* SOP Accent Light Blue */
+  color: #003366 !important; /* SOP Primary */
+}
+
+/* Editor menu items stay with dark text even in dark mode */
+.dark .notion-add-box-menu__item {
+  color: #0f172a !important;
+}
+
+.dark .notion-add-box-menu__item:hover:not(.disabled) {
+  background: rgba(51, 153, 255, 0.1);
+  color: #003366 !important;
 }
 
 .notion-add-box-menu__item.disabled {
@@ -678,8 +962,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #3399FF;
+  color: #3399FF !important; /* SOP Accent Light Blue - always same color, even in dark mode */
   margin-left: auto;
+}
+
+/* Editor menu check icons stay same color even in dark mode */
+.dark .notion-add-box-menu__check {
+  color: #3399FF !important;
 }
 
 

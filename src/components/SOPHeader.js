@@ -87,15 +87,16 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
     <div className="sop-header mb-8 print:mb-6" style={{ 
       display: 'flex', 
       justifyContent: 'space-between', 
-      alignItems: 'flex-start',
+      alignItems: 'center',
       width: '100%',
-      paddingBottom: '18px',
+      paddingTop: '14px',
+      paddingBottom: '14px',
       paddingLeft: '14px',
-      paddingRight: '0',
+      paddingRight: '14px',
       gap: '112px'
     }}>
       {/* Left side: Version and Title */}
-      <div className="flex flex-col gap-1" style={{ flex: '1', minWidth: 0 }}>
+      <div className="flex flex-col gap-0" style={{ flex: '1', minWidth: 0 }}>
         {/* Version */}
         <div className="flex items-center gap-1" style={{ 
           paddingRight: '139px',
@@ -132,7 +133,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                 textTransform: 'uppercase',
                 lineHeight: '1',
                 border: '1px solid #3399FF',
-                borderRadius: '2px',
+                borderRadius: '4px',
                 padding: '2px 4px',
                 background: 'white',
                 outline: 'none',
@@ -142,7 +143,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
           ) : (
             <span 
               onClick={() => setIsEditingStand(true)}
-              className="no-print cursor-text hover:bg-gray-100 px-1 rounded"
+              className="no-print cursor-text sop-header-editable"
               style={{ 
                 fontFamily: "'Quicksand', sans-serif",
                 fontWeight: 600,
@@ -150,7 +151,8 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                 color: '#003366',
                 letterSpacing: '2px',
                 textTransform: 'uppercase',
-                lineHeight: '1'
+                lineHeight: '1',
+                border: '1px solid transparent'
               }}
             >
               {stand}
@@ -193,7 +195,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               lineHeight: '1.2',
               width: '100%',
               border: '1px solid #3399FF',
-              borderRadius: '2px',
+              borderRadius: '6px',
               padding: '4px 8px',
               background: 'white',
               outline: 'none'
@@ -202,7 +204,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
         ) : (
           <div 
             onClick={() => setIsEditingTitle(true)}
-            className="no-print cursor-text hover:bg-gray-100 px-2 py-1 rounded"
+            className="no-print cursor-text sop-header-title-editable"
             style={{ 
               fontFamily: "'Roboto', sans-serif",
               fontWeight: 600,
@@ -211,7 +213,8 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               letterSpacing: '1.04px',
               textTransform: 'uppercase',
               lineHeight: '1.2',
-              width: '100%'
+              width: '100%',
+              border: '1px solid transparent'
             }}
           >
             {title}
@@ -236,12 +239,11 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
       </div>
 
       {/* Right side: Logo */}
-      <div className="flex items-start justify-end" style={{ 
-        paddingTop: '3px',
+      <div className="flex items-center justify-end" style={{ 
         paddingLeft: '14px',
         flexShrink: 0
       }}>
-        <div className="relative" style={{ width: '87.6px', height: '49.2px' }}>
+        <div className="relative" style={{ width: '103.6px', height: '65.2px' }}>
           {/* Logo Upload Input (hidden) */}
           <input
             ref={logoInputRef}
@@ -255,13 +257,14 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
           {/* Logo Display */}
           <div 
             onClick={() => logoInputRef.current?.click()}
-            className="no-print cursor-pointer hover:opacity-80 transition-opacity"
+            className="no-print cursor-pointer sop-header-logo-editable"
             style={{ 
               width: '100%', 
               height: '100%',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              border: '1px solid transparent'
             }}
             title="Klicken Sie, um das Logo zu ändern"
           >
@@ -270,8 +273,8 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                 src={logo} 
                 alt="Logo" 
                 style={{ 
-                  width: '100%', 
-                  height: '100%', 
+                  width: '87.6px', 
+                  height: '49.2px', 
                   objectFit: 'contain',
                   objectPosition: 'center'
                 }} 

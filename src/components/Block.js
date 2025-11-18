@@ -10,7 +10,7 @@ import DividerBlock from './blocks/DividerBlock';
 import ContentBoxBlock from './blocks/ContentBoxBlock';
 import { X } from 'lucide-react';
 
-const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideContentBox = false, onDragStart, onDragEnd, isDragging, usedCategories = [], isRightColumn = false }) => {
+const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideContentBox = false, onDragStart, onDragEnd, isDragging, usedCategories = [], isRightColumn = false, iconOnRight = false }) => {
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const blockRef = useRef(null);
   const inputRef = useRef(null);
@@ -107,6 +107,7 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             blockId={block.id}
             usedCategories={isInsideContentBox ? [] : usedCategories}
             isRightColumn={isRightColumn}
+            iconOnRight={iconOnRight}
             onAddBoxAfter={
               !isInsideContentBox && onAddAfter
                 ? (categoryId) => onAddAfter('contentbox', block.id, categoryId)
