@@ -57,8 +57,18 @@
     padding-top: 16px !important;
     padding-left: 46px !important;
     padding-right: 46px !important;
-    padding-bottom: 32px !important;
+    padding-bottom: 46px !important;
     overflow: visible !important;
+  }
+  
+  /* Footer content gap - ensure 16px spacing between elements */
+  .sop-footer > div > div > div[style*="flex-direction: column"] {
+    gap: 16px !important;
+  }
+  
+  /* Footer medical fields icons top padding */
+  .sop-footer div[style*="paddingTop"] {
+    padding-top: 8px !important;
   }
   
   /* Footer clickable in screen mode only */
@@ -419,6 +429,51 @@
 /* Dark mode gradient background - only active when dark class is present */
 .dark .dark-gradient-bg {
   background: linear-gradient(180deg, #003366 0%, #004D99 100%) !important;
+}
+
+/* Slide-in animation for A4 pages - slides in from bottom of viewport */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(150px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media screen {
+  .page-container {
+    animation: slideInUp 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  /* Stagger animation for multiple pages */
+  .page-container:nth-child(1) {
+    animation-delay: 0s;
+  }
+  
+  .page-container:nth-child(2) {
+    animation-delay: 0.25s;
+  }
+  
+  .page-container:nth-child(3) {
+    animation-delay: 0.5s;
+  }
+  
+  .page-container:nth-child(4) {
+    animation-delay: 0.75s;
+  }
+  
+  .page-container:nth-child(n+5) {
+    animation-delay: 1s;
+  }
+}
+
+@media print {
+  .page-container {
+    animation: none !important;
+  }
 }
 
 /* Screen view - simulate A4 pages with visible page breaks */

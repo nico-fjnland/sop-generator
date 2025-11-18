@@ -7,6 +7,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
   const editableRef = useRef(null);
   const skipNextCursorRestore = useRef(false);
   const isManualEdit = useRef(false);
+  const isEditing = useRef(false); // NEW: Central flag to prevent external updates during editing
   const tempDivRef = useRef(null); // Reusable div for HTML conversion
   const [isFocused, setIsFocused] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState({ top: 0, left: 0 });
@@ -145,6 +146,12 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
   const syncContentFromDom = useMemo(
     () => debounce(() => {
       if (!editableRef.current) return;
+      
+      // Don't sync if manual edit is in progress
+      if (isManualEdit.current || skipNextCursorRestore.current) {
+        return;
+      }
+      
       const sanitized = sanitizeHtml(editableRef.current.innerHTML);
       const normalized = normalizeHtml(sanitized);
       
@@ -243,13 +250,27 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     if (!isInsideContentBox) return;
     if (!editableRef.current) return;
     
-    // Don't update HTML if we're in the middle of a manual edit
-    if (isManualEdit.current) {
+    // CRITICAL: Never update innerHTML while user is editing
+    // This is the single most important guard to prevent cursor jumping
+    if (isEditing.current) {
       return;
     }
     
+    // Also don't update during manual edits
+    if (isManualEdit.current || skipNextCursorRestore.current) {
+      return;
+    }
+    
+    // Only update if content actually changed from external source
     const html = convertContentToHtml(content || '');
-    if (editableRef.current.innerHTML !== html) {
+    const currentHtml = editableRef.current.innerHTML;
+    
+    // Normalize both for comparison to avoid unnecessary updates
+    const normalizedCurrent = normalizeHtml(sanitizeHtml(currentHtml));
+    const normalizedNew = normalizeHtml(sanitizeHtml(html));
+    
+    // Only update if there's an actual difference
+    if (normalizedCurrent !== normalizedNew) {
       editableRef.current.innerHTML = html;
     }
   }, [content, isInsideContentBox]);
@@ -268,29 +289,15 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
   const handleEditableInput = useCallback(() => {
     if (!editableRef.current) return;
     
-    // For manual edits (bullet conversion, etc.), sync immediately without debounce
-    if (skipNextCursorRestore.current) {
-      skipNextCursorRestore.current = false;
-      
-      // Immediate sync
-      const sanitized = sanitizeHtml(editableRef.current.innerHTML);
-      const normalized = normalizeHtml(sanitized);
-      
-      startTransition(() => {
-        onChange(normalized);
-      });
-      
-      // Reset flags
-      setTimeout(() => {
-        isManualEdit.current = false;
-      }, 10);
-      
+    // For manual edits (bullet conversion, etc.), skip this handler entirely
+    // The manual edit function handles its own sync
+    if (skipNextCursorRestore.current || isManualEdit.current) {
       return;
     }
     
     // For normal typing, use debounced sync (performance)
     syncContentFromDom();
-  }, [syncContentFromDom, sanitizeHtml, onChange]);
+  }, [syncContentFromDom]);
 
   const handleEditableKeyDown = (event) => {
     if (event.key === 'Enter') {
@@ -305,11 +312,14 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       return;
     }
     if (event.key === ' ' && !event.shiftKey) {
-      const converted = convertLineMarkerToBullet();
-      if (converted) {
-        event.preventDefault();
-        return;
-      }
+      // Don't prevent default - let space be typed first
+      // Then try to convert markdown formatting or bullets
+      setTimeout(() => {
+        const formatted = convertMarkdownFormatting();
+        if (!formatted) {
+          convertLineMarkerToBullet();
+        }
+      }, 0);
     }
     if (event.key === 'Escape') {
       setShowToolbar(false);
@@ -473,16 +483,26 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     updateToolbarFromSelection();
   };
 
-  const handleBlur = () => {
+  const handleBlur = useCallback(() => {
     setIsFocused(false);
+    isEditing.current = false; // End editing mode
+    
     setTimeout(() => {
       setShowToolbar(false);
     }, 50);
-  };
+    
+    // Final sync on blur to ensure parent has latest content
+    if (editableRef.current) {
+      const sanitized = sanitizeHtml(editableRef.current.innerHTML);
+      const normalized = normalizeHtml(sanitized);
+      onChange(normalized);
+    }
+  }, [sanitizeHtml, onChange]);
 
-  const handleFocus = () => {
+  const handleFocus = useCallback(() => {
     setIsFocused(true);
-  };
+    isEditing.current = true; // Start editing mode - blocks all external updates
+  }, []);
 
   const getNodeLength = (node) => {
     if (!node) return 0;
@@ -661,7 +681,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     }
   };
 
-  const convertLineMarkerToBullet = useCallback(() => {
+  const convertMarkdownFormatting = useCallback(() => {
     if (!editableRef.current) return false;
     
     const selection = window.getSelection();
@@ -669,11 +689,57 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       return false;
     }
 
-    const currentLine = getCurrentLineText().replace(/\u00a0/g, ' ');
-    const trimmed = currentLine.trim();
+    // Get text before cursor - need to look at the actual content
+    const range = selection.getRangeAt(0);
+    let textNode = range.startContainer;
+    let offset = range.startOffset;
     
-    // Check if line is exactly "-" or "*"
-    if (!/^[-*]$/.test(trimmed)) {
+    // If we're in an element node, get the text content
+    if (textNode.nodeType === Node.ELEMENT_NODE) {
+      textNode = textNode.childNodes[Math.max(0, offset - 1)] || textNode;
+      if (!textNode || textNode.nodeType !== Node.TEXT_NODE) {
+        return false;
+      }
+      offset = textNode.textContent.length;
+    }
+    
+    if (textNode.nodeType !== Node.TEXT_NODE) {
+      return false;
+    }
+    
+    // Get all text content before cursor in the current line/block
+    let textBeforeCursor = textNode.textContent.substring(0, offset);
+    
+    // Walk backwards to get text from previous sibling text nodes
+    let prevNode = textNode.previousSibling;
+    while (prevNode) {
+      if (prevNode.nodeType === Node.TEXT_NODE) {
+        textBeforeCursor = prevNode.textContent + textBeforeCursor;
+      } else if (prevNode.nodeName === 'BR') {
+        break; // Stop at line break
+      } else if (prevNode.nodeType === Node.ELEMENT_NODE) {
+        const textContent = prevNode.textContent || '';
+        textBeforeCursor = textContent + textBeforeCursor;
+      }
+      prevNode = prevNode.previousSibling;
+    }
+    
+    // Patterns for inline formatting
+    // **text** → Bold (at least one character between **)
+    const boldPattern = /\*\*(.+?)\*\*\s$/;
+    // *text* → Italic (but not ** which is bold)
+    const italicPattern = /(?<!\*)\*(.+?)\*\s$/;
+    
+    let match = null;
+    let formatType = null;
+    
+    if ((match = textBeforeCursor.match(boldPattern))) {
+      formatType = 'bold';
+    } else if ((match = textBeforeCursor.match(italicPattern))) {
+      formatType = 'italic';
+    }
+    
+    if (!match || !formatType) {
       return false;
     }
     
@@ -682,14 +748,125 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     skipNextCursorRestore.current = true;
     
     try {
-      // Use execCommand to delete and insert - simpler and more reliable
-      // Delete the marker character(s)
-      for (let i = 0; i < currentLine.length; i++) {
+      const fullMatch = match[0]; // Full match with markers and space
+      const innerText = match[1]; // Text without markers
+      const charsToDelete = fullMatch.length;
+      
+      // Delete the markdown text (including markers and trailing space)
+      for (let i = 0; i < charsToDelete; i++) {
         document.execCommand('delete', false);
       }
       
-      // Insert bullet and space
+      // Insert formatted text with a space after
+      document.execCommand('insertHTML', false, 
+        `<${formatType === 'bold' ? 'strong' : 'em'}>${innerText}</${formatType === 'bold' ? 'strong' : 'em'}>&nbsp;`
+      );
+      
+      // Reset flags
+      setTimeout(() => {
+        isManualEdit.current = false;
+        skipNextCursorRestore.current = false;
+      }, 100);
+      
+      return true;
+    } catch (error) {
+      console.error('Error converting markdown formatting:', error);
+      isManualEdit.current = false;
+      skipNextCursorRestore.current = false;
+      return false;
+    }
+  }, []);
+
+  const convertLineMarkerToBullet = useCallback(() => {
+    if (!editableRef.current) return false;
+    
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || !selection.isCollapsed) {
+      console.log('Bullet: No valid selection');
+      return false;
+    }
+
+    // Get text before cursor - same robust approach as markdown formatting
+    const range = selection.getRangeAt(0);
+    let textNode = range.startContainer;
+    let offset = range.startOffset;
+    
+    // If we're in an element node, get the text content
+    if (textNode.nodeType === Node.ELEMENT_NODE) {
+      textNode = textNode.childNodes[Math.max(0, offset - 1)] || textNode;
+      if (!textNode || textNode.nodeType !== Node.TEXT_NODE) {
+        console.log('Bullet: Not in text node');
+        return false;
+      }
+      offset = textNode.textContent.length;
+    }
+    
+    if (textNode.nodeType !== Node.TEXT_NODE) {
+      console.log('Bullet: Not a text node');
+      return false;
+    }
+    
+    // Get all text content before cursor in the current line/block
+    let textBeforeCursor = textNode.textContent.substring(0, offset);
+    
+    // Walk backwards to get text from previous sibling text nodes
+    let prevNode = textNode.previousSibling;
+    while (prevNode) {
+      if (prevNode.nodeType === Node.TEXT_NODE) {
+        textBeforeCursor = prevNode.textContent + textBeforeCursor;
+      } else if (prevNode.nodeName === 'BR') {
+        break; // Stop at line break
+      } else if (prevNode.nodeType === Node.ELEMENT_NODE) {
+        const textContent = prevNode.textContent || '';
+        textBeforeCursor = textContent + textBeforeCursor;
+      }
+      prevNode = prevNode.previousSibling;
+    }
+    
+    // Normalize spaces
+    textBeforeCursor = textBeforeCursor.replace(/\u00a0/g, ' ');
+    
+    console.log('Bullet: Text before cursor:', JSON.stringify(textBeforeCursor));
+    
+    // Extract only the current line (after last line break)
+    const lines = textBeforeCursor.split(/\n/);
+    const currentLine = lines[lines.length - 1];
+    
+    console.log('Bullet: Current line:', JSON.stringify(currentLine));
+    
+    // Check if current line starts with "- " or "* " (at start or after only whitespace)
+    const bulletPattern = /^(\s*)([-*])\s$/;
+    const match = currentLine.match(bulletPattern);
+    
+    console.log('Bullet: Match result:', match);
+    
+    if (!match) {
+      return false;
+    }
+    
+    // Set flags to prevent any external interference
+    isManualEdit.current = true;
+    skipNextCursorRestore.current = true;
+    
+    try {
+      const fullMatch = match[0]; // Full match including whitespace and space after
+      const charsToDelete = fullMatch.length;
+      
+      console.log('Bullet: Converting! Deleting', charsToDelete, 'chars');
+      
+      // Delete backwards to remove "- " or "* "
+      for (let i = 0; i < charsToDelete; i++) {
+        document.execCommand('delete', false);
+      }
+      
+      // Insert bullet and space - cursor will automatically be after it
       document.execCommand('insertText', false, '\u2022\u00a0');
+      
+      // Reset flags after a brief moment
+      setTimeout(() => {
+        isManualEdit.current = false;
+        skipNextCursorRestore.current = false;
+      }, 100);
       
       return true;
     } catch (error) {
