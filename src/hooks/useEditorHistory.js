@@ -59,9 +59,18 @@ export const useEditorHistory = () => {
 
   // Ref for debounced saving
   const saveTimeoutRef = useRef(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const isFirstRender = useRef(true);
 
   // Save to local storage whenever present state changes
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    setIsSaving(true);
+
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
@@ -69,8 +78,10 @@ export const useEditorHistory = () => {
     saveTimeoutRef.current = setTimeout(() => {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(history.present));
+        setIsSaving(false);
       } catch (e) {
         console.error('Failed to save to local storage', e);
+        setIsSaving(false);
       }
     }, DEBOUNCE_SAVE_DELAY);
 
@@ -181,7 +192,8 @@ export const useEditorHistory = () => {
     canUndo: history.past.length > 0,
     canRedo: history.future.length > 0,
     setEditorState, // Full state setter
-    reset
+    reset,
+    isSaving
   };
 };
 

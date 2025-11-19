@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
+import { FOOTER } from '../constants/layout';
 
 const FOOTER_VARIANTS = [
-  { id: 'tiny', label: 'Tiny', height: 69 },
-  { id: 'small', label: 'Small', height: 122 },
-  { id: 'large', label: 'Large', height: 204 },
-  { id: 'x-large', label: 'X-Large', height: 249 },
+  { id: 'tiny', label: 'Tiny', height: FOOTER.CONTENT_HEIGHTS.tiny },
+  { id: 'small', label: 'Small', height: FOOTER.CONTENT_HEIGHTS.small },
 ];
 
 /* ============================================
@@ -341,10 +340,10 @@ const SOPFooter = ({ variant: initialVariant = 'tiny', onVariantChange }) => {
         left: 0,
         right: 0,
         width: '100%',
-        paddingTop: '16px',
-        paddingLeft: '46px',
-        paddingRight: '46px',
-        paddingBottom: '46px'
+        paddingTop: `${FOOTER.PADDING.TOP}px`,
+        paddingLeft: `${FOOTER.PADDING.LEFT}px`,
+        paddingRight: `${FOOTER.PADDING.RIGHT}px`,
+        paddingBottom: `${FOOTER.PADDING.BOTTOM}px`
       }}
     >
       {/* Footer Content */}

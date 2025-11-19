@@ -243,7 +243,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
         paddingLeft: '14px',
         flexShrink: 0
       }}>
-        <div className="relative" style={{ width: '103.6px', height: '65.2px' }}>
+        <div className="relative" style={{ width: '155.4px', height: '65.2px' }}>
           {/* Logo Upload Input (hidden) */}
           <input
             ref={logoInputRef}
@@ -263,7 +263,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               height: '100%',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'flex-end',
               border: '1px solid transparent'
             }}
             title="Klicken Sie, um das Logo zu ändern"
@@ -273,10 +273,11 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                 src={logo} 
                 alt="Logo" 
                 style={{ 
-                  width: '87.6px', 
+                  maxWidth: '100%', 
                   height: '49.2px', 
+                  width: 'auto',
                   objectFit: 'contain',
-                  objectPosition: 'center'
+                  objectPosition: 'right center'
                 }} 
               />
             ) : (

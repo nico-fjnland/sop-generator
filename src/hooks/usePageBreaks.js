@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { debounce } from '../utils/performance';
-import { PAGE, FOOTER } from '../constants/layout';
+import { PAGE, FOOTER, CONTENT_BOX } from '../constants/layout';
 
 export const usePageBreaks = (blocks, containerRef, footerVariant = 'tiny') => {
   const blockRefs = useRef({});
@@ -15,11 +15,25 @@ export const usePageBreaks = (blocks, containerRef, footerVariant = 'tiny') => {
       let currentPageHeight = 0;
       let isNewPage = true;
       
-      // Get footer height for current variant
-      const footerHeight = FOOTER.HEIGHTS[footerVariant] || FOOTER.HEIGHTS.tiny;
+      // Dynamic measurement of footer height
+      let footerHeight = 0;
       
-      // Calculate available height per page (total height minus footer)
-      const availablePageHeight = PAGE.HEIGHT_PX - footerHeight;
+      // Try to find the rendered footer in the DOM
+      const footerElement = containerRef.current.querySelector('.sop-footer');
+      if (footerElement) {
+        footerHeight = footerElement.offsetHeight;
+      } else {
+        // Fallback to calculated height if not found yet
+        const footerBaseHeight = FOOTER.CONTENT_HEIGHTS[footerVariant] || FOOTER.CONTENT_HEIGHTS.tiny;
+        footerHeight = FOOTER.PADDING.TOP + footerBaseHeight + FOOTER.PADDING.BOTTOM;
+      }
+      
+      // Calculate protected area (Schutzbereich):
+      // Lower inner padding + Individual size of respective footer + Distance of boxes to each other
+      const protectedArea = PAGE.BOTTOM_PADDING + footerHeight + CONTENT_BOX.MARGIN.BOTTOM;
+      
+      // Calculate available height per page
+      const availablePageHeight = PAGE.HEIGHT_PX - protectedArea;
       
       blocks.forEach((block, index) => {
         const blockRef = blockRefs.current[block.id];

@@ -46,29 +46,13 @@ function App() {
             ref={componentRef}
             className="print:bg-white"
           >
-            <Editor />
+            <Editor 
+              isDarkMode={isDarkMode} 
+              toggleDarkMode={toggleDarkMode} 
+            />
           </div>
         </div>
       </main>
-
-      {/* Floating Action Buttons */}
-      {/* Dark/Light Mode Switcher - Bottom Left */}
-      <div className="fixed bottom-6 left-6 no-print z-40">
-        <IconButton
-          onClick={toggleDarkMode}
-          variant="ghost"
-          size="icon"
-          aria-label={isDarkMode ? 'Light Mode aktivieren' : 'Dark Mode aktivieren'}
-          className="shadow-lg hover:shadow-xl transition-all text-sop-primary dark:text-[#3399FF] hover:bg-sop-light dark:hover:bg-[#1a2332] bg-white dark:bg-[#1e293b]"
-          style={{
-            borderRadius: '50%',
-            width: '56px',
-            height: '56px'
-          }}
-        >
-          {isDarkMode ? <Sun size={24} weight="bold" /> : <Moon size={24} weight="bold" />}
-        </IconButton>
-      </div>
 
     </div>
   );

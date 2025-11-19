@@ -5,7 +5,7 @@ import SOPFooter from './SOPFooter';
 import { usePageBreaks } from '../hooks/usePageBreaks';
 import { useEditorHistory } from '../hooks/useEditorHistory';
 import { Button } from './ui/button';
-import { ArrowCounterClockwise, ArrowClockwise, Trash, Download, Upload, FileDoc, FileCode, FilePdf } from '@phosphor-icons/react';
+import { ArrowCounterClockwise, ArrowClockwise, Trash, Download, Upload, FileDoc, FileCode, FilePdf, Moon, Sun, Check, Spinner } from '@phosphor-icons/react';
 import { exportAsJson, importFromJson, exportAsWord, exportAsPdf } from '../utils/exportUtils';
 
 // Wrapper component for blocks to handle refs
@@ -212,13 +212,13 @@ const BlockWrapper = memo(({ block, pageBreak, onUpdate, onDelete, onAddAfter, s
   );
 });
 
-const Editor = () => {
+const Editor = ({ isDarkMode, toggleDarkMode }) => {
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
   const [isExporting, setIsExporting] = useState(false);
   
   // Use Unified History Hook
-  const { state, undo, redo, canUndo, canRedo, setEditorState, reset } = useEditorHistory();
+  const { state, undo, redo, canUndo, canRedo, setEditorState, reset, isSaving } = useEditorHistory();
   const { rows, headerTitle, headerStand, headerLogo, footerVariant } = state;
 
   // Helpers for updating specific parts of state
@@ -621,7 +621,7 @@ const Editor = () => {
             className="h-8 text-xs px-2"
           >
             <FileCode size={16} className="mr-1.5" />
-            Backup
+            Export
           </Button>
           <Button
             variant="ghost"
@@ -631,7 +631,7 @@ const Editor = () => {
             className="h-8 text-xs px-2"
           >
             <Upload size={16} className="mr-1.5" />
-            Laden
+            Import
           </Button>
           <Button
             variant="ghost"
@@ -659,10 +659,22 @@ const Editor = () => {
 
         <div className="h-4 w-px bg-gray-200 mx-2" />
         
-        <span className="text-xs text-muted-foreground select-none flex-1 text-center">
-          {isExporting ? 'Export wird erstellt...' : (canUndo ? 'Änderungen werden gespeichert...' : 'Bereit')}
+        <span className={`text-xs select-none flex-1 text-center flex items-center justify-center gap-1 ${!isExporting && !isSaving ? 'text-[#3399FF]' : 'text-muted-foreground'}`}>
+          {isExporting ? 'Exportiere Daten ...' : (isSaving ? <><Spinner size={14} className="animate-spin" /> Speichere Änderungen...</> : <><Check size={14} /> Alle Änderungen gesichert</>)}
         </span>
         
+        <div className="h-4 w-px bg-gray-200 mx-2" />
+
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={toggleDarkMode} 
+          title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
+          className="h-8 w-8 text-sop-primary"
+        >
+          {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+        </Button>
+
         <Button 
           variant="ghost" 
           size="sm" 

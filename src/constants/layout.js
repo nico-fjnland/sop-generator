@@ -5,9 +5,9 @@
 // Page dimensions
 export const PAGE = {
   HEIGHT_MM: 297, // A4 height in millimeters
-  HEIGHT_PX: 970, // Printable height in pixels (at 96 DPI)
-  TOP_PADDING: 20, // Top padding in pixels
-  BOTTOM_PADDING: 20, // Bottom padding in pixels
+  HEIGHT_PX: 1123, // Printable height in pixels (at 96 DPI)
+  TOP_PADDING: 32, // Top padding in pixels
+  BOTTOM_PADDING: 32, // Bottom padding in pixels
 };
 
 // Content box styling
@@ -57,15 +57,15 @@ export const FOOTER = {
   PADDING: {
     TOP: 16,
     RIGHT: 46,
-    BOTTOM: 32,
+    BOTTOM: 46,
     LEFT: 46,
   },
-  // Heights include base height + buffer for page break calculations
-  HEIGHTS: {
-    tiny: 172, // 69px base + 103px buffer
-    small: 224, // 122px base + 102px buffer
-    large: 296, // 204px base + 92px buffer
-    'x-large': 362, // 249px base + 113px buffer
+  // Content heights for each variant (without padding)
+  CONTENT_HEIGHTS: {
+    tiny: 69,
+    small: 122,
+    large: 204,
+    'x-large': 249,
   },
 };
 
@@ -80,7 +80,7 @@ export const HEADER = {
   LOGO: {
     WIDTH: 87.6,
     HEIGHT: 49.2,
-    CONTAINER_WIDTH: 103.6,
+    CONTAINER_WIDTH: 155.4, // Increased by 50% (was 103.6)
     CONTAINER_HEIGHT: 65.2,
   },
   MARGIN_BOTTOM: 32, // Space below header (in screen mode)
