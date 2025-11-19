@@ -110,11 +110,13 @@
   /* Ensure caption boxes are correctly positioned in print - centered on border */
   /* Caption box height: 4px (top padding) + 12px (line-height) + 4px (bottom padding) = 20px */
   /* Border is 1.5px thick, so to center: move up by (20px / 2) = 10px */
+  /* IMPORTANT: Use margin-top instead of top for better html2canvas compatibility */
   .content-box-block .caption-container {
     left: 26px !important;
-    top: -10px !important; /* Center caption box on border (half of 20px height) */
+    top: 0 !important; /* Reset top */
+    margin-top: -10px !important; /* Use margin instead - better for html2canvas */
     position: absolute !important;
-    transform: none !important; /* Ensure no transforms that could shift position */
+    transform: none !important;
   }
   
   /* Ensure caption box border radius matches editor exactly (6px) - very specific selector */
@@ -377,6 +379,12 @@
   }
 }
 
+/* ========================================
+   PRINT-MODE REMOVED - NOT NEEDED
+   ======================================== */
+/* Export now works by cloning and directly manipulating element visibility */
+/* No CSS class needed - keeps editor styles intact */
+
 /* Header editable elements hover and click states - applies to both screen and print */
 .sop-header-editable {
   transition: all 0.2s ease;
@@ -437,7 +445,13 @@
 }
 
 /* Styles for export mode */
-/* Ensure generic no-print elements are hidden unless overridden */
+/* Minimal changes - just disable animations and hide no-print */
+.exporting-mode .page-container {
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Hide only toolbar and controls */
 .exporting-mode .no-print {
   display: none !important;
 }
@@ -449,6 +463,21 @@
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
+  z-index: 100 !important; /* Ensure on top */
+}
+
+/* Ensure SVGs in export mode are visible */
+.exporting-mode svg {
+  overflow: visible !important;
+}
+
+/* Fix positioning for captions in export mode */
+/* jsPDF/html2canvas can struggle with negative margins. */
+/* We might need to adjust the parent's overflow or use transform instead */
+.exporting-mode .content-box-block .caption-container {
+  /* Try to use transform for positioning if negative top fails */
+  /* But top: -10px usually works if parent has overflow: visible */
+  z-index: 50 !important;
 }
 
 /* Header editable fields - we want to show them (or their content) */
@@ -490,42 +519,55 @@
    but elements hidden via 'no-print' class might be filtered out by our filter function.
 */
 
-/* Slide-in animation for A4 pages - slides in from bottom of viewport */
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(150px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* =====================================================
+   EXPORT-READY MODE: Fixes for html2canvas positioning
+   ===================================================== */
+
+/* 
+  html2canvas struggles with:
+  1. Negative top/margin values (like top: -10px for captions)
+  2. Complex absolute positioning
+  3. Negative margins for icons
+  
+  Solution: Use transform: translate instead of negative margins/positions
+*/
+
+body.export-ready .caption-container {
+  /* Replace top: -10px with transform to avoid html2canvas issues */
+  top: 0 !important;
+  transform: translateY(-10px) !important;
+  position: absolute !important;
+  left: 26px !important;
+  z-index: 50 !important;
 }
+
+/* Ensure caption boxes are visible */
+body.export-ready .caption-box-print,
+body.export-ready .hidden.print\:block {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Ensure no-print elements are hidden */
+body.export-ready .no-print {
+  display: none !important;
+}
+
+/* Disable animations during export */
+body.export-ready .page-container {
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Slide-in animation removed to prevent export issues */
+/* Pages now appear immediately without animation */
 
 @media screen {
   .page-container {
-    animation: slideInUp 1.5s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  
-  /* Stagger animation for multiple pages */
-  .page-container:nth-child(1) {
-    animation-delay: 0s;
-  }
-  
-  .page-container:nth-child(2) {
-    animation-delay: 0.25s;
-  }
-  
-  .page-container:nth-child(3) {
-    animation-delay: 0.5s;
-  }
-  
-  .page-container:nth-child(4) {
-    animation-delay: 0.75s;
-  }
-  
-  .page-container:nth-child(n+5) {
-    animation-delay: 1s;
+    /* Animation disabled - pages appear immediately */
+    opacity: 1;
+    transform: none;
   }
 }
 

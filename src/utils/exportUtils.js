@@ -41,41 +41,147 @@ export const importFromJson = (file) => {
   });
 };
 
-// Helper to filter out non-printable elements
-// We rely on CSS (.exporting-mode) to hide specific elements
-const printFilter = (node) => {
-  return true;
+/**
+ * Creates an invisible clone of the container with print styles applied.
+ * This prevents flickering in the visible editor.
+ */
+const createPrintClone = (containerRef) => {
+  // Clone the entire container
+  const clone = containerRef.cloneNode(true);
+  
+  // Add a unique class to target only the clone
+  clone.classList.add('export-clone');
+  
+  // Make clone invisible and positioned offscreen
+  clone.style.position = 'fixed';
+  clone.style.top = '-9999px';
+  clone.style.left = '-9999px';
+  clone.style.zIndex = '-1';
+  clone.style.pointerEvents = 'none';
+  
+  // Preserve exact dimensions
+  const rect = containerRef.getBoundingClientRect();
+  clone.style.width = `${rect.width}px`;
+  
+  // Add print styles that only apply to the clone
+  const styleElement = document.createElement('style');
+  styleElement.textContent = `
+    /* All styles target ONLY the clone */
+    .export-clone .no-print {
+      display: none !important;
+    }
+    
+    .export-clone .hidden.print\\:block {
+      display: block !important;
+    }
+    
+    .export-clone .hidden.print\\:inline {
+      display: inline !important;
+    }
+    
+    .export-clone .hidden.print\\:flex {
+      display: flex !important;
+    }
+    
+    .export-clone .sop-header {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: flex-start !important;
+      width: 100% !important;
+      margin-bottom: 1.5rem !important;
+      padding-top: 14px !important;
+      padding-bottom: 14px !important;
+      padding-left: 14px !important;
+      padding-right: 14px !important;
+    }
+    
+    .export-clone .sop-header > div.flex.flex-col {
+      gap: 0.5rem !important;
+    }
+    
+    .export-clone .sop-header > div.flex.flex-col > div.flex.items-center {
+      padding-left: 0 !important;
+    }
+    
+    .export-clone .content-box-block .caption-container {
+      left: 26px !important;
+      top: 0 !important;
+      margin-top: -10px !important;
+      position: absolute !important;
+      transform: none !important;
+    }
+    
+    .export-clone .content-box-block .caption-container .caption-box-print,
+    .export-clone .content-box-block .caption-box-print[class*="print:block"],
+    .export-clone .content-box-block .caption-container .hidden.print\\:block {
+      border-radius: 4px !important;
+      -webkit-border-radius: 4px !important;
+      -moz-border-radius: 4px !important;
+    }
+  `;
+  
+  // Insert clone and styles into document
+  document.body.appendChild(clone);
+  document.head.appendChild(styleElement);
+  
+  return { clone, styleElement };
 };
 
 /**
- * Prepares the element for export by adding a temporary class
- * to force visibility of print-only elements and adjust styles.
+ * Removes the print clone and its styles.
  */
-const prepareForExport = async () => {
-  document.body.classList.add('exporting-mode');
-  // Wait for styles to apply and layout to stabilize
-  await new Promise(resolve => setTimeout(resolve, 500));
+const removePrintClone = ({ clone, styleElement }) => {
+  if (clone && clone.parentNode) {
+    clone.parentNode.removeChild(clone);
+  }
+  if (styleElement && styleElement.parentNode) {
+    styleElement.parentNode.removeChild(styleElement);
+  }
 };
 
-const cleanupAfterExport = () => {
-  document.body.classList.remove('exporting-mode');
+/**
+ * Generates a filename from title and stand (date).
+ * Format: "title-mm-yy"
+ * @param {string} title - The SOP title
+ * @param {string} stand - The stand/version string (e.g. "STAND 12/22")
+ * @returns {string} Sanitized filename
+ */
+const generateFilename = (title, stand) => {
+  // Extract date from stand (e.g. "STAND 12/22" -> "12-22")
+  const dateMatch = stand.match(/(\d{1,2})\/(\d{2})/);
+  const dateSuffix = dateMatch ? `${dateMatch[1]}-${dateMatch[2]}` : 'export';
+  
+  // Sanitize title: remove special chars, replace spaces with hyphens
+  const sanitizedTitle = title
+    .toLowerCase()
+    .replace(/[^a-z0-9äöüß\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+  
+  return `${sanitizedTitle}-${dateSuffix}`;
 };
 
 /**
  * Exports the current editor content as a Word document (DOCX).
- * It captures each page as an image and embeds it into the DOCX.
+ * Uses html-to-image for better CSS/Tailwind compatibility.
  * @param {HTMLElement} containerRef - Ref to the editor container element.
+ * @param {string} title - The SOP title for filename
+ * @param {string} stand - The stand/version for filename
  */
-export const exportAsWord = async (containerRef) => {
+export const exportAsWord = async (containerRef, title = 'SOP Überschrift', stand = 'STAND 12/22') => {
   if (!containerRef) return;
-
-  await prepareForExport();
   
-  // Select pages after preparation to ensure they are in the DOM
-  const pages = Array.from(containerRef.querySelectorAll('.page-container'));
+  // Create invisible clone with print styles
+  const { clone, styleElement } = createPrintClone(containerRef);
+  
+  // Wait for clone to render
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
+  const pages = Array.from(clone.querySelectorAll('.page-container'));
   
   if (!pages || pages.length === 0) {
-    cleanupAfterExport();
+    removePrintClone({ clone, styleElement });
     return;
   }
 
@@ -85,83 +191,80 @@ export const exportAsWord = async (containerRef) => {
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i];
       
-      // Use html-to-image to capture the page
-      // Use PNG for Word to maintain higher quality for text
-      // We remove the filter here and rely on CSS to hide/show elements
+      console.log(`Capturing page ${i + 1}/${pages.length} for Word...`);
+      console.log('Page dimensions:', page.offsetWidth, 'x', page.offsetHeight);
+      
+      // Use html-to-image (better with Tailwind/modern CSS)
       const dataUrl = await toPng(page, {
         quality: 1.0,
-        pixelRatio: 3, // High resolution
-        backgroundColor: '#ffffff'
+        pixelRatio: 4, // High resolution
+        backgroundColor: '#ffffff',
+        cacheBust: true,
       });
-
-      // Convert base64 data URL to buffer (ArrayBuffer) for docx
+      
+      console.log('Image captured, data URL length:', dataUrl.length);
+      
+      // Convert data URL to buffer
       const response = await fetch(dataUrl);
-      const buffer = await response.arrayBuffer();
+      const blob = await response.blob();
+      const buffer = await blob.arrayBuffer();
 
-      // Create an image run for the Word document
       const imageRun = new ImageRun({
         data: buffer,
         transformation: {
-          width: 794, // approx A4 width in px at 96dpi
-          height: 1123, // approx A4 height
+          width: 794,
+          height: 1123,
         },
       });
 
-      const paragraph = new Paragraph({
-        children: [imageRun],
-      });
-
-      docChildren.push(paragraph);
+      docChildren.push(new Paragraph({ children: [imageRun] }));
     }
 
-    // Create the document
     const doc = new Document({
       sections: docChildren.map((child) => ({
         properties: {
           type: SectionType.NEXT_PAGE,
-          page: {
-            margin: {
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0,
-            },
-          },
+          page: { margin: { top: 0, right: 0, bottom: 0, left: 0 } },
         },
         children: [child],
       })),
     });
 
-    // Generate and download the file
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, 'sop-export.docx');
-
+    const filename = generateFilename(title, stand);
+    saveAs(blob, `${filename}.docx`);
   } catch (err) {
     console.error('Error rendering page for Word:', err);
+    alert('Fehler beim Word-Export.');
   } finally {
-    cleanupAfterExport();
+    // Clean up clone and styles
+    removePrintClone({ clone, styleElement });
   }
 };
 
 /**
- * Exports the current editor content as a PDF file directly.
- * Uses high-resolution image capture to ensure visual fidelity (WYSIWYG).
- * Note: Vector export (jsPDF.html) proved unreliable for complex overlapping UI (icons, captions).
- * We use a high pixelRatio to ensure print quality.
+ * Exports the current editor content as a PDF file.
+ * Uses html-to-image for better CSS/Tailwind compatibility.
  * @param {HTMLElement} containerRef - Ref to the editor container element.
+ * @param {string} title - The SOP title for filename
+ * @param {string} stand - The stand/version for filename
  */
-export const exportAsPdf = async (containerRef) => {
+export const exportAsPdf = async (containerRef, title = 'SOP Überschrift', stand = 'STAND 12/22') => {
   if (!containerRef) return;
 
-  await prepareForExport();
-  const pages = Array.from(containerRef.querySelectorAll('.page-container'));
+  // Create invisible clone with print styles
+  const { clone, styleElement } = createPrintClone(containerRef);
+  
+  // Wait for clone to render
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
+  const pages = Array.from(clone.querySelectorAll('.page-container'));
   
   if (!pages || pages.length === 0) {
-    cleanupAfterExport();
+    removePrintClone({ clone, styleElement });
     return;
   }
 
-  // Initialize PDF - A4 size, portrait, mm units
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pageWidth = 210;
   const pageHeight = 297;
@@ -170,27 +273,33 @@ export const exportAsPdf = async (containerRef) => {
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i];
       
-      // Use JPEG for PDF to reduce file size compared to PNG
-      // pixelRatio 3 ensures high quality (approx 300dpi)
-      // quality 0.9 provides good balance
+      console.log(`Capturing page ${i + 1}/${pages.length} for PDF...`);
+      console.log('Page dimensions:', page.offsetWidth, 'x', page.offsetHeight);
+      
+      // Use html-to-image with JPEG for smaller file size
       const dataUrl = await toJpeg(page, {
-        quality: 0.9,
-        pixelRatio: 3, 
-        backgroundColor: '#ffffff'
+        quality: 0.95,
+        pixelRatio: 3, // Good quality for PDF
+        backgroundColor: '#ffffff',
+        cacheBust: true,
       });
+      
+      console.log('Image captured, data URL length:', dataUrl.length);
       
       if (i > 0) {
         pdf.addPage();
       }
 
-      // Add image to PDF, fitting A4 dimensions
       pdf.addImage(dataUrl, 'JPEG', 0, 0, pageWidth, pageHeight);
     }
 
-    pdf.save('sop-export.pdf');
+    const filename = generateFilename(title, stand);
+    pdf.save(`${filename}.pdf`);
   } catch (err) {
     console.error('Error rendering page for PDF:', err);
+    alert('Fehler beim PDF-Export.');
   } finally {
-    cleanupAfterExport();
+    // Clean up clone and styles
+    removePrintClone({ clone, styleElement });
   }
 };
