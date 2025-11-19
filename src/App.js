@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useReactToPrint } from 'react-to-print';
 import Editor from './components/Editor';
 import { Button } from './components/ui/button';
 import { IconButton } from './components/ui/icon-button';
@@ -29,47 +28,6 @@ function App() {
     setIsDarkMode(!isDarkMode);
   };
 
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-    documentTitle: 'Standard Operating Procedure',
-    pageStyle: `
-      @page {
-        size: A4;
-        margin: 10mm 15mm 10mm 10mm;
-      }
-      @media print {
-        body {
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-        }
-        .no-print {
-          display: none !important;
-        }
-        .content-box-block {
-          page-break-inside: avoid !important;
-          break-inside: avoid !important;
-        }
-        .block-wrapper {
-          page-break-inside: avoid;
-          break-inside: avoid;
-        }
-        .page-container {
-          padding: 32px !important;
-        }
-        .page-container:first-child {
-          padding-top: 32px !important;
-        }
-        .page-container:not(:first-child) {
-          padding-top: 32px !important;
-        }
-      }
-    `,
-    onBeforeGetContent: () => {
-      // Ensure all content is loaded before printing
-      return Promise.resolve();
-    },
-  });
-
   return (
     <div className={`min-h-screen light-gradient-bg dark-gradient-bg flex flex-col transition-colors duration-200 ${isDarkMode ? 'dark' : ''}`}>
       {/* Header */}
@@ -78,20 +36,7 @@ function App() {
           <h1 className="text-xl font-semibold text-sop-primary dark:text-[#3399FF] font-display tracking-tight">SOP Editor</h1>
           <span className="text-xs text-muted-foreground dark:text-[#94a3b8] font-medium px-2 py-1 rounded-md bg-sop-light/50 dark:bg-[#1a2332]/50">Notaufnahme</span>
         </div>
-        <div className="absolute right-6 top-4 flex items-center gap-3">
-          <Button
-            onClick={handlePrint}
-            size="default"
-            aria-label="PDF herunterladen"
-            className="font-medium"
-            style={{
-              backgroundColor: '#0099FF',
-              borderRadius: '99px'
-            }}
-          >
-            PDF herunterladen
-          </Button>
-        </div>
+        {/* Removed the "PDF herunterladen" button from here as it is now in the editor toolbar */}
       </header>
 
       {/* Main Content Area */}

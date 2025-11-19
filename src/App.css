@@ -370,6 +370,11 @@
   .content-box-block div[class*="mb-2"] {
     margin-bottom: 0.5rem !important;
   }
+  
+  /* Hide column resizer in print */
+  .column-resizer {
+    display: none !important;
+  }
 }
 
 /* Header editable elements hover and click states - applies to both screen and print */
@@ -430,6 +435,60 @@
 .dark .dark-gradient-bg {
   background: linear-gradient(180deg, #003366 0%, #004D99 100%) !important;
 }
+
+/* Styles for export mode */
+/* Ensure generic no-print elements are hidden unless overridden */
+.exporting-mode .no-print {
+  display: none !important;
+}
+
+/* Force visibility of specific elements during export that might be marked as no-print but are needed */
+/* Icons in content boxes */
+.exporting-mode .content-box-block .icon-container,
+.exporting-mode .icon-container {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Header editable fields - we want to show them (or their content) */
+.exporting-mode .sop-header-editable,
+.exporting-mode .sop-header-title-editable,
+.exporting-mode .sop-header-logo-editable {
+  display: flex !important; /* or block/inline-block depending on element */
+  visibility: visible !important;
+  opacity: 1 !important;
+  border-color: transparent !important; /* Hide borders of inputs/editables */
+}
+
+/* Caption containers */
+.exporting-mode .caption-container {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 20 !important;
+}
+
+/* Hide specific controls that definitely shouldn't be seen */
+.exporting-mode .notion-box-controls,
+.exporting-mode .notion-box-controls-left,
+.exporting-mode .inline-text-toolbar,
+.exporting-mode .column-resizer {
+  display: none !important;
+}
+
+/* Ensure inputs look like text */
+.exporting-mode input,
+.exporting-mode textarea {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important; /* Adjust if needed */
+}
+
+/* Use print styles when exporting via image capture if they are relevant */
+/* But html-to-image captures computed styles. We need to ensure 'screen' styles that look right are used, 
+   but elements hidden via 'no-print' class might be filtered out by our filter function.
+*/
 
 /* Slide-in animation for A4 pages - slides in from bottom of viewport */
 @keyframes slideInUp {
@@ -514,12 +573,12 @@
     transform: scale(0.98);
   }
   
-.dragging-box {
-  opacity: 0.5 !important;
-  transform: scale(0.98);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  will-change: opacity, transform;
-}
+  .dragging-box {
+    opacity: 0.5 !important;
+    transform: scale(0.98);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    will-change: opacity, transform;
+  }
   
   .icon-container:active {
     cursor: grabbing !important;
@@ -595,6 +654,36 @@
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.5px;
+  }
+
+  /* Column Resizer Styles */
+  .column-resizer {
+    width: 24px; /* Wider hit area for better usability */
+    cursor: col-resize;
+    position: absolute; /* Removed from flex flow */
+    top: 0;
+    bottom: 0;
+    transform: translateX(-50%); /* Center exactly on the line */
+    z-index: 20; /* Higher than content */
+    display: flex;
+    justify-content: center;
+    /* left is set via inline styles based on ratio */
+  }
+
+  .column-resizer:hover::after,
+  .column-resizer.resizing::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background-color: rgba(51, 153, 255, 0.2); /* Subtle blue on hover */
+    border-radius: 2px;
+    transition: background-color 0.2s ease;
+  }
+
+  .column-resizer.resizing::after {
+    background-color: #3399FF; /* Active blue */
   }
 }
 
@@ -1036,5 +1125,3 @@
 .dark .notion-add-box-menu__check {
   color: #3399FF !important;
 }
-
-
