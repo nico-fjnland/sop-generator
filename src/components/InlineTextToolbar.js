@@ -24,7 +24,7 @@ const InlineTextToolbar = ({
 
   const toolbar = (
     <div
-      className="inline-text-toolbar pointer-events-auto"
+      className="inline-text-toolbar pointer-events-auto flex items-center gap-1 p-1 bg-white rounded-lg shadow-sm border border-gray-200"
       style={{
         top: Math.max(position.top, 8),
         left: position.left,
@@ -37,7 +37,7 @@ const InlineTextToolbar = ({
           <button
             key={button.id}
             type="button"
-            className={`inline-toolbar-button ${isActive ? 'active' : ''}`}
+            className={`inline-toolbar-button h-8 w-8 flex items-center justify-center rounded-md text-[#003366] hover:bg-accent hover:text-[#003366] transition-colors ${isActive ? 'bg-accent text-[#003366]' : ''}`}
             aria-label={button.label}
             onMouseDown={(event) => {
               event.preventDefault();

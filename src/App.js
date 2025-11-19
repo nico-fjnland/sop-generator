@@ -30,14 +30,6 @@ function App() {
 
   return (
     <div className={`min-h-screen light-gradient-bg dark-gradient-bg flex flex-col transition-colors duration-200 ${isDarkMode ? 'dark' : ''}`}>
-      {/* Header */}
-      <header className="no-print sticky top-0 z-50 w-full">
-        <div className="absolute left-6 top-4 flex items-center gap-3">
-          <h1 className="text-xl font-semibold text-sop-primary dark:text-[#3399FF] font-display tracking-tight">SOP Editor</h1>
-          <span className="text-xs text-muted-foreground dark:text-[#94a3b8] font-medium px-2 py-1 rounded-md bg-sop-light/50 dark:bg-[#1a2332]/50">Notaufnahme</span>
-        </div>
-        {/* Removed the "PDF herunterladen" button from here as it is now in the editor toolbar */}
-      </header>
 
       {/* Main Content Area */}
       <main className={`flex-grow py-12 px-6 overflow-auto no-print light-gradient-bg dark-gradient-bg transition-colors duration-200 flex justify-center ${isDarkMode ? 'dark' : ''}`}>

@@ -593,7 +593,7 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
             onClick={undo} 
             disabled={!canUndo}
             title="Rückgängig (Ctrl+Z)"
-            className="h-8 w-8"
+            className="h-8 w-8 text-[#003366]"
           >
             <ArrowCounterClockwise size={18} />
           </Button>
@@ -603,7 +603,7 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
             onClick={redo} 
             disabled={!canRedo}
             title="Wiederholen (Ctrl+Y)"
-            className="h-8 w-8"
+            className="h-8 w-8 text-[#003366]"
           >
             <ArrowClockwise size={18} />
           </Button>
@@ -618,7 +618,7 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
             size="sm"
             onClick={handleJsonExport}
             title="Als JSON Datei speichern"
-            className="h-8 text-xs px-2"
+            className="h-8 text-xs px-2 text-[#003366]"
           >
             <FileCode size={16} className="mr-1.5" />
             Export
@@ -628,7 +628,7 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
             size="sm"
             onClick={triggerImport}
             title="Gespeicherten Stand laden"
-            className="h-8 text-xs px-2"
+            className="h-8 text-xs px-2 text-[#003366]"
           >
             <Upload size={16} className="mr-1.5" />
             Import
@@ -639,7 +639,7 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
             onClick={handleWordExport}
             disabled={isExporting}
             title="Als Word Dokument exportieren"
-            className="h-8 text-xs px-2"
+            className="h-8 text-xs px-2 text-[#003366]"
           >
             <FileDoc size={16} className="mr-1.5" />
             Word
@@ -650,7 +650,7 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
             onClick={handlePdfExport}
             disabled={isExporting}
             title="Als PDF exportieren"
-            className="h-8 text-xs px-2"
+            className="h-8 text-xs px-2 text-[#003366]"
           >
             <FilePdf size={16} className="mr-1.5" />
             PDF
@@ -670,7 +670,7 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
           size="icon" 
           onClick={toggleDarkMode} 
           title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
-          className="h-8 w-8 text-sop-primary"
+          className="h-8 w-8 text-[#003366]"
         >
           {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
         </Button>
@@ -691,7 +691,6 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
           <div
             key={`page-${page.pageNumber}`}
             className="page-container"
-            data-page-number={pageIndex === 0 ? '' : `Seite ${page.pageNumber}`}
             style={{
               position: 'relative',
               display: 'flex',

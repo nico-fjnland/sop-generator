@@ -69,18 +69,28 @@ const createPrintClone = (containerRef) => {
     /* All styles target ONLY the clone */
     .export-clone .no-print {
       display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      position: absolute !important;
+      pointer-events: none !important;
     }
     
     .export-clone .hidden.print\\:block {
       display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
     }
     
     .export-clone .hidden.print\\:inline {
       display: inline !important;
+      visibility: visible !important;
+      opacity: 1 !important;
     }
     
     .export-clone .hidden.print\\:flex {
       display: flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
     }
     
     .export-clone .sop-header {
@@ -93,14 +103,61 @@ const createPrintClone = (containerRef) => {
       padding-bottom: 14px !important;
       padding-left: 14px !important;
       padding-right: 14px !important;
+      gap: 0 !important;
     }
     
     .export-clone .sop-header > div.flex.flex-col {
       gap: 0.5rem !important;
+      flex: 1 !important;
+      min-width: 0 !important;
+      max-width: calc(100% - 155.4px - 28px) !important; /* Full width minus logo width minus header padding */
     }
     
     .export-clone .sop-header > div.flex.flex-col > div.flex.items-center {
       padding-left: 0 !important;
+      padding-right: 0 !important;
+      width: auto !important;
+    }
+    
+    /* Logo container - ensure right alignment */
+    .export-clone .sop-header > div.flex.items-center.justify-end {
+      padding-left: 0 !important;
+      flex-shrink: 0 !important;
+      flex-grow: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
+      width: 155.4px !important;
+      margin-left: auto !important;
+    }
+    
+    /* Logo wrapper - ensure it stays within bounds and right-aligned */
+    .export-clone .sop-header > div.flex.items-center.justify-end > div.relative {
+      width: 155.4px !important;
+      height: 65.2px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
+    }
+    
+    /* Logo display container - right aligned */
+    .export-clone .sop-header > div.flex.items-center.justify-end > div.relative > div {
+      width: 100% !important;
+      height: 100% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
+    }
+    
+    /* Logo image - right aligned */
+    .export-clone .sop-header img[alt="Logo"],
+    .export-clone .sop-header svg[width="87.6"] {
+      max-width: 100% !important;
+      height: 49.2px !important;
+      width: auto !important;
+      object-fit: contain !important;
+      object-position: right center !important;
+      margin-left: auto !important;
     }
     
     .export-clone .content-box-block .caption-container {
@@ -195,9 +252,10 @@ export const exportAsWord = async (containerRef, title = 'SOP Überschrift', sta
       console.log('Page dimensions:', page.offsetWidth, 'x', page.offsetHeight);
       
       // Use html-to-image (better with Tailwind/modern CSS)
+      // pixelRatio 6 = ~476 DPI for ultra-sharp print quality
       const dataUrl = await toPng(page, {
         quality: 1.0,
-        pixelRatio: 4, // High resolution
+        pixelRatio: 6, // Ultra-high resolution for print (794px × 6 = 4764px width)
         backgroundColor: '#ffffff',
         cacheBust: true,
       });
@@ -277,9 +335,10 @@ export const exportAsPdf = async (containerRef, title = 'SOP Überschrift', stan
       console.log('Page dimensions:', page.offsetWidth, 'x', page.offsetHeight);
       
       // Use html-to-image with JPEG for smaller file size
+      // pixelRatio 6 = ~476 DPI for ultra-sharp print quality
       const dataUrl = await toJpeg(page, {
-        quality: 0.95,
-        pixelRatio: 3, // Good quality for PDF
+        quality: 0.98, // Higher quality for print
+        pixelRatio: 6, // Ultra-high resolution (794px × 6 = 4764px width ≈ 476 DPI)
         backgroundColor: '#ffffff',
         cacheBust: true,
       });

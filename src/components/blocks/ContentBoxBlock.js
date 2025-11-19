@@ -43,6 +43,13 @@ export const CATEGORIES = [
     iconComponent: CategoryIcons.therapie
   },
   { 
+    id: 'algorithmus', 
+    label: 'Algorithmus', 
+    color: '#47D1C6', 
+    bgColor: '#E8FAF9',
+    iconComponent: CategoryIcons.algorithmus
+  },
+  { 
     id: 'merke', 
     label: 'Merke', 
     color: '#FAAD14', 
@@ -52,9 +59,16 @@ export const CATEGORIES = [
   { 
     id: 'disposition', 
     label: 'Disposition', 
-    color: '#FAAD14', 
+    color: '#B27700', 
     bgColor: '#FFF7E6',
     iconComponent: CategoryIcons.disposition
+  },
+  { 
+    id: 'ablaeufe', 
+    label: 'Abläufe', 
+    color: '#524714', 
+    bgColor: '#FAF8EB',
+    iconComponent: CategoryIcons.ablaeufe
   },
   { 
     id: 'differenzial', 
@@ -64,18 +78,18 @@ export const CATEGORIES = [
     iconComponent: CategoryIcons.differenzial
   },
   { 
-    id: 'sonstiges', 
-    label: 'Sonstiges', 
-    color: '#8C8C8C', 
-    bgColor: '#F5F5F5',
-    iconComponent: CategoryIcons.sonstiges
+    id: 'studie', 
+    label: 'Studie', 
+    color: '#DB70C1', 
+    bgColor: '#FCF0F9',
+    iconComponent: CategoryIcons.studie
   },
   { 
-    id: 'ablaeufe', 
-    label: 'Organisationsabläufe', 
-    color: '#FADB14', 
-    bgColor: '#FAF8EB',
-    iconComponent: CategoryIcons.ablaeufe
+    id: 'sonstiges', 
+    label: 'Sonstiges', 
+    color: '#B3B3B3', 
+    bgColor: '#F5F5F5',
+    iconComponent: CategoryIcons.sonstiges
   },
 ];
 

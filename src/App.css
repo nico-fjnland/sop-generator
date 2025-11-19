@@ -19,7 +19,9 @@
   
   /* Unified padding for all pages in print - 32px on all sides */
   .page-container {
-    padding: 32px !important;
+    padding-left: 32px !important;
+    padding-right: 32px !important;
+    padding-bottom: 32px !important;
     position: relative !important;
     display: flex !important;
     flex-direction: column !important;
@@ -31,7 +33,7 @@
   }
   
   .page-container:not(:first-child) {
-    padding-top: 32px !important;
+    padding-top: 64px !important;
   }
   
   /* Header styles for print */
@@ -640,7 +642,9 @@ body.export-ready .page-container {
     width: 210mm;
     min-height: 297mm; /* Full A4 height - always maintain minimum A4 dimensions */
     margin: 0 auto 24mm auto; /* Increased space between pages for better breathing room */
-    padding: 32px !important; /* Unified padding on all sides */
+    padding-left: 32px !important;
+    padding-right: 32px !important;
+    padding-bottom: 32px !important;
     background: white !important; /* Always white for PDF preview */
     box-shadow: 
       0 1px 2px rgba(0, 0, 0, 0.07),
@@ -655,6 +659,16 @@ body.export-ready .page-container {
     flex-direction: column;
     border-radius: 6px; /* Subtle rounded corners */
     z-index: 10; /* Ensure page is above controls when hidden */
+  }
+  
+  /* First page padding-top */
+  .page-container:first-child {
+    padding-top: 32px !important;
+  }
+  
+  /* Following pages - double padding-top */
+  .page-container:not(:first-child) {
+    padding-top: 64px !important;
   }
   
   /* In dark mode, add stronger shadow for better visibility */
@@ -686,17 +700,6 @@ body.export-ready .page-container {
     opacity: 0.6;
   }
 
-  /* Page number indicator (optional) */
-  .page-container::before {
-    content: attr(data-page-number);
-    position: absolute;
-    top: 10mm;
-    right: 15mm;
-    color: rgba(0, 51, 102, 0.4); /* SOP Primary with reduced opacity */
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-  }
 
   /* Column Resizer Styles */
   .column-resizer {
@@ -747,62 +750,13 @@ body.export-ready .page-container {
 /* Floating toolbar for inline formatting */
 .inline-text-toolbar {
   position: fixed;
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  background: #ffffff !important; /* Always white, even in dark mode - part of editor */
-  border: 1px solid rgba(0, 51, 102, 0.08); /* SOP Primary with reduced opacity */
-  border-radius: 9999px;
-  box-shadow: 0 4px 16px rgba(0, 51, 102, 0.12), 0 2px 4px rgba(0, 51, 102, 0.08);
   transform: translate(-50%, -120%);
   z-index: 10020;
-  backdrop-filter: blur(8px);
+  /* backdrop-filter: blur(8px); - Removed as main toolbar is opaque white */
 }
 
-/* Editor inline toolbar stays white even in dark mode */
-.dark .inline-text-toolbar {
-  background: #ffffff !important;
-  border: 1px solid rgba(0, 51, 102, 0.08);
-  box-shadow: 0 4px 16px rgba(0, 51, 102, 0.12), 0 2px 4px rgba(0, 51, 102, 0.08);
-}
-
-.inline-toolbar-button {
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  border: none;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(0, 51, 102, 0.7) !important; /* Always dark text, even in dark mode - part of editor */
-  transition: all 0.15s ease;
-}
-
-.inline-toolbar-button:hover {
-  background: rgba(51, 153, 255, 0.12); /* SOP Accent Light Blue */
-  color: #003366 !important; /* SOP Primary */
-}
-
-.inline-toolbar-button.active {
-  background: #003366 !important; /* SOP Primary */
-  color: #ffffff !important;
-}
-
-/* Editor inline toolbar buttons stay with dark text even in dark mode */
-.dark .inline-toolbar-button {
-  color: rgba(0, 51, 102, 0.7) !important;
-}
-
-.dark .inline-toolbar-button:hover {
-  background: rgba(51, 153, 255, 0.12);
-  color: #003366 !important;
-}
-
-.dark .inline-toolbar-button.active {
-  background: #003366 !important; /* SOP Primary */
-  color: #ffffff !important;
-}
+/* Remove all other .inline-text-toolbar and .inline-toolbar-button styles
+   as they are now handled by Tailwind classes in the component to match the main toolbar */
 
 /* Row layout - dynamically single or two column */
 .block-row {
