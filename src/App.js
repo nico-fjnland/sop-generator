@@ -56,7 +56,7 @@ function App() {
                   <Route path="/register" element={<Register />} />
                   <Route path="/account" element={
                     <PrivateRoute>
-                      <Account />
+                      <Account isDarkMode={isDarkMode} />
                     </PrivateRoute>
                   } />
                 </Routes>

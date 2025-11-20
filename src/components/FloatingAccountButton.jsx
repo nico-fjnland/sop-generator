@@ -2,15 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { User, Gear, Moon, Sun, Globe, SignOut, ChatCircleDots } from '@phosphor-icons/react';
+import { User, Moon, Sun, Globe, SignOut, ChatCircleDots, FileText, Layout } from '@phosphor-icons/react';
 import { Button } from './ui/button';
 import { useClickOutside } from '../hooks/useClickOutside';
+import { getDocuments } from '../services/documentService';
 
 const FloatingAccountButton = ({ isDarkMode, toggleDarkMode }) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [profileData, setProfileData] = useState({ firstName: '', lastName: '' });
+  const [documentsCount, setDocumentsCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
   const buttonRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -22,9 +24,11 @@ const FloatingAccountButton = ({ isDarkMode, toggleDarkMode }) => {
   useEffect(() => {
     if (user) {
       getProfile();
+      loadDocumentsCount();
     } else {
       setAvatarUrl(null);
       setProfileData({ firstName: '', lastName: '' });
+      setDocumentsCount(0);
     }
   }, [user]);
 
@@ -45,6 +49,17 @@ const FloatingAccountButton = ({ isDarkMode, toggleDarkMode }) => {
       }
     } catch (error) {
       console.error('Error loading avatar for button:', error);
+    }
+  }
+
+  async function loadDocumentsCount() {
+    try {
+      const { data, error } = await getDocuments(user.id);
+      if (data) {
+        setDocumentsCount(data.length);
+      }
+    } catch (error) {
+      console.error('Error loading documents count:', error);
     }
   }
 
@@ -98,29 +113,48 @@ const FloatingAccountButton = ({ isDarkMode, toggleDarkMode }) => {
           <div className="px-4 py-3 border-b border-border">
             <div className="font-semibold text-foreground">{getDisplayName()}</div>
             <div className="text-sm text-muted-foreground mt-0.5">{user.email}</div>
-            <Button
-              onClick={() => {
-                navigate('/account');
-                setShowDropdown(false);
-              }}
-              className="w-full mt-3 rounded-md"
-              variant="secondary"
-            >
-              Profil öffnen
-            </Button>
           </div>
 
           {/* Menu Items */}
           <div className="py-1">
             <button
               onClick={() => {
-                navigate('/account');
+                navigate('/account?tab=sops');
+                setShowDropdown(false);
+              }}
+              className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-secondary flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <FileText size={18} />
+                Meine Leitfäden
+              </div>
+              {documentsCount > 0 && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                  {documentsCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => {
+                navigate('/account?tab=templates');
                 setShowDropdown(false);
               }}
               className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-secondary flex items-center gap-3"
             >
-              <Gear size={18} />
-              Einstellungen
+              <Layout size={18} />
+              SOP Templates
+            </button>
+
+            <button
+              onClick={() => {
+                navigate('/account?tab=profile');
+                setShowDropdown(false);
+              }}
+              className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-secondary flex items-center gap-3"
+            >
+              <User size={18} />
+              Profil & Einstellungen
             </button>
 
             {/* Theme Toggle */}
