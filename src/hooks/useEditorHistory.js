@@ -5,7 +5,7 @@ const HISTORY_LIMIT = 50;
 const DEBOUNCE_SAVE_DELAY = 1000;
 
 // Default initial state if nothing is in storage
-const getInitialState = () => ({
+export const getInitialState = () => ({
   rows: [
     { 
       id: 'row-1',

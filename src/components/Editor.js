@@ -1,12 +1,18 @@
 import React, { useState, useCallback, useRef, useEffect, memo, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Block from './Block';
 import SOPHeader from './SOPHeader';
 import SOPFooter from './SOPFooter';
 import { usePageBreaks } from '../hooks/usePageBreaks';
 import { useEditorHistory } from '../hooks/useEditorHistory';
 import { Button } from './ui/button';
-import { ArrowCounterClockwise, ArrowClockwise, Trash, Download, Upload, FileDoc, FileCode, FilePdf, Moon, Sun, Check, Spinner } from '@phosphor-icons/react';
+import { ArrowCounterClockwise, ArrowClockwise, Trash, Download, Upload, FileDoc, FileCode, FilePdf, Moon, Sun, Check, Spinner, CloudArrowUp, Export } from '@phosphor-icons/react';
 import { exportAsJson, importFromJson, exportAsWord, exportAsPdf } from '../utils/exportUtils';
+import { useAuth } from '../contexts/AuthContext';
+import { saveDocument, getDocument } from '../services/documentService';
+import { useDropdownPosition } from '../hooks/useDropdownPosition';
+import { useClickOutside } from '../hooks/useClickOutside';
+import { getInitialState } from '../hooks/useEditorHistory';
 
 // Wrapper component for blocks to handle refs
 const BlockWrapper = memo(({ block, pageBreak, onUpdate, onDelete, onAddAfter, setBlockRef, onMove, allBlocks, usedCategories = [], isRightColumn = false, iconOnRight = false }) => {
@@ -213,13 +219,98 @@ const BlockWrapper = memo(({ block, pageBreak, onUpdate, onDelete, onAddAfter, s
 });
 
 const Editor = ({ isDarkMode, toggleDarkMode }) => {
+  const { user } = useAuth();
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isCloudSaving, setIsCloudSaving] = useState(false);
+  // Remove showExportMenu state as it's no longer needed
+  // Remove exportButtonRef and exportMenuRef
+  // Remove useDropdownPosition and useClickOutside hooks for export menu
+  
+  const [searchParams, setSearchParams] = useSearchParams();
+  const documentId = searchParams.get('id');
+  const isNewDoc = searchParams.get('new') === 'true';
   
   // Use Unified History Hook
   const { state, undo, redo, canUndo, canRedo, setEditorState, reset, isSaving } = useEditorHistory();
   const { rows, headerTitle, headerStand, headerLogo, footerVariant } = state;
+
+  // Reset state if new document requested
+  useEffect(() => {
+    if (isNewDoc) {
+      const initialState = getInitialState();
+      setEditorState(initialState, { history: 'replace' });
+      
+      // Clear the 'new' param from URL to avoid resetting on refresh
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('new');
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [isNewDoc, setEditorState, searchParams, setSearchParams]);
+
+  // Load document if ID present
+  useEffect(() => {
+    if (documentId && user) {
+      const loadDoc = async () => {
+        try {
+          const { data, error } = await getDocument(documentId);
+          if (error) throw error;
+          if (data) {
+            // Ensure content has correct structure
+            const content = data.content;
+            setEditorState({
+              rows: content.rows || [],
+              headerTitle: data.title || 'SOP Überschrift',
+              headerStand: data.version || 'STAND 12/22',
+              headerLogo: content.headerLogo || null,
+              footerVariant: content.footerVariant || 'default'
+            }, { history: 'replace' }); // Don't add initial load to history
+          }
+        } catch (error) {
+          console.error('Error loading document:', error);
+          alert('Fehler beim Laden des Dokuments.');
+        }
+      };
+      loadDoc();
+    }
+  }, [documentId, user, setEditorState]);
+
+  // Save to Cloud
+  const handleCloudSave = async () => {
+    if (!user) {
+      alert('Bitte melde dich an, um Dokumente zu speichern.');
+      return;
+    }
+
+    setIsCloudSaving(true);
+    try {
+      // Prepare content state to save
+      const contentToSave = {
+        rows: state.rows,
+        headerLogo: state.headerLogo,
+        footerVariant: state.footerVariant
+      };
+
+      const { error } = await saveDocument(
+        user.id,
+        state.headerTitle,
+        state.headerStand,
+        contentToSave,
+        documentId // Update existing if ID present
+      );
+
+      if (error) throw error;
+      
+      // Show visual feedback? (Could add a toast notification later)
+      // alert('Dokument erfolgreich gespeichert!'); 
+    } catch (error) {
+      console.error('Cloud save failed:', error);
+      alert('Fehler beim Speichern in der Cloud.');
+    } finally {
+      setIsCloudSaving(false);
+    }
+  };
 
   // Helpers for updating specific parts of state
   const setRows = useCallback((rowsUpdate, options = { history: true }) => {
@@ -585,8 +676,17 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
 
       {/* Toolbar */}
       <div className="no-print flex items-center gap-2 mb-6 p-2 bg-white rounded-lg shadow-sm border border-gray-200 w-full max-w-[210mm]">
-        {/* History Controls */}
-        <div className="flex items-center gap-1">
+        {/* History & Reset Controls */}
+        <div className="flex items-center gap-0">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={reset} 
+            title="Reset"
+            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+          >
+            <Trash size={18} />
+          </Button>
           <Button 
             variant="ghost" 
             size="icon" 
@@ -616,16 +716,6 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleJsonExport}
-            title="Als JSON Datei speichern"
-            className="h-8 text-xs px-2 text-[#003366]"
-          >
-            <FileCode size={16} className="mr-1.5" />
-            Export
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
             onClick={triggerImport}
             title="Gespeicherten Stand laden"
             className="h-8 text-xs px-2 text-[#003366]"
@@ -633,57 +723,65 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
             <Upload size={16} className="mr-1.5" />
             Import
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleWordExport}
-            disabled={isExporting}
-            title="Als Word Dokument exportieren"
-            className="h-8 text-xs px-2 text-[#003366]"
-          >
-            <FileDoc size={16} className="mr-1.5" />
-            Word
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handlePdfExport}
-            disabled={isExporting}
-            title="Als PDF exportieren"
-            className="h-8 text-xs px-2 text-[#003366]"
-          >
-            <FilePdf size={16} className="mr-1.5" />
-            PDF
-          </Button>
+
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handlePdfExport}
+              disabled={isExporting}
+              className="h-8 text-xs px-2 text-[#003366]"
+              title="Als PDF exportieren"
+            >
+              <FilePdf size={16} className="mr-1.5" />
+              PDF
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleWordExport}
+              disabled={isExporting}
+              className="h-8 text-xs px-2 text-[#003366]"
+              title="Als Word exportieren"
+            >
+              <FileDoc size={16} className="mr-1.5" />
+              Word
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleJsonExport}
+              className="h-8 text-xs px-2 text-[#003366]"
+              title="Als JSON exportieren"
+            >
+              <FileCode size={16} className="mr-1.5" />
+              JSON
+            </Button>
+          </div>
+          
+          {user && (
+            <>
+              <div className="h-4 w-px bg-gray-200 mx-2" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCloudSave}
+                disabled={isCloudSaving}
+                title="In Cloud speichern"
+                className="h-8 text-xs px-2 text-[#003366]"
+              >
+                {isCloudSaving ? <Spinner size={16} className="animate-spin mr-1.5" /> : <CloudArrowUp size={16} className="mr-1.5" />}
+                Speichern
+              </Button>
+            </>
+          )}
         </div>
 
         <div className="h-4 w-px bg-gray-200 mx-2" />
         
-        <span className={`text-xs select-none flex-1 text-center flex items-center justify-center gap-1 ${!isExporting && !isSaving ? 'text-[#3399FF]' : 'text-muted-foreground'}`}>
-          {isExporting ? 'Exportiere Daten ...' : (isSaving ? <><Spinner size={14} className="animate-spin" /> Speichere Änderungen...</> : <><Check size={14} /> Alle Änderungen gesichert</>)}
+        <span className={`text-xs select-none flex-1 text-center flex items-center justify-center gap-1 ${!isExporting && !isSaving && !isCloudSaving ? 'text-[#3399FF]' : 'text-muted-foreground'}`}>
+          {isExporting ? 'Exportiere Daten ...' : (isSaving || isCloudSaving ? <><Spinner size={14} className="animate-spin" /> {isCloudSaving ? 'Speichere in Cloud...' : 'Speichere lokal...'}</> : <><Check size={14} /> Zwischenstand gespeichert</>)}
         </span>
-        
-        <div className="h-4 w-px bg-gray-200 mx-2" />
-
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={toggleDarkMode} 
-          title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
-          className="h-8 w-8 text-[#003366]"
-        >
-          {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-        </Button>
-
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={reset} 
-          className="text-red-500 hover:text-red-600 hover:bg-red-50 h-8 text-xs"
-        >
-          <Trash size={14} className="mr-1.5" />
-          Reset
-        </Button>
       </div>
 
       <div className="editor print:block" ref={containerRef}>
