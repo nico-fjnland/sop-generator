@@ -61,7 +61,7 @@ const ZoomControl = () => {
       className="fixed bottom-6 right-6 z-50 no-print"
     >
       {/* Horizontal Zoom Bar */}
-      <div className="bg-popover rounded-lg shadow-md border border-border p-1 flex items-center gap-1">
+      <div className="bg-popover rounded-lg border border-border p-1 flex items-center gap-1">
         {/* Zoom Out (Minus) */}
         <Button
           variant="ghost"

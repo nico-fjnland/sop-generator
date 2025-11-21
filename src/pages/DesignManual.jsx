@@ -231,8 +231,8 @@ const DesignManual = () => {
           <h1 className="text-3xl font-bold tracking-tight">Design Manual</h1>
           <p className="text-muted-foreground">
             Übersicht über alle verwendeten Styles, UI-Elemente und Design-Tokens dieser Anwendung.
-          </p>
-        </div>
+        </p>
+      </div>
 
       {/* Colors Section */}
       <section className="space-y-8">
@@ -261,19 +261,19 @@ const DesignManual = () => {
           <h3 className="text-xl font-semibold">SOP Color System</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {sopColors.flatMap((group) => group.colors).map((color) => (
-              <div key={color.hex} className="space-y-2">
-                <div 
+                  <div key={color.hex} className="space-y-2">
+                    <div 
                   className="h-24 w-full rounded-md shadow-sm flex items-center justify-center border"
-                  style={{ backgroundColor: color.hex, color: color.text }}
-                >
+                      style={{ backgroundColor: color.hex, color: color.text }}
+                    >
                   <span className="font-medium">{color.name}</span>
-                </div>
+                      </div>
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p className="font-mono uppercase">{color.hex}</p>
-                </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
         </div>
 
         <div className="space-y-4">
@@ -322,7 +322,7 @@ const DesignManual = () => {
           <PuzzlePiece size={24} weight="duotone" className="text-primary" />
           <h2 className="text-2xl font-semibold">UI-Komponenten</h2>
         </div>
-        
+
         <div className="space-y-8">
           <div className="space-y-4">
             <h3 className="text-xl font-semibold">Buttons</h3>

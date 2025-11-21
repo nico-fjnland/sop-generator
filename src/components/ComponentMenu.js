@@ -65,7 +65,9 @@ const ComponentMenu = ({ position, onSelect, onClose, figmaComponents = [], isIn
   }, [selectedIndex, onSelect, onClose]);
 
   // Calculate position to prevent menu from going off-screen
+  // Respects 24px padding from viewport edges (same as ZoomBar)
   const getAdjustedPosition = () => {
+    const EDGE_PADDING = 24; // Match page padding (same as ZoomBar)
     const menuWidth = 200;
     const menuHeight = components.length * 48; // Approximate height per item
     const viewportWidth = window.innerWidth;
@@ -74,21 +76,30 @@ const ComponentMenu = ({ position, onSelect, onClose, figmaComponents = [], isIn
     let adjustedTop = position.top;
     let adjustedLeft = position.left;
     
-    // Adjust horizontal position if menu would go off-screen
-    if (adjustedLeft + menuWidth > viewportWidth) {
-      adjustedLeft = viewportWidth - menuWidth - 10;
-    }
-    if (adjustedLeft < 0) {
-      adjustedLeft = 10;
+    // Adjust horizontal position to respect edge padding
+    // Ensure menu doesn't exceed right boundary (with padding)
+    const maxLeft = viewportWidth - menuWidth - EDGE_PADDING;
+    // Ensure menu doesn't exceed left boundary (with padding)
+    const minLeft = EDGE_PADDING;
+    
+    // Clamp horizontal position between min and max
+    adjustedLeft = Math.max(minLeft, Math.min(adjustedLeft, maxLeft));
+    
+    // Adjust vertical position to respect edge padding
+    // Ensure menu doesn't exceed bottom boundary (with padding)
+    const maxTop = viewportHeight + window.scrollY - menuHeight - EDGE_PADDING;
+    // Ensure menu doesn't exceed top boundary (with padding)
+    const minTop = window.scrollY + EDGE_PADDING;
+    
+    // If menu would go off bottom, try to show it above the cursor instead
+    if (adjustedTop > maxTop) {
+      adjustedTop = position.top - menuHeight - 10;
+      // Still ensure it respects top boundary
+      adjustedTop = Math.max(minTop, adjustedTop);
     }
     
-    // Adjust vertical position if menu would go off-screen
-    if (adjustedTop + menuHeight > viewportHeight + window.scrollY) {
-      adjustedTop = position.top - menuHeight - 10;
-    }
-    if (adjustedTop < window.scrollY) {
-      adjustedTop = window.scrollY + 10;
-    }
+    // Clamp vertical position between min and max
+    adjustedTop = Math.max(minTop, Math.min(adjustedTop, maxTop));
     
     return { top: adjustedTop, left: adjustedLeft };
   };

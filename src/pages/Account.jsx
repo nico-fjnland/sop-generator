@@ -469,19 +469,19 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
         action={
           <div className="flex gap-2 justify-center">
             <Button onClick={() => navigate('/?new=true')} variant="default" size="sm">
-              Erstes Dokument erstellen
-            </Button>
+            Erstes Dokument erstellen
+          </Button>
             <Button onClick={triggerImport} variant="outline" size="sm">
               Dokument importieren
             </Button>
-          </div>
+        </div>
         }
       />
       ) : (
         <div className="space-y-2">
           {documents.map((doc) => (
           <DocumentCard
-            key={doc.id}
+              key={doc.id} 
             doc={doc}
             onOpen={handleOpenDocument}
             onDelete={handleDeleteDocument}
@@ -489,9 +489,9 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
             onSelectToggle={toggleDocSelection}
           />
           ))}
-        </div>
+                </div>
       )}
-    </div>
+                  </div>
   );
 
   const TemplatesView = () => (
@@ -501,14 +501,14 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
         <p className="text-muted-foreground mt-1">
           Vorgefertigte Vorlagen für häufige SOPs
         </p>
-      </div>
+                </div>
       
       <EmptyState 
         icon={Layout}
         title="Demnächst verfügbar"
         description="Wir arbeiten an einer Sammlung professioneller SOP-Vorlagen für verschiedene medizinische Bereiche."
       />
-    </div>
+              </div>
   );
 
   const DesignManualView = () => {
@@ -518,95 +518,273 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
       { name: 'Destructive', class: 'bg-destructive text-destructive-foreground' },
       { name: 'Muted', class: 'bg-muted text-muted-foreground' },
       { name: 'Accent', class: 'bg-accent text-accent-foreground' },
+      { name: 'Popover', class: 'bg-popover text-popover-foreground' },
+      { name: 'Card', class: 'bg-card text-card-foreground' },
+      { name: 'Border', class: 'bg-border text-foreground' },
+      { name: 'Input', class: 'bg-input text-foreground' },
+      { name: 'Ring', class: 'bg-ring text-white' },
     ];
 
     const sopColors = [
       { name: 'Full Dark', hex: '#000000', text: 'white' },
       { name: 'Primary Text', hex: '#003366', text: 'white' },
+      { name: 'Blue Shade 1', hex: '#004D99', text: 'white' },
+      { name: 'Blue Shade 2', hex: '#0066CC', text: 'white' },
+      { name: 'Blue Shade 3', hex: '#0080FF', text: 'white' },
       { name: 'Brand Primary', hex: '#3399FF', text: 'black' },
+      { name: 'Blue Shade 4', hex: '#66B3FF', text: 'black' },
+      { name: 'Blue Shade 5', hex: '#99CCFF', text: 'black' },
+      { name: 'Blue Shade 6', hex: '#CCE6FF', text: 'black' },
+      { name: 'Blue Shade 7', hex: '#E5F2FF', text: 'black' },
+      { name: 'Full White', hex: '#FFFFFF', text: 'black' },
       { name: 'Dark Red', hex: '#8A1A0F', text: 'white' },
       { name: 'Primary Red', hex: '#EB5547', text: 'white' },
+      { name: 'Light Red', hex: '#FCEAE8', text: 'black' },
       { name: 'Dark Green', hex: '#23631D', text: 'white' },
+      { name: 'Primary Green', hex: '#57CB4D', text: 'black' },
+      { name: 'Light Green', hex: '#ECF9EB', text: 'black' },
+      { name: 'Dark Yellow', hex: '#B27700', text: 'white' },
+      { name: 'Primary Yellow', hex: '#FFBB33', text: 'black' },
+      { name: 'Light Yellow', hex: '#FFF7E6', text: 'black' },
+      { name: 'Dark Petrol', hex: '#1F7A73', text: 'white' },
+      { name: 'Primary Petrol', hex: '#47D1C6', text: 'black' },
+      { name: 'Light Petrol', hex: '#EBFAF9', text: 'black' },
+      { name: 'Dark Violett', hex: '#4D0891', text: 'white' },
+      { name: 'Primary Violett', hex: '#993DF5', text: 'white' },
+      { name: 'Light Violett', hex: '#F5ECFE', text: 'black' },
+      { name: 'Dark Grey', hex: '#B3B3B3', text: 'black' },
+      { name: 'Primary Grey', hex: '#EDEDED', text: 'black' },
+      { name: 'Light Grey', hex: '#F4F4F4', text: 'black' },
+    ];
+
+    const typography = [
+      { label: 'Heading 1', element: <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">The quick brown fox</h1>, description: 'text-4xl font-extrabold tracking-tight lg:text-5xl' },
+      { label: 'Heading 2', element: <h2 className="text-2xl font-semibold tracking-tight first:mt-0">The quick brown fox</h2>, description: 'text-2xl font-semibold tracking-tight' },
+      { label: 'Heading 3', element: <h3 className="text-xl font-semibold tracking-tight">The quick brown fox</h3>, description: 'text-xl font-semibold tracking-tight' },
+      { label: 'Heading 4', element: <h4 className="text-lg font-semibold tracking-tight">The quick brown fox</h4>, description: 'text-lg font-semibold tracking-tight' },
+      { label: 'Paragraph', element: <p className="leading-7 [&:not(:first-child)]:mt-6">The quick brown fox jumps over the lazy dog. Sphinx of black quartz, judge my vow.</p>, description: 'leading-7 [&:not(:first-child)]:mt-6' },
+      { label: 'Small', element: <small className="text-sm font-medium leading-none">The quick brown fox jumps over the lazy dog.</small>, description: 'text-sm font-medium leading-none' },
+      { label: 'Muted', element: <p className="text-sm text-muted-foreground">The quick brown fox jumps over the lazy dog.</p>, description: 'text-sm text-muted-foreground' },
     ];
 
     return (
-      <div className="space-y-12">
-        <div className="space-y-3">
-          <h1 className="text-3xl font-bold tracking-tight">Design Manual</h1>
-          <p className="text-muted-foreground">
-            Übersicht über alle verwendeten Styles, UI-Elemente und Design-Tokens dieser Anwendung.
+      <div className="space-y-16">
+        {/* Hero Section - Geist Style */}
+        <div className="space-y-2 pb-8 border-b">
+          <h1 className="text-2xl font-semibold tracking-tight">Design System</h1>
+          <p className="text-sm text-muted-foreground">
+            Designrichtlinien, Komponenten und Ressourcen für konsistente Benutzererfahrungen.
           </p>
-        </div>
+              </div>
 
-        <section className="space-y-8">
-          <div className="flex items-center gap-3 border-b pb-3">
-            <PaletteIcon size={24} weight="duotone" className="text-primary" />
-            <h2 className="text-2xl font-semibold">Farben</h2>
+        {/* Color Section - Geist Style */}
+        <section className="space-y-12">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">Farben</h2>
+            <p className="text-sm text-muted-foreground">
+              Ein kontrastreiches, zugängliches Farbsystem.
+            </p>
           </div>
           
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Theme Colors</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {/* Theme Colors */}
+          <div className="space-y-6">
+            <h3 className="text-sm font-medium text-muted-foreground">Theme Colors</h3>
+            <div className="flex flex-wrap gap-2">
               {colors.map((color) => (
-                <div key={color.name} className="space-y-2">
-                  <div className={`h-24 w-full rounded-md shadow-sm flex items-center justify-center border ${color.class}`}>
-                    <span className="font-medium">{color.name}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold">SOP Color System</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {sopColors.map((color) => (
-                <div key={color.hex} className="space-y-2">
+                <div key={color.name} className="group">
                   <div 
-                    className="h-24 w-full rounded-md shadow-sm flex items-center justify-center border"
-                    style={{ backgroundColor: color.hex, color: color.text }}
-                  >
-                    <span className="font-medium">{color.name}</span>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    <p className="font-mono uppercase">{color.hex}</p>
-                  </div>
+                    className={`w-16 h-16 rounded border hover:border-foreground/20 transition-all cursor-pointer ${color.class}`}
+                    onClick={() => {
+                      navigator.clipboard.writeText(color.name);
+                      toast.success('Kopiert!');
+                    }}
+                    title={color.name}
+                  />
+            </div>
+          ))}
+        </div>
+    </div>
+
+          {/* SOP Color System */}
+    <div className="space-y-6">
+            <h3 className="text-sm font-medium text-muted-foreground">SOP Farbsystem</h3>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(48px,1fr))] gap-2">
+              {sopColors.map((color) => (
+                <div key={color.hex} className="group">
+                  <div 
+                    className="w-full aspect-square rounded border hover:border-foreground/20 transition-all cursor-pointer"
+                    style={{ backgroundColor: color.hex }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(color.hex);
+                      toast.success('Kopiert!');
+                    }}
+                    title={`${color.name} - ${color.hex}`}
+                  />
                 </div>
               ))}
             </div>
           </div>
-        </section>
 
-        <section className="space-y-8">
-          <div className="flex items-center gap-3 border-b pb-3">
-            <TextAa size={24} weight="duotone" className="text-primary" />
-            <h2 className="text-2xl font-semibold">Typografie</h2>
-          </div>
-          <p className="text-muted-foreground">Schrift-Hierarchie und Stile</p>
-        </section>
-
-        <section className="space-y-8">
-          <div className="flex items-center gap-3 border-b pb-3">
-            <PuzzlePiece size={24} weight="duotone" className="text-primary" />
-            <h2 className="text-2xl font-semibold">UI-Komponenten</h2>
-          </div>
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Buttons</h3>
-            <div className="flex flex-wrap gap-4 p-6 border rounded-lg bg-card items-center">
-              <Button>Default</Button>
-              <Button variant="secondary">Secondary</Button>
-              <Button variant="destructive">Destructive</Button>
-              <Button variant="outline">Outline</Button>
-              <Button variant="ghost">Ghost</Button>
+          {/* Background Gradients */}
+          <div className="space-y-6">
+            <h3 className="text-sm font-medium text-muted-foreground">Hintergrund-Verläufe</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <div className="h-24 rounded border light-gradient-bg" />
+                <p className="text-xs font-mono text-muted-foreground">Light</p>
+              </div>
+              <div className="space-y-2">
+                <div className="h-24 rounded border dark-gradient-bg dark" />
+                <p className="text-xs font-mono text-muted-foreground">Dark</p>
+              </div>
             </div>
           </div>
         </section>
+
+        {/* Typography Section - Geist Style */}
+        <section className="space-y-12">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">Typografie</h2>
+            <p className="text-sm text-muted-foreground">
+              Klare typografische Hierarchie für Lesbarkeit und Ordnung.
+            </p>
+          </div>
+          
+          <div className="space-y-8">
+            {typography.map((type, index) => (
+              <div key={index} className="space-y-3">
+                <div className="flex items-center gap-4 pb-2 border-b">
+                  <span className="text-xs font-mono text-muted-foreground min-w-[80px]">{type.label}</span>
+                  <code className="text-xs font-mono text-muted-foreground/60">{type.description}</code>
+                </div>
+                <div className="pl-2">
+                  {type.element}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Components Section - Geist Style */}
+        <section className="space-y-12">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">Komponenten</h2>
+            <p className="text-sm text-muted-foreground">
+              Bausteine für React-Anwendungen.
+            </p>
+          </div>
+          
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Buttons</h3>
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <p className="text-xs font-mono text-muted-foreground/60">Variants</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button>Default</Button>
+                    <Button variant="secondary">Secondary</Button>
+                    <Button variant="destructive">Destructive</Button>
+                    <Button variant="outline">Outline</Button>
+                    <Button variant="ghost">Ghost</Button>
+                    <Button variant="link">Link</Button>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-xs font-mono text-muted-foreground/60">Sizes</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button size="sm">Small</Button>
+                    <Button>Medium</Button>
+                    <Button size="lg">Large</Button>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-xs font-mono text-muted-foreground/60">States</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button disabled>Disabled</Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Spacing Section - Geist Style */}
+        <section className="space-y-12">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">Abstände</h2>
+            <p className="text-sm text-muted-foreground">
+              8px-basiertes System für konsistente Layouts.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-5 md:grid-cols-10 gap-4">
+            {[4, 8, 12, 16, 20, 24, 32, 40, 48, 64].map((space) => (
+              <div key={space} className="space-y-2">
+                <div className="flex items-end justify-center h-20 border rounded p-2">
+                  <div 
+                    className="bg-foreground w-full"
+                    style={{ height: `${space/4}rem` }}
+                  />
+                </div>
+                <p className="text-xs font-mono text-center text-muted-foreground">{space}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Border Radius Section - Geist Style */}
+        <section className="space-y-12">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">Eckenradien</h2>
+            <p className="text-sm text-muted-foreground">
+              Definierte Rundungen für verschiedene UI-Elemente.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-4 md:grid-cols-7 gap-4">
+            <div className="space-y-2">
+              <div className="w-full aspect-square bg-foreground rounded-none border" />
+              <p className="text-xs font-mono text-center text-muted-foreground">0</p>
+            </div>
+            <div className="space-y-2">
+              <div className="w-full aspect-square bg-foreground rounded border" />
+              <p className="text-xs font-mono text-center text-muted-foreground">4</p>
+            </div>
+            <div className="space-y-2">
+              <div className="w-full aspect-square bg-foreground rounded-md border" />
+              <p className="text-xs font-mono text-center text-muted-foreground">6</p>
+            </div>
+            <div className="space-y-2">
+              <div className="w-full aspect-square bg-foreground rounded-lg border" />
+              <p className="text-xs font-mono text-center text-muted-foreground">8</p>
+            </div>
+            <div className="space-y-2">
+              <div className="w-full aspect-square bg-foreground rounded-xl border" />
+              <p className="text-xs font-mono text-center text-muted-foreground">12</p>
+            </div>
+            <div className="space-y-2">
+              <div className="w-full aspect-square bg-foreground rounded-2xl border" />
+              <p className="text-xs font-mono text-center text-muted-foreground">16</p>
+            </div>
+            <div className="space-y-2">
+              <div className="w-full aspect-square bg-foreground rounded-full border" />
+              <p className="text-xs font-mono text-center text-muted-foreground">full</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer - Geist Style */}
+        <div className="pt-16 pb-8">
+          <p className="text-xs text-muted-foreground/60 text-center">
+            Design-Elemente für konsistente Benutzererfahrungen
+          </p>
       </div>
-    );
+    </div>
+  );
   };
 
   const ProfileView = () => (
-    <div className="space-y-8 max-w-2xl">
+    <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Profil & Einstellungen</h1>
         <p className="text-muted-foreground mt-1">
@@ -666,53 +844,53 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
           <div>
             <h2 className="text-xl font-semibold mb-4">Persönliche Informationen</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
+          <div className="space-y-2">
                 <Label htmlFor="firstName">Vorname</Label>
-                <Input
-                  id="firstName"
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="Max"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Nachname</Label>
-                <Input
-                  id="lastName"
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Mustermann"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="jobPosition">Position</Label>
-                <Input
-                  id="jobPosition"
-                  type="text"
-                  value={jobPosition}
-                  onChange={(e) => setJobPosition(e.target.value)}
-                  placeholder="Assistenzarzt"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="hospital">Krankenhaus</Label>
-                <Input
-                  id="hospital"
-                  type="text"
-                  value={hospital}
-                  onChange={(e) => setHospital(e.target.value)}
-                  placeholder="Klinikum Berlin"
-                />
-              </div>
-            </div>
+            <Input
+              id="firstName"
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="Max"
+            />
           </div>
+          <div className="space-y-2">
+                <Label htmlFor="lastName">Nachname</Label>
+            <Input
+              id="lastName"
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Mustermann"
+            />
+          </div>
+          <div className="space-y-2">
+                <Label htmlFor="jobPosition">Position</Label>
+            <Input
+              id="jobPosition"
+              type="text"
+              value={jobPosition}
+              onChange={(e) => setJobPosition(e.target.value)}
+              placeholder="Assistenzarzt"
+            />
+          </div>
+          <div className="space-y-2">
+                <Label htmlFor="hospital">Krankenhaus</Label>
+            <Input
+              id="hospital"
+              type="text"
+              value={hospital}
+              onChange={(e) => setHospital(e.target.value)}
+              placeholder="Klinikum Berlin"
+            />
+              </div>
+          </div>
+        </div>
 
           <div className="flex justify-end">
-            <Button type="submit" disabled={updating}>
-              {updating ? 'Wird gespeichert...' : 'Änderungen speichern'}
-            </Button>
+          <Button type="submit" disabled={updating}>
+            {updating ? 'Wird gespeichert...' : 'Änderungen speichern'}
+          </Button>
           </div>
         </div>
       </form>
@@ -857,13 +1035,41 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
         progress={exportProgress}
       />
       
-      <div className="flex min-h-screen p-6 gap-6">
-        {/* Sidebar Navigation - Box style like ZoomBar */}
-        <aside className="w-64 flex-shrink-0 no-print">
-          <div className="sticky top-6 bg-white rounded-lg shadow-md border border-border overflow-hidden">
-            <div className="h-[calc(100vh-3rem)] overflow-y-auto py-8 px-4">
-            <div className="space-y-6">
-              {/* Back to Editor */}
+      <div className="flex min-h-screen">
+        {/* Sidebar Navigation - Fixed, full height, left aligned */}
+        <aside className="fixed left-0 top-0 w-64 no-print bg-background border-r border-border">
+          <div className="h-screen flex flex-col py-8 px-6">
+            {/* Spacer to push content to bottom */}
+            <div className="flex-1"></div>
+
+            {/* Navigation - Bottom section */}
+            <nav className="space-y-1">
+              <TabButton 
+                id="sops" 
+                icon={FileText} 
+                label="Meine Leitfäden" 
+                count={documents.length} 
+              />
+              <TabButton 
+                id="templates" 
+                icon={Layout} 
+                label="SOP Templates" 
+              />
+              <TabButton 
+                id="design-manual" 
+                icon={PaletteIcon} 
+                label="Design Manual" 
+              />
+              <TabButton 
+                id="profile" 
+                icon={User} 
+                label="Profil & Einstellungen" 
+              />
+            </nav>
+
+            {/* Back to Editor - Very bottom */}
+            <div className="pt-6">
+              <Separator className="mb-4" />
               <Button
                 onClick={() => navigate('/')}
                 variant="ghost"
@@ -873,52 +1079,19 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
                 <ArrowLeft size={16} />
                 Zurück zum Editor
               </Button>
-
-              <Separator />
-
-              {/* Navigation */}
-              <nav className="space-y-1">
-                <TabButton 
-                  id="sops" 
-                  icon={FileText} 
-                  label="Meine Leitfäden" 
-                  count={documents.length} 
-                />
-                <TabButton 
-                  id="templates" 
-                  icon={Layout} 
-                  label="SOP Templates" 
-                />
-                <TabButton 
-                  id="design-manual" 
-                  icon={PaletteIcon} 
-                  label="Design Manual" 
-                />
-                
-                <div className="pt-2">
-                  <Separator />
-                </div>
-                
-                <TabButton 
-                  id="profile" 
-                  icon={User} 
-                  label="Profil & Einstellungen" 
-                />
-              </nav>
             </div>
             </div>
-          </div>
-        </aside>
+          </aside>
 
         {/* Main Content - Aligned near sidebar */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="w-full max-w-5xl pt-12 pb-8 px-8">
+        <main className="flex-1 overflow-y-auto p-6 ml-64">
+          <div className="w-full max-w-5xl pt-6 pb-8 px-8">
             {currentTab === 'sops' && <SopsView />}
             {currentTab === 'templates' && <TemplatesView />}
             {currentTab === 'design-manual' && <DesignManualView />}
             {currentTab === 'profile' && <ProfileView />}
           </div>
-        </main>
+          </main>
       </div>
     </div>
   );

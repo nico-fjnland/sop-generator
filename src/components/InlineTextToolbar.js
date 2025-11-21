@@ -25,7 +25,7 @@ const InlineTextToolbar = ({
 
   const toolbar = (
     <div
-      className="inline-text-toolbar pointer-events-auto flex items-center gap-1 p-1 bg-popover rounded-lg shadow-md border border-border"
+      className="inline-text-toolbar pointer-events-auto flex items-center gap-1 p-1 bg-popover rounded-lg border border-border"
       style={{
         top: Math.max(position.top, 8),
         left: position.left,

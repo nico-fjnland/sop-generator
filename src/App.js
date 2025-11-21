@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Editor from './components/Editor';
 import FloatingAccountButton from './components/FloatingAccountButton';
+import Logo from './components/Logo';
 import ZoomControl from './components/ZoomControl';
 import ZoomWrapper from './components/ZoomWrapper';
 import Login from './pages/auth/Login';
@@ -37,25 +38,26 @@ function App() {
       <Router>
         <div className="min-h-screen light-gradient-bg flex flex-col transition-colors duration-200">
             <Toaster position="bottom-left" />
+          <Logo variant={editorGradient} />
           <FloatingAccountButton />
-          <ZoomControl />
+            <ZoomControl />
           
-          <Routes>
+                <Routes>
             {/* Auth Routes - No Zoom, No FloatingButton constraints */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
             
             {/* Fullscreen Pages - No Zoom wrapper */}
-            <Route path="/account" element={
-              <PrivateRoute>
+                  <Route path="/account" element={
+                    <PrivateRoute>
                 <Account editorGradient={editorGradient} toggleEditorGradient={toggleEditorGradient} />
-              </PrivateRoute>
-            } />
-                    <Route path="/design-manual" element={
-                      <PrivateRoute>
+                    </PrivateRoute>
+                  } />
+                      <Route path="/design-manual" element={
+                        <PrivateRoute>
                         <Navigate to="/account?tab=design-manual" replace />
-                      </PrivateRoute>
-                    } />
+                        </PrivateRoute>
+                      } />
             
             {/* Editor Route - With Zoom wrapper */}
             <Route path="/" element={
@@ -67,10 +69,10 @@ function App() {
                       className="w-full max-w-5xl print:bg-white"
                     >
                       <Editor />
-                    </div>
-                  </div>
-                </main>
-              </ZoomWrapper>
+              </div>
+            </div>
+          </main>
+            </ZoomWrapper>
             } />
           </Routes>
 

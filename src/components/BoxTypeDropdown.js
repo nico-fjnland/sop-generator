@@ -37,7 +37,13 @@ const BoxTypeDropdown = ({ onSelect, usedCategories = [] }) => {
         <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="start">
+      <DropdownMenuContent 
+        className="w-56" 
+        align="start"
+        collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }}
+        avoidCollisions={true}
+        sideOffset={4}
+      >
         <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           Box hinzufügen
         </DropdownMenuLabel>

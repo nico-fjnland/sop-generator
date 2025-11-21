@@ -89,10 +89,10 @@ const FloatingAccountButton = () => {
       <div className="fixed top-6 right-6 z-50 no-print">
         <Button
           onClick={handleClick}
-          className="rounded-full w-14 h-14 p-0 shadow-md hover:shadow-lg border border-border transition-all bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center overflow-hidden"
+          className="rounded-full w-[50px] h-[50px] p-0 transition-all bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center overflow-hidden"
           title="Anmelden"
         >
-                  <User size={28} weight="bold" />
+          <User size={28} weight="bold" />
         </Button>
       </div>
     );
@@ -103,7 +103,7 @@ const FloatingAccountButton = () => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
       <Button
-        className="rounded-full w-12 h-12 p-0 shadow-md hover:shadow-lg border border-border transition-all bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center overflow-hidden"
+            className="rounded-full w-[50px] h-[50px] p-0 transition-all bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center overflow-hidden"
             title="Mein Konto"
       >
             {avatarUrl ? (
@@ -113,11 +113,11 @@ const FloatingAccountButton = () => {
             className="w-full h-full object-cover"
           />
         ) : (
-                  <User size={28} weight="bold" />
+              <User size={28} weight="bold" />
         )}
       </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-64" align="end" forceMount>
+        <DropdownMenuContent className="w-64" align="end" forceMount collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }} avoidCollisions={true}>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">{getDisplayName()}</p>

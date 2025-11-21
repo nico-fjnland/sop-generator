@@ -249,6 +249,8 @@
     margin: 0 !important;
     box-shadow: none !important;
     border-radius: 0 !important; /* Remove border radius in print */
+    background: white !important; /* Remove texture in print - pure white */
+    background-image: none !important; /* Remove paper texture for print */
     page-break-after: always;
     break-after: page;
     box-sizing: border-box;
@@ -660,6 +662,38 @@ body.export-ready .page-container {
     padding-right: 32px !important;
     padding-bottom: 32px !important;
     background: white !important; /* Always white for PDF preview */
+    /* Paper texture - only visible on screen */
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.04) 0px,
+        transparent 1px,
+        transparent 2px,
+        rgba(0, 0, 0, 0.04) 3px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.04) 0px,
+        transparent 1px,
+        transparent 2px,
+        rgba(0, 0, 0, 0.04) 3px
+      ),
+      radial-gradient(
+        circle at 20% 80%,
+        rgba(0, 0, 0, 0.025) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 20%,
+        rgba(0, 0, 0, 0.025) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 50% 50%,
+        rgba(0, 0, 0, 0.015) 0%,
+        transparent 100%
+      ),
+      white;
     box-shadow: 
       0 4px 6px -1px rgba(0, 0, 0, 0.1),
       0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -668,7 +702,7 @@ body.export-ready .page-container {
     position: relative;
     display: flex;
     flex-direction: column;
-    border-radius: 3px; /* Subtle rounded corners */
+    border-radius: 8px; /* Match Toolbar and ZoomBox (rounded-lg) */
     z-index: 10; /* Ensure page is above controls when hidden */
   }
   
