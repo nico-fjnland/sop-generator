@@ -6,6 +6,19 @@
     padding: 0;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    zoom: 1 !important;
+    transform: none !important;
+  }
+  
+  /* Zoom beim Drucken zurücksetzen - KRITISCH für korrektes Druckergebnis */
+  #zoom-wrapper {
+    transform: scale(1) !important;
+    zoom: 1 !important;
+  }
+  
+  /* Alle Elemente auf normalen Zoom zurücksetzen */
+  * {
+    zoom: 1 !important;
   }
   
   .no-print {
@@ -441,8 +454,9 @@
   background: linear-gradient(180deg, #E5F2FF 0%, #F4F4F4 100%);
 }
 
-/* Dark mode gradient background - only active when dark class is present */
-.dark .dark-gradient-bg {
+/* Dark mode gradient background - also for preview in Design Manual */
+.dark .dark-gradient-bg,
+.dark.dark-gradient-bg {
   background: linear-gradient(180deg, #003366 0%, #004D99 100%) !important;
 }
 
@@ -647,17 +661,14 @@ body.export-ready .page-container {
     padding-bottom: 32px !important;
     background: white !important; /* Always white for PDF preview */
     box-shadow: 
-      0 1px 2px rgba(0, 0, 0, 0.07),
-      0 2px 4px rgba(0, 0, 0, 0.07),
-      0 4px 8px rgba(0, 0, 0, 0.07),
-      0 8px 16px rgba(0, 0, 0, 0.07),
-      0 16px 32px rgba(0, 0, 0, 0.07),
-      0 32px 64px rgba(0, 0, 0, 0.07);
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid hsl(var(--border));
     box-sizing: border-box;
     position: relative;
     display: flex;
     flex-direction: column;
-    border-radius: 6px; /* Subtle rounded corners */
+    border-radius: 3px; /* Subtle rounded corners */
     z-index: 10; /* Ensure page is above controls when hidden */
   }
   
@@ -674,12 +685,8 @@ body.export-ready .page-container {
   /* In dark mode, add stronger shadow for better visibility */
   .dark .page-container {
     box-shadow: 
-      0 2px 4px rgba(0, 0, 0, 0.12),
-      0 4px 8px rgba(0, 0, 0, 0.12),
-      0 8px 16px rgba(0, 0, 0, 0.12),
-      0 16px 32px rgba(0, 0, 0, 0.12),
-      0 32px 64px rgba(0, 0, 0, 0.12),
-      0 64px 128px rgba(0, 0, 0, 0.12);
+      0 10px 15px -3px rgba(0, 0, 0, 0.3),
+      0 4px 6px -2px rgba(0, 0, 0, 0.2);
   }
 
   /* Visual page break indicator */
@@ -753,6 +760,15 @@ body.export-ready .page-container {
   transform: translate(-50%, -120%);
   z-index: 10020;
   /* backdrop-filter: blur(8px); - Removed as main toolbar is opaque white */
+}
+
+/* Dark mode shadow for toolbar, zoom control, and sidebar boxes */
+.dark .inline-text-toolbar,
+.dark #zoom-control-bar > div,
+.dark aside > div {
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.3),
+    0 4px 6px -2px rgba(0, 0, 0, 0.2);
 }
 
 /* Remove all other .inline-text-toolbar and .inline-toolbar-button styles
@@ -830,12 +846,39 @@ body.export-ready .page-container {
 /* Default hover state - slide out to the right */
 .content-box-block:focus-within .notion-box-controls,
 .content-box-block:hover .notion-box-controls,
-.notion-box-controls:hover {
-  opacity: 1;
+.notion-box-controls:hover,
+/* Keep visible when dropdown is open (based on radix state attribute or class) */
+.notion-box-controls:has([data-state="open"]),
+.content-box-block:has([data-state="open"]) .notion-box-controls,
+.notion-box-controls.dropdown-open {
+  opacity: 1 !important;
   transform: translateX(50px) translateY(-50%);
-  z-index: 5;
+  z-index: 100;
   pointer-events: auto !important;
-  transition: opacity 0.15s ease, transform 0.15s ease, pointer-events 0s 0s !important;
+  /* Fast transition when appearing, no transition when dropdown is open */
+  transition: opacity 0.15s ease 0s, transform 0.15s ease 0s, pointer-events 0s 0s;
+}
+
+/* Left column specific overrides */
+.content-box-block:hover .notion-box-controls-left,
+.content-box-block:focus-within .notion-box-controls-left,
+.notion-box-controls-left:hover,
+.notion-box-controls-left:focus-within,
+.notion-box-controls-left:has([data-state="open"]),
+.content-box-block:has([data-state="open"]) .notion-box-controls-left,
+.notion-box-controls-left.dropdown-open {
+  opacity: 1 !important;
+  transform: translateX(-50px) translateY(-50%);
+  z-index: 100;
+  pointer-events: auto !important;
+  /* Fast transition when appearing, no transition when dropdown is open */
+  transition: opacity 0.15s ease 0s, transform 0.15s ease 0s, pointer-events 0s 0s;
+}
+
+/* Remove stagger delays that might cause perception of "lateness" */
+.content-box-block:hover .notion-control-button,
+.content-box-block:focus-within .notion-control-button {
+  transition-delay: 0s !important;
 }
 
 /* Default: Buttons on the right (for single column and right column in two-column) */
@@ -849,9 +892,30 @@ body.export-ready .page-container {
   opacity: 0;
   pointer-events: none;
   transform: translateX(0) translateY(-50%);
-  transition: opacity 0.15s ease 0.15s, transform 0.15s ease 0.15s, pointer-events 0s 0.3s;
   z-index: 5;
   will-change: opacity, transform;
+  /* 1000ms delay before hiding - more time to move mouse to buttons */
+  transition: opacity 0.2s ease 1s, transform 0.2s ease 1s, pointer-events 0s 1.2s;
+}
+
+/* Create invisible hover bridge using pseudo-element */
+.notion-box-controls::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 120px;
+  z-index: 1;
+}
+
+/* When controls are visible, the bridge should have pointer events */
+.content-box-block:hover .notion-box-controls::before,
+.content-box-block:focus-within .notion-box-controls::before,
+.notion-box-controls:hover::before,
+.notion-box-controls.dropdown-open::before {
+  pointer-events: auto;
 }
 
 /* Left column in two-column layout - positioned on the left side */
@@ -860,19 +924,29 @@ body.export-ready .page-container {
   right: auto;
   transform: translateX(0) translateY(-50%);
   pointer-events: none;
-  transition: opacity 0.15s ease 0.15s, transform 0.15s ease 0.15s, pointer-events 0s 0.3s;
   will-change: opacity, transform;
+  /* 1000ms delay before hiding - more time to move mouse to buttons */
+  transition: opacity 0.2s ease 1s, transform 0.2s ease 1s, pointer-events 0s 1.2s;
 }
 
-/* Left column hover state - slide out to the left */
-.content-box-block:focus-within .notion-box-controls-left,
-.content-box-block:hover .notion-box-controls-left,
-.notion-box-controls-left:hover {
-  opacity: 1;
-  transform: translateX(-50px) translateY(-50%);
-  z-index: 5;
-  pointer-events: auto !important;
-  transition: opacity 0.15s ease, transform 0.15s ease, pointer-events 0s 0s !important;
+/* Create invisible hover bridge for left column using pseudo-element */
+.notion-box-controls-left::before {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 120px;
+  z-index: 1;
+}
+
+/* When controls are visible, the bridge should have pointer events */
+.content-box-block:hover .notion-box-controls-left::before,
+.content-box-block:focus-within .notion-box-controls-left::before,
+.notion-box-controls-left:hover::before,
+.notion-box-controls-left.dropdown-open::before {
+  pointer-events: auto;
 }
 
 .notion-control-button {
@@ -882,15 +956,23 @@ body.export-ready .page-container {
   border: none;
   background: #ffffff; /* Default white, but can be overridden by inline styles with category color */
   box-shadow: none;
-  display: flex;
+  display: flex !important; /* Force display even inside Radix wrappers */
   align-items: center;
   justify-content: center;
   cursor: pointer;
   opacity: 0;
   transform: translateX(10px);
-  transition: transform 0.15s ease 0.15s, opacity 0.15s ease 0.15s;
+  transition: transform 0.15s ease, opacity 0.15s ease;
   pointer-events: auto;
   will-change: opacity, transform;
+}
+
+/* Ensure DropdownMenuTrigger wrapper doesn't interfere */
+[data-radix-dropdown-menu-trigger] {
+  display: flex !important;
+  opacity: inherit;
+  transform: inherit;
+  transition: inherit;
 }
 
 /* In dark mode, buttons keep their category colors (set via inline styles) */
@@ -909,10 +991,27 @@ body.export-ready .page-container {
   transition-delay: 0s;
 }
 
-/* Second button (Add) - inside notion-control-with-menu wrapper - inherits from wrapper */
-.notion-control-with-menu .notion-control-button {
-  opacity: 1;
-  transform: translateX(0);
+/* Second button (Add) - inside DropdownMenu - needs special handling */
+.content-box-block:hover .notion-box-controls > button[data-radix-collection-item],
+.content-box-block:focus-within .notion-box-controls > button[data-radix-collection-item],
+.notion-box-controls:hover > button[data-radix-collection-item],
+/* Also target the DropdownMenu wrapper */
+.content-box-block:hover .notion-box-controls > [data-radix-dropdown-menu-trigger],
+.content-box-block:focus-within .notion-box-controls > [data-radix-dropdown-menu-trigger],
+.notion-box-controls:hover > [data-radix-dropdown-menu-trigger] {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
+  transition: transform 0.2s ease, opacity 0.2s ease !important;
+  transition-delay: 0.05s !important;
+}
+
+/* Ensure the button inside DropdownMenuTrigger is visible */
+.content-box-block:hover .notion-box-controls .notion-control-button,
+.content-box-block:focus-within .notion-box-controls .notion-control-button,
+.notion-box-controls:hover .notion-control-button,
+.notion-box-controls.dropdown-open .notion-control-button {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
 }
 
 /* Third button (Delete) */
@@ -941,10 +1040,25 @@ body.export-ready .page-container {
   transition-delay: 0s;
 }
 
-/* Second button (Add) - left column - inside notion-control-with-menu wrapper - inherits from wrapper */
-.notion-box-controls-left .notion-control-with-menu .notion-control-button {
-  opacity: 1;
-  transform: translateX(0);
+/* Second button (Add) - left column - inside DropdownMenu */
+.content-box-block:hover .notion-box-controls-left > button[data-radix-collection-item],
+.content-box-block:focus-within .notion-box-controls-left > button[data-radix-collection-item],
+.notion-box-controls-left:hover > button[data-radix-collection-item],
+.content-box-block:hover .notion-box-controls-left > [data-radix-dropdown-menu-trigger],
+.content-box-block:focus-within .notion-box-controls-left > [data-radix-dropdown-menu-trigger],
+.notion-box-controls-left:hover > [data-radix-dropdown-menu-trigger] {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
+  transition: transform 0.2s ease, opacity 0.2s ease !important;
+  transition-delay: 0.05s !important;
+}
+
+.content-box-block:hover .notion-box-controls-left .notion-control-button,
+.content-box-block:focus-within .notion-box-controls-left .notion-control-button,
+.notion-box-controls-left:hover .notion-control-button,
+.notion-box-controls-left.dropdown-open .notion-control-button {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
 }
 
 /* Third button (Delete) - left column */

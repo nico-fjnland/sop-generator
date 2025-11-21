@@ -3,30 +3,49 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Separator } from '../components/ui/separator';
+import { Checkbox } from '../components/ui/checkbox';
+import EmptyState from '../components/EmptyState';
+import DocumentCard from '../components/DocumentCard';
+import BulkExportDialog from '../components/BulkExportDialog';
 import { 
   User, 
   FileText, 
-  Copy, 
-  SignOut, 
   Plus, 
-  Trash, 
-  PencilSimple,
-  Upload
+  Upload,
+  Layout,
+  ArrowLeft,
+  Export,
+  CheckSquare,
+  Square,
+  Palette as PaletteIcon,
+  TextAa,
+  PuzzlePiece,
+  Ruler,
+  CornersOut
 } from '@phosphor-icons/react';
 import { getDocuments, deleteDocument, saveDocument } from '../services/documentService';
-import { importFromJson } from '../utils/exportUtils';
+import { importFromJson, exportMultipleDocuments } from '../utils/exportUtils';
+import { toast } from 'sonner';
 
-export default function Account({ isDarkMode }) {
+export default function Account({ editorGradient, toggleEditorGradient }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const fileInputRef = useRef(null);
   
-  // UI State - Initialize from URL parameter
-  const [activeTab, setActiveTab] = useState(() => {
+  // Get current tab from URL, with fallback to 'sops'
+  const currentTab = (() => {
     const tabParam = searchParams.get('tab');
-    return tabParam && ['sops', 'templates', 'profile'].includes(tabParam) ? tabParam : 'sops';
-  });
+    return tabParam && ['sops', 'templates', 'design-manual', 'profile'].includes(tabParam) ? tabParam : 'sops';
+  })();
+
+  // Function to change tabs - updates URL only
+  const changeTab = (tabId) => {
+    setSearchParams({ tab: tabId }, { replace: true });
+  };
 
   // Data State
   const [loading, setLoading] = useState(true);
@@ -50,6 +69,19 @@ export default function Account({ isDarkMode }) {
   // Documents State
   const [documents, setDocuments] = useState([]);
   const [loadingDocs, setLoadingDocs] = useState(true);
+  const [selectedDocs, setSelectedDocs] = useState(new Set());
+
+  // Update localStorage count when documents change
+  useEffect(() => {
+    if (!loadingDocs) {
+      localStorage.setItem('documentsCount', documents.length.toString());
+    }
+  }, [documents, loadingDocs]);
+  
+  // Export State
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(null);
 
   useEffect(() => {
     let ignore = false;
@@ -113,24 +145,19 @@ export default function Account({ isDarkMode }) {
       let { error } = await supabase.from('profiles').upsert(updates);
 
       if (error) throw error;
-      alert('Profil aktualisiert!');
+      toast.success('Profil erfolgreich aktualisiert');
     } catch (error) {
-      alert('Fehler beim Aktualisieren des Profils!');
+      toast.error('Fehler beim Aktualisieren des Profils');
       console.error(error);
     } finally {
       setUpdating(false);
     }
   }
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/login');
-  };
-
   const updateEmail = async (e) => {
     e.preventDefault();
     if (!newEmail || newEmail === user.email) {
-      alert('Bitte gib eine neue E-Mail-Adresse ein.');
+      toast.error('Bitte gib eine neue E-Mail-Adresse ein.');
       return;
     }
 
@@ -138,10 +165,10 @@ export default function Account({ isDarkMode }) {
     try {
       const { error } = await supabase.auth.updateUser({ email: newEmail });
       if (error) throw error;
-      alert('E-Mail-Adresse aktualisiert! Bitte überprüfe deine neue E-Mail für die Bestätigung.');
+      toast.success('E-Mail-Adresse aktualisiert! Bitte überprüfe deine neue E-Mail für die Bestätigung.');
       setNewEmail('');
     } catch (error) {
-      alert('Fehler beim Aktualisieren der E-Mail: ' + error.message);
+      toast.error('Fehler beim Aktualisieren der E-Mail: ' + error.message);
     } finally {
       setUpdatingEmail(false);
     }
@@ -150,15 +177,15 @@ export default function Account({ isDarkMode }) {
   const updatePassword = async (e) => {
     e.preventDefault();
     if (!newPassword) {
-      alert('Bitte gib ein neues Passwort ein.');
+      toast.error('Bitte gib ein neues Passwort ein.');
       return;
     }
     if (newPassword !== confirmPassword) {
-      alert('Passwörter stimmen nicht überein.');
+      toast.error('Passwörter stimmen nicht überein.');
       return;
     }
     if (newPassword.length < 6) {
-      alert('Das Passwort muss mindestens 6 Zeichen lang sein.');
+      toast.error('Das Passwort muss mindestens 6 Zeichen lang sein.');
       return;
     }
 
@@ -166,11 +193,11 @@ export default function Account({ isDarkMode }) {
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
-      alert('Passwort erfolgreich aktualisiert!');
+      toast.success('Passwort erfolgreich aktualisiert!');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
-      alert('Fehler beim Aktualisieren des Passworts: ' + error.message);
+      toast.error('Fehler beim Aktualisieren des Passworts: ' + error.message);
     } finally {
       setUpdatingPassword(false);
     }
@@ -207,22 +234,29 @@ export default function Account({ isDarkMode }) {
         updated_at: new Date(),
       };
       await supabase.from('profiles').upsert(updates);
+      toast.success('Avatar erfolgreich aktualisiert');
 
     } catch (error) {
-      alert(error.message);
+      toast.error(error.message);
     } finally {
       setUploading(false);
     }
   };
 
   const handleDeleteDocument = async (id, e) => {
-    e.stopPropagation();
+    e?.stopPropagation();
     if (window.confirm('Möchtest du dieses Dokument wirklich löschen?')) {
       const { success } = await deleteDocument(id);
       if (success) {
         setDocuments(documents.filter(doc => doc.id !== id));
+        setSelectedDocs(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(id);
+          return newSet;
+        });
+        toast.success('Dokument gelöscht');
       } else {
-        alert('Fehler beim Löschen des Dokuments');
+        toast.error('Fehler beim Löschen des Dokuments');
       }
     }
   };
@@ -237,14 +271,13 @@ export default function Account({ isDarkMode }) {
 
     try {
       const text = await file.text();
-      const importedState = importFromJson(text);
+      const importedState = JSON.parse(text);
       
-      if (!importedState) {
-        alert('Fehler beim Importieren: Ungültige JSON-Datei');
+      if (!importedState || !Array.isArray(importedState.rows)) {
+        toast.error('Ungültige JSON-Datei');
         return;
       }
 
-      // Save the imported document to the database
       const contentToSave = {
         rows: importedState.rows || [],
         headerLogo: importedState.headerLogo || null,
@@ -259,22 +292,20 @@ export default function Account({ isDarkMode }) {
       );
 
       if (error) {
-        alert('Fehler beim Speichern des importierten Dokuments');
+        toast.error('Fehler beim Speichern des importierten Dokuments');
         return;
       }
 
-      // Refresh documents list
       const { data: docs } = await getDocuments(user.id);
       if (docs) {
         setDocuments(docs);
       }
 
-      alert('Dokument erfolgreich importiert!');
+      toast.success('Dokument erfolgreich importiert!');
     } catch (error) {
       console.error('Import error:', error);
-      alert('Fehler beim Importieren der Datei');
+      toast.error('Fehler beim Importieren der Datei');
     } finally {
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -285,36 +316,92 @@ export default function Account({ isDarkMode }) {
     fileInputRef.current?.click();
   };
 
-  // Color utilities
-  const textPrimary = isDarkMode ? 'text-white' : 'text-[#003366]';
-  const textSecondary = isDarkMode ? 'text-gray-400' : 'text-[#003366]/60';
-  const bgSecondary = isDarkMode ? 'bg-gray-800' : 'bg-[#003366]/5';
-  const border = isDarkMode ? 'border-gray-700' : 'border-[#003366]/10';
-  const hoverBg = isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-[#003366]/5';
+  const toggleSelectAll = () => {
+    if (selectedDocs.size === documents.length) {
+      setSelectedDocs(new Set());
+    } else {
+      setSelectedDocs(new Set(documents.map(doc => doc.id)));
+    }
+  };
+
+  const toggleDocSelection = (id) => {
+    setSelectedDocs(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const handleBulkExport = () => {
+    if (selectedDocs.size === 0) {
+      toast.error('Keine Dokumente ausgewählt');
+      return;
+    }
+    setShowExportDialog(true);
+  };
+
+  const handleExport = async (format) => {
+    setIsExporting(true);
+    setExportProgress({ current: 0, total: selectedDocs.size, completed: false });
+
+    try {
+      const docIds = Array.from(selectedDocs);
+      
+      await exportMultipleDocuments(
+        docIds,
+        format,
+        (current, total, completed) => {
+          setExportProgress({ current, total, completed });
+        }
+      );
+
+      toast.success(`${selectedDocs.size} Dokument(e) erfolgreich exportiert`);
+      
+      // Wait a moment before closing to show completion
+      setTimeout(() => {
+        setIsExporting(false);
+        setShowExportDialog(false);
+        setExportProgress(null);
+        setSelectedDocs(new Set());
+      }, 1500);
+      
+    } catch (error) {
+      console.error('Bulk export error:', error);
+      toast.error('Fehler beim Exportieren der Dokumente');
+      setIsExporting(false);
+      setExportProgress(null);
+    }
+  };
 
   // --- Sub-Components ---
 
-  const SidebarItem = ({ id, icon, label, count }) => (
+  const TabButton = ({ id, icon: Icon, label, count }) => (
     <button
-      onClick={() => setActiveTab(id)}
-      className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-        activeTab === id 
-          ? isDarkMode ? 'bg-white text-black' : 'bg-[#003366] text-white'
-          : `${textSecondary} ${hoverBg} ${isDarkMode ? 'hover:text-white' : 'hover:text-[#003366]'}`
+      onClick={() => changeTab(id)}
+      className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+        currentTab === id 
+          ? 'bg-primary text-primary-foreground shadow-sm' 
+          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
       }`}
     >
       <div className="flex items-center gap-3">
-        {icon}
+        <Icon size={18} weight={currentTab === id ? 'fill' : 'regular'} />
         <span>{label}</span>
       </div>
-      {count !== undefined && (
+      {count !== undefined ? (
         <span className={`text-xs px-2 py-0.5 rounded-full ${
-          activeTab === id 
-            ? isDarkMode ? 'bg-black/20 text-black' : 'bg-white/30 text-white'
-            : isDarkMode ? 'bg-gray-800 text-gray-400' : 'bg-[#003366]/10 text-[#003366]/60'
+          currentTab === id 
+            ? 'bg-primary-foreground/20 text-primary-foreground' 
+            : 'bg-muted text-muted-foreground'
         }`}>
           {count}
         </span>
+      ) : (
+        <span className="w-0"></span>
       )}
     </button>
   );
@@ -323,77 +410,84 @@ export default function Account({ isDarkMode }) {
 
   const SopsView = () => (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className={`text-2xl font-semibold ${textPrimary}`}>Meine Leitfäden</h1>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Meine Leitfäden</h1>
+          <p className="text-muted-foreground mt-1">
+            Verwalte deine gespeicherten SOP-Dokumente
+          </p>
+        </div>
         <div className="flex items-center gap-2">
-          <Button onClick={triggerImport} size="sm" variant="secondary" className="gap-2">
+          {selectedDocs.size > 0 && (
+            <Button 
+              onClick={handleBulkExport} 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+            >
+              <Export size={16} />
+              Exportieren ({selectedDocs.size})
+            </Button>
+          )}
+          <Button onClick={triggerImport} size="sm" variant="outline" className="gap-2">
             <Upload size={16} />
             Importieren
           </Button>
           <Button onClick={() => navigate('/?new=true')} size="sm" className="gap-2">
-            <Plus size={16} />
+            <Plus size={16} weight="bold" />
             Neu
           </Button>
         </div>
       </div>
 
+      {/* Bulk Actions Toolbar */}
+      {documents.length > 0 && (
+        <div className="flex items-center gap-2 py-2">
+          <Checkbox
+            checked={selectedDocs.size === documents.length}
+            onCheckedChange={toggleSelectAll}
+          />
+          <span className="text-sm text-muted-foreground cursor-pointer" onClick={toggleSelectAll}>
+            {selectedDocs.size === documents.length ? 'Alle abwählen' : 'Alle auswählen'}
+          </span>
+        </div>
+      )}
+
+      {/* Documents List */}
       {loadingDocs ? (
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className={`h-20 ${isDarkMode ? 'bg-gray-800/30' : 'bg-gray-200/30'} rounded-lg animate-pulse`}></div>
+            <div key={i} className="h-20 bg-muted/30 rounded-lg animate-pulse"></div>
           ))}
         </div>
       ) : documents.length === 0 ? (
-        <div className={`text-center py-16 border border-dashed ${border} rounded-lg`}>
-          <FileText size={40} className={`mx-auto ${textSecondary} mb-3 opacity-40`} />
-          <p className={`text-sm ${textSecondary}`}>Noch keine Dokumente vorhanden</p>
-          <Button onClick={() => navigate('/?new=true')} variant="secondary" size="sm" className="mt-4">
-            Erstes Dokument erstellen
-          </Button>
-        </div>
+      <EmptyState 
+        icon={FileText}
+        title="Noch keine Dokumente vorhanden"
+        description="Erstelle dein erstes SOP-Dokument oder importiere ein bestehendes."
+        action={
+          <div className="flex gap-2 justify-center">
+            <Button onClick={() => navigate('/?new=true')} variant="default" size="sm">
+              Erstes Dokument erstellen
+            </Button>
+            <Button onClick={triggerImport} variant="outline" size="sm">
+              Dokument importieren
+            </Button>
+          </div>
+        }
+      />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {documents.map((doc) => (
-            <div 
-              key={doc.id} 
-              onClick={() => handleOpenDocument(doc.id)}
-              className={`group flex items-center justify-between p-4 ${isDarkMode ? 'bg-gray-800 hover:bg-gray-800/80' : 'bg-white hover:shadow-md'} rounded-2xl cursor-pointer transition-all`}
-            >
-              <div className="flex items-center gap-4 flex-1 min-w-0">
-                <div className={`flex-shrink-0 w-12 h-12 ${isDarkMode ? 'bg-gray-700' : 'bg-[#003366]/5'} rounded-full flex items-center justify-center`}>
-                  <FileText size={20} className={isDarkMode ? 'text-gray-400' : 'text-[#003366]'} weight="regular" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className={`font-medium ${textPrimary} truncate`}>
-                    {doc.title || 'Unbenanntes Dokument'}
-                  </h3>
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="text-xs text-[#B3B3B3]">
-                      {doc.version || 'v1.0'}
-                    </span>
-                    <span className="text-xs text-[#B3B3B3]">
-                      {new Date(doc.updated_at).toLocaleDateString('de-DE')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={(e) => { e.stopPropagation(); handleOpenDocument(doc.id); }}
-                  className="p-2.5 bg-[#3399FF] text-white rounded-full hover:bg-[#3399FF]/90 transition-colors"
-                  title="Bearbeiten"
-                >
-                  <PencilSimple size={16} weight="bold" />
-                </button>
-                <button 
-                  onClick={(e) => handleDeleteDocument(doc.id, e)}
-                  className="p-2.5 bg-[#3399FF] text-white rounded-full hover:bg-[#3399FF]/90 transition-colors"
-                  title="Löschen"
-                >
-                  <Trash size={16} weight="bold" />
-                </button>
-              </div>
-            </div>
+          <DocumentCard
+            key={doc.id}
+            doc={doc}
+            onOpen={handleOpenDocument}
+            onDelete={handleDeleteDocument}
+            isSelected={selectedDocs.has(doc.id)}
+            onSelectToggle={toggleDocSelection}
+          />
           ))}
         </div>
       )}
@@ -402,24 +496,130 @@ export default function Account({ isDarkMode }) {
 
   const TemplatesView = () => (
     <div className="space-y-6">
-      <h1 className={`text-2xl font-semibold ${textPrimary}`}>SOP Templates</h1>
-      
-      <div className={`text-center py-16 border border-dashed ${border} rounded-lg`}>
-        <Copy size={40} className={`mx-auto ${textSecondary} mb-3 opacity-40`} />
-        <p className={`text-sm ${textSecondary}`}>Demnächst verfügbar</p>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">SOP Templates</h1>
+        <p className="text-muted-foreground mt-1">
+          Vorgefertigte Vorlagen für häufige SOPs
+        </p>
       </div>
+      
+      <EmptyState 
+        icon={Layout}
+        title="Demnächst verfügbar"
+        description="Wir arbeiten an einer Sammlung professioneller SOP-Vorlagen für verschiedene medizinische Bereiche."
+      />
     </div>
   );
 
-  const ProfileView = () => (
-    <div className="space-y-6 max-w-2xl">
-      <h1 className={`text-2xl font-semibold ${textPrimary}`}>Profil & Einstellungen</h1>
+  const DesignManualView = () => {
+    const colors = [
+      { name: 'Primary', class: 'bg-primary text-primary-foreground' },
+      { name: 'Secondary', class: 'bg-secondary text-secondary-foreground' },
+      { name: 'Destructive', class: 'bg-destructive text-destructive-foreground' },
+      { name: 'Muted', class: 'bg-muted text-muted-foreground' },
+      { name: 'Accent', class: 'bg-accent text-accent-foreground' },
+    ];
 
+    const sopColors = [
+      { name: 'Full Dark', hex: '#000000', text: 'white' },
+      { name: 'Primary Text', hex: '#003366', text: 'white' },
+      { name: 'Brand Primary', hex: '#3399FF', text: 'black' },
+      { name: 'Dark Red', hex: '#8A1A0F', text: 'white' },
+      { name: 'Primary Red', hex: '#EB5547', text: 'white' },
+      { name: 'Dark Green', hex: '#23631D', text: 'white' },
+    ];
+
+    return (
+      <div className="space-y-12">
+        <div className="space-y-3">
+          <h1 className="text-3xl font-bold tracking-tight">Design Manual</h1>
+          <p className="text-muted-foreground">
+            Übersicht über alle verwendeten Styles, UI-Elemente und Design-Tokens dieser Anwendung.
+          </p>
+        </div>
+
+        <section className="space-y-8">
+          <div className="flex items-center gap-3 border-b pb-3">
+            <PaletteIcon size={24} weight="duotone" className="text-primary" />
+            <h2 className="text-2xl font-semibold">Farben</h2>
+          </div>
+          
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Theme Colors</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {colors.map((color) => (
+                <div key={color.name} className="space-y-2">
+                  <div className={`h-24 w-full rounded-md shadow-sm flex items-center justify-center border ${color.class}`}>
+                    <span className="font-medium">{color.name}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">SOP Color System</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {sopColors.map((color) => (
+                <div key={color.hex} className="space-y-2">
+                  <div 
+                    className="h-24 w-full rounded-md shadow-sm flex items-center justify-center border"
+                    style={{ backgroundColor: color.hex, color: color.text }}
+                  >
+                    <span className="font-medium">{color.name}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    <p className="font-mono uppercase">{color.hex}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-8">
+          <div className="flex items-center gap-3 border-b pb-3">
+            <TextAa size={24} weight="duotone" className="text-primary" />
+            <h2 className="text-2xl font-semibold">Typografie</h2>
+          </div>
+          <p className="text-muted-foreground">Schrift-Hierarchie und Stile</p>
+        </section>
+
+        <section className="space-y-8">
+          <div className="flex items-center gap-3 border-b pb-3">
+            <PuzzlePiece size={24} weight="duotone" className="text-primary" />
+            <h2 className="text-2xl font-semibold">UI-Komponenten</h2>
+          </div>
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold">Buttons</h3>
+            <div className="flex flex-wrap gap-4 p-6 border rounded-lg bg-card items-center">
+              <Button>Default</Button>
+              <Button variant="secondary">Secondary</Button>
+              <Button variant="destructive">Destructive</Button>
+              <Button variant="outline">Outline</Button>
+              <Button variant="ghost">Ghost</Button>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  };
+
+  const ProfileView = () => (
+    <div className="space-y-8 max-w-2xl">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Profil & Einstellungen</h1>
+        <p className="text-muted-foreground mt-1">
+          Verwalte deine persönlichen Informationen und Kontoeinstellungen
+        </p>
+      </div>
+
+      {/* Profile Information */}
       <form onSubmit={updateProfile} className="space-y-8">
         {/* Avatar Section */}
-        <div className={`flex items-center gap-6 pb-6 border-b ${border}`}>
+        <div className="flex items-start gap-6">
           <div className="relative">
-            <div className={`h-20 w-20 rounded-full overflow-hidden ${bgSecondary} border ${border}`}>
+            <div className="h-24 w-24 rounded-full overflow-hidden bg-muted border-2 border-border">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
@@ -427,17 +627,17 @@ export default function Account({ isDarkMode }) {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <div className={`h-full w-full flex items-center justify-center ${textSecondary}`}>
-                  <User size={32} />
+                <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                  <User size={40} />
                 </div>
               )}
             </div>
             <label 
               htmlFor="avatar-upload" 
-              className={`absolute bottom-0 right-0 ${isDarkMode ? 'bg-white text-black' : 'bg-[#003366] text-white'} p-1.5 rounded-full cursor-pointer hover:opacity-90 transition-opacity`}
+              className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-md"
               title="Bild ändern"
             >
-              <PencilSimple size={12} weight="bold" />
+              <Upload size={14} weight="bold" />
               <input
                 id="avatar-upload"
                 type="file"
@@ -448,83 +648,155 @@ export default function Account({ isDarkMode }) {
               />
             </label>
           </div>
-          <div>
-            <p className={`font-medium ${textPrimary}`}>
+          <div className="flex-1 pt-2">
+            <p className="font-semibold text-lg">
               {firstName || lastName ? `${firstName} ${lastName}` : 'Benutzer'}
             </p>
-            <p className={`text-sm ${textSecondary} mt-0.5`}>{user.email}</p>
+            <p className="text-sm text-muted-foreground mt-1">{user.email}</p>
+            <p className="text-xs text-muted-foreground mt-2">
+              {uploading ? 'Wird hochgeladen...' : 'Klicke auf das Symbol um dein Profilbild zu ändern'}
+            </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label htmlFor="firstName" className={`text-sm font-medium ${textPrimary}`}>Vorname</label>
-            <input
-              id="firstName"
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              className={`w-full rounded-md border ${border} ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-[#003366]'} px-3 py-2 text-sm focus:ring-1 ${isDarkMode ? 'focus:ring-white' : 'focus:ring-[#003366]'} focus:outline-none`}
-              placeholder="Max"
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="lastName" className={`text-sm font-medium ${textPrimary}`}>Nachname</label>
-            <input
-              id="lastName"
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              className={`w-full rounded-md border ${border} ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-[#003366]'} px-3 py-2 text-sm focus:ring-1 ${isDarkMode ? 'focus:ring-white' : 'focus:ring-[#003366]'} focus:outline-none`}
-              placeholder="Mustermann"
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="jobPosition" className={`text-sm font-medium ${textPrimary}`}>Position</label>
-            <input
-              id="jobPosition"
-              type="text"
-              value={jobPosition}
-              onChange={(e) => setJobPosition(e.target.value)}
-              className={`w-full rounded-md border ${border} ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-[#003366]'} px-3 py-2 text-sm focus:ring-1 ${isDarkMode ? 'focus:ring-white' : 'focus:ring-[#003366]'} focus:outline-none`}
-              placeholder="Assistenzarzt"
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="hospital" className={`text-sm font-medium ${textPrimary}`}>Krankenhaus</label>
-            <input
-              id="hospital"
-              type="text"
-              value={hospital}
-              onChange={(e) => setHospital(e.target.value)}
-              className={`w-full rounded-md border ${border} ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-[#003366]'} px-3 py-2 text-sm focus:ring-1 ${isDarkMode ? 'focus:ring-white' : 'focus:ring-[#003366]'} focus:outline-none`}
-              placeholder="Klinikum Berlin"
-            />
-          </div>
-        </div>
+        <Separator />
 
-        <div className={`pt-4 border-t ${border}`}>
-          <Button type="submit" disabled={updating}>
-            {updating ? 'Wird gespeichert...' : 'Änderungen speichern'}
-          </Button>
+        {/* Personal Information */}
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Persönliche Informationen</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">Vorname</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Max"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Nachname</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Mustermann"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="jobPosition">Position</Label>
+                <Input
+                  id="jobPosition"
+                  type="text"
+                  value={jobPosition}
+                  onChange={(e) => setJobPosition(e.target.value)}
+                  placeholder="Assistenzarzt"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="hospital">Krankenhaus</Label>
+                <Input
+                  id="hospital"
+                  type="text"
+                  value={hospital}
+                  onChange={(e) => setHospital(e.target.value)}
+                  placeholder="Klinikum Berlin"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Button type="submit" disabled={updating}>
+              {updating ? 'Wird gespeichert...' : 'Änderungen speichern'}
+            </Button>
+          </div>
         </div>
       </form>
 
-      {/* Account Security Section */}
-      <div className="space-y-6 mt-8">
-        <h2 className={`text-xl font-semibold ${textPrimary}`}>Sicherheit</h2>
+      <Separator />
+
+      {/* Appearance Settings */}
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-xl font-semibold mb-1">Darstellung</h2>
+          <p className="text-sm text-muted-foreground">
+            Passe das Erscheinungsbild der Anwendung an
+          </p>
+        </div>
+
+        {/* Editor Gradient Setting */}
+        <div className="space-y-4 p-6 border rounded-lg bg-muted/30">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <PaletteIcon size={18} className="text-muted-foreground" />
+                <Label className="text-base font-medium">Editor-Hintergrund</Label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Wähle zwischen hellem und dunklem Verlauf für den Editor
+              </p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <button
+              type="button"
+              onClick={() => editorGradient === 'dark' && toggleEditorGradient()}
+              className={`p-4 rounded-lg border-2 transition-all ${
+                editorGradient === 'light'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <div className="h-16 w-full rounded light-gradient-bg mb-3"></div>
+              <div className="text-sm font-medium">Heller Verlauf</div>
+              <div className="text-xs text-muted-foreground mt-1">Standard</div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => editorGradient === 'light' && toggleEditorGradient()}
+              className={`p-4 rounded-lg border-2 transition-all ${
+                editorGradient === 'dark'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <div className="h-16 w-full rounded dark-gradient-bg dark mb-3"></div>
+              <div className="text-sm font-medium">Dunkler Verlauf</div>
+              <div className="text-xs text-muted-foreground mt-1">Alternative</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Security Settings */}
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-xl font-semibold mb-1">Sicherheitseinstellungen</h2>
+          <p className="text-sm text-muted-foreground">
+            Aktualisiere deine E-Mail-Adresse oder dein Passwort
+          </p>
+        </div>
 
         {/* Change Email */}
-        <form onSubmit={updateEmail} className={`space-y-4 p-4 border ${border} rounded-lg`}>
-          <h3 className={`text-sm font-medium ${textPrimary}`}>E-Mail-Adresse ändern</h3>
-          <p className={`text-xs ${textSecondary}`}>Aktuelle E-Mail: {user.email}</p>
+        <form onSubmit={updateEmail} className="space-y-4 p-6 border rounded-lg bg-muted/30">
           <div className="space-y-2">
-            <input
+            <Label>E-Mail-Adresse ändern</Label>
+            <p className="text-xs text-muted-foreground">Aktuelle E-Mail: {user.email}</p>
+          </div>
+          <div className="space-y-2">
+            <Input
               type="email"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
-              className={`w-full rounded-md border ${border} ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-[#003366]'} px-3 py-2 text-sm focus:ring-1 ${isDarkMode ? 'focus:ring-white' : 'focus:ring-[#003366]'} focus:outline-none`}
-              placeholder="Neue E-Mail-Adresse"
+              placeholder="neue-email@example.com"
             />
           </div>
           <Button type="submit" size="sm" disabled={updatingEmail}>
@@ -533,24 +805,25 @@ export default function Account({ isDarkMode }) {
         </form>
 
         {/* Change Password */}
-        <form onSubmit={updatePassword} className={`space-y-4 p-4 border ${border} rounded-lg`}>
-          <h3 className={`text-sm font-medium ${textPrimary}`}>Passwort ändern</h3>
+        <form onSubmit={updatePassword} className="space-y-4 p-6 border rounded-lg bg-muted/30">
+          <div className="space-y-2">
+            <Label>Passwort ändern</Label>
+            <p className="text-xs text-muted-foreground">Mindestens 6 Zeichen</p>
+          </div>
           <div className="space-y-3">
             <div className="space-y-2">
-              <input
+              <Input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className={`w-full rounded-md border ${border} ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-[#003366]'} px-3 py-2 text-sm focus:ring-1 ${isDarkMode ? 'focus:ring-white' : 'focus:ring-[#003366]'} focus:outline-none`}
                 placeholder="Neues Passwort"
               />
             </div>
             <div className="space-y-2">
-              <input
+              <Input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className={`w-full rounded-md border ${border} ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-[#003366]'} px-3 py-2 text-sm focus:ring-1 ${isDarkMode ? 'focus:ring-white' : 'focus:ring-[#003366]'} focus:outline-none`}
                 placeholder="Passwort bestätigen"
               />
             </div>
@@ -564,7 +837,7 @@ export default function Account({ isDarkMode }) {
   );
 
   return (
-    <div className={`fixed inset-0 overflow-auto light-gradient-bg dark-gradient-bg ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`min-h-screen ${editorGradient === 'light' ? 'light-gradient-bg' : 'dark-gradient-bg dark'} transition-colors duration-200`}>
       {/* Hidden file input for JSON import */}
       <input
         type="file"
@@ -574,69 +847,78 @@ export default function Account({ isDarkMode }) {
         accept=".json"
       />
       
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex gap-20">
-          
-          {/* Sidebar Navigation */}
-          <aside className="w-64 flex-shrink-0 space-y-8">
-            {/* User Info */}
-            <div className="flex items-center gap-3 px-2">
-              <div className={`h-10 w-10 rounded-full ${bgSecondary} flex items-center justify-center overflow-hidden`}>
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
-                ) : (
-                  <User size={20} className={textSecondary} />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`font-medium text-sm ${textPrimary} truncate`}>
-                  {firstName ? `${firstName} ${lastName}` : user.email.split('@')[0]}
-                </p>
-                <p className={`text-xs ${textSecondary} truncate`}>{user.email}</p>
-              </div>
-            </div>
-
-            {/* Navigation */}
-            <nav className="space-y-1">
-              <SidebarItem 
-                id="sops" 
-                icon={<FileText size={18} />} 
-                label="Meine Leitfäden" 
-                count={documents.length} 
-              />
-              <SidebarItem 
-                id="templates" 
-                icon={<Copy size={18} />} 
-                label="SOP Templates" 
-              />
-              <div className={`my-4 border-t ${border} mx-4`}></div>
-              <SidebarItem 
-                id="profile" 
-                icon={<User size={18} />} 
-                label="Profil & Einstellungen" 
-              />
-            </nav>
-
-            {/* Logout */}
-            <div className="pt-4">
-              <button 
-                onClick={handleSignOut}
-                className={`flex items-center gap-2 px-4 text-sm ${textSecondary} ${isDarkMode ? 'hover:text-white' : 'hover:text-[#003366]'} transition-colors`}
+      {/* Bulk Export Dialog */}
+      <BulkExportDialog
+        open={showExportDialog}
+        onOpenChange={setShowExportDialog}
+        selectedCount={selectedDocs.size}
+        onExport={handleExport}
+        isExporting={isExporting}
+        progress={exportProgress}
+      />
+      
+      <div className="flex min-h-screen p-6 gap-6">
+        {/* Sidebar Navigation - Box style like ZoomBar */}
+        <aside className="w-64 flex-shrink-0 no-print">
+          <div className="sticky top-6 bg-white rounded-lg shadow-md border border-border overflow-hidden">
+            <div className="h-[calc(100vh-3rem)] overflow-y-auto py-8 px-4">
+            <div className="space-y-6">
+              {/* Back to Editor */}
+              <Button
+                onClick={() => navigate('/')}
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
               >
-                <SignOut size={18} />
-                Abmelden
-              </button>
+                <ArrowLeft size={16} />
+                Zurück zum Editor
+              </Button>
+
+              <Separator />
+
+              {/* Navigation */}
+              <nav className="space-y-1">
+                <TabButton 
+                  id="sops" 
+                  icon={FileText} 
+                  label="Meine Leitfäden" 
+                  count={documents.length} 
+                />
+                <TabButton 
+                  id="templates" 
+                  icon={Layout} 
+                  label="SOP Templates" 
+                />
+                <TabButton 
+                  id="design-manual" 
+                  icon={PaletteIcon} 
+                  label="Design Manual" 
+                />
+                
+                <div className="pt-2">
+                  <Separator />
+                </div>
+                
+                <TabButton 
+                  id="profile" 
+                  icon={User} 
+                  label="Profil & Einstellungen" 
+                />
+              </nav>
             </div>
-          </aside>
+            </div>
+          </div>
+        </aside>
 
-          {/* Main Content */}
-          <main className="flex-1 min-w-0 max-w-4xl">
-            {activeTab === 'sops' && <SopsView />}
-            {activeTab === 'templates' && <TemplatesView />}
-            {activeTab === 'profile' && <ProfileView />}
-          </main>
-
-        </div>
+        {/* Main Content - Aligned near sidebar */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="w-full max-w-5xl pt-12 pb-8 px-8">
+            {currentTab === 'sops' && <SopsView />}
+            {currentTab === 'templates' && <TemplatesView />}
+            {currentTab === 'design-manual' && <DesignManualView />}
+            {currentTab === 'profile' && <ProfileView />}
+          </div>
+        </main>
       </div>
     </div>
   );

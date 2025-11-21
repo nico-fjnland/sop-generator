@@ -1,6 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { TextB, TextItalic, TextUnderline, TextTSlash, TextSuperscript, TextSubscript, TextAa } from '@phosphor-icons/react';
+import { Toggle } from './ui/toggle';
 
 const TOOLBAR_BUTTONS = [
   { id: 'bold', icon: TextB, label: 'Fett', command: 'bold' },
@@ -24,7 +25,7 @@ const InlineTextToolbar = ({
 
   const toolbar = (
     <div
-      className="inline-text-toolbar pointer-events-auto flex items-center gap-1 p-1 bg-white rounded-lg shadow-sm border border-gray-200"
+      className="inline-text-toolbar pointer-events-auto flex items-center gap-1 p-1 bg-popover rounded-lg shadow-md border border-border"
       style={{
         top: Math.max(position.top, 8),
         left: position.left,
@@ -34,18 +35,19 @@ const InlineTextToolbar = ({
         const Icon = button.icon;
         const isActive = activeStates[button.id];
         return (
-          <button
+          <Toggle
             key={button.id}
-            type="button"
-            className={`inline-toolbar-button h-8 w-8 flex items-center justify-center rounded-md text-[#003366] hover:bg-accent hover:text-[#003366] transition-colors ${isActive ? 'bg-accent text-[#003366]' : ''}`}
+            size="sm"
+            pressed={isActive}
             aria-label={button.label}
             onMouseDown={(event) => {
               event.preventDefault();
               onCommand(button.command);
             }}
+            className="h-8 w-8 p-1"
           >
-            <Icon size={16} weight="bold" />
-          </button>
+            <Icon size={16} weight="bold" style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+          </Toggle>
         );
       })}
     </div>

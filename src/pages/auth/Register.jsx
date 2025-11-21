@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -55,43 +57,40 @@ export default function Register() {
             </div>
           )}
           <div className="space-y-4">
-            <div>
-              <label htmlFor="email-address" className="sr-only">Email Adresse</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="email-address">Email Adresse</Label>
+              <Input
                 id="email-address"
                 name="email"
                 type="email"
                 autoComplete="email"
                 required
-                className="relative block w-full rounded-md border-0 py-1.5 text-foreground ring-1 ring-inset ring-input placeholder:text-muted-foreground focus:z-10 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3 bg-background"
                 placeholder="Email Adresse"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            <div>
-              <label htmlFor="password" className="sr-only">Passwort</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="password">Passwort</Label>
+              <Input
                 id="password"
                 name="password"
                 type="password"
                 autoComplete="new-password"
                 required
-                className="relative block w-full rounded-md border-0 py-1.5 text-foreground ring-1 ring-inset ring-input placeholder:text-muted-foreground focus:z-10 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3 bg-background"
                 placeholder="Passwort"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <div>
-              <label htmlFor="confirm-password" className="sr-only">Passwort bestätigen</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Passwort bestätigen</Label>
+              <Input
                 id="confirm-password"
                 name="confirm-password"
                 type="password"
                 autoComplete="new-password"
                 required
-                className="relative block w-full rounded-md border-0 py-1.5 text-foreground ring-1 ring-inset ring-input placeholder:text-muted-foreground focus:z-10 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 px-3 bg-background"
                 placeholder="Passwort bestätigen"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}

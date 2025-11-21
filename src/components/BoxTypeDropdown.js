@@ -1,28 +1,18 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Plus, ChevronDown, Check } from 'lucide-react';
 import { Button } from './ui/button';
-import { useDropdownPosition } from '../hooks/useDropdownPosition';
-import { useClickOutside } from '../hooks/useClickOutside';
 import { CATEGORIES } from './blocks/ContentBoxBlock';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 const BoxTypeDropdown = ({ onSelect, usedCategories = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const buttonRef = useRef(null);
-  
-  // Collision detection for dropdown
-  const { dropdownRef, position } = useDropdownPosition(
-    isOpen,
-    buttonRef,
-    'bottom',
-    8
-  );
-  
-  // OPTIMIZED: Use custom useClickOutside hook
-  useClickOutside(
-    [dropdownRef, buttonRef],
-    () => setIsOpen(false),
-    isOpen
-  );
 
   const handleSelect = (categoryId) => {
     // Don't allow selecting already used categories
@@ -34,54 +24,49 @@ const BoxTypeDropdown = ({ onSelect, usedCategories = [] }) => {
   };
 
   return (
-    <div className="relative inline-block">
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger asChild>
       <Button
-        ref={buttonRef}
-        onClick={() => setIsOpen(!isOpen)}
         variant="outline"
         size="sm"
         className="flex items-center gap-1.5 no-print h-7 px-2 text-xs"
         aria-label="Box-Typ hinzufügen"
-        aria-expanded={isOpen}
       >
         <Plus className="h-3 w-3" />
         <span>Box hinzufügen</span>
         <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </Button>
-
-      {isOpen && (
-        <div className="notion-add-box-menu" ref={dropdownRef} style={position}>
-          <div className="notion-add-box-menu__label">Box hinzufügen</div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="start">
+        <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          Box hinzufügen
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
           {CATEGORIES.map((cat) => {
             const isUsed = usedCategories.includes(cat.id);
             return (
-              <button
+            <DropdownMenuItem
                 key={cat.id}
-                type="button"
                 disabled={isUsed}
-                className={`notion-add-box-menu__item ${isUsed ? 'disabled' : ''}`}
                 onClick={() => handleSelect(cat.id)}
+              className="flex items-center gap-2 cursor-pointer"
               >
                 <span
-                  className="notion-add-box-menu__icon"
-                  style={{ color: isUsed ? '#94a3b8' : cat.color }}
+                className="flex items-center justify-center w-4 h-4"
+                style={{ color: isUsed ? 'var(--muted-foreground)' : cat.color }}
                 >
                   {cat.iconComponent}
                 </span>
-                <span className="notion-add-box-menu__text">{cat.label}</span>
+              <span className="flex-1">{cat.label}</span>
                 {isUsed && (
-                  <span className="notion-add-box-menu__check">
-                    <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
-                  </span>
+                <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />
                 )}
-              </button>
+            </DropdownMenuItem>
             );
           })}
-        </div>
-      )}
-    </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
 export default BoxTypeDropdown;
-

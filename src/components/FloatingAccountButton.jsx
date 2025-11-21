@@ -1,25 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { User, Moon, Sun, Globe, SignOut, ChatCircleDots, FileText, Layout } from '@phosphor-icons/react';
+import { User, Globe, SignOut, ChatCircleDots, FileText, Layout, Palette } from '@phosphor-icons/react';
 import { Button } from './ui/button';
-import { useClickOutside } from '../hooks/useClickOutside';
 import { getDocuments } from '../services/documentService';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuGroup,
+} from './ui/dropdown-menu';
 
-const FloatingAccountButton = ({ isDarkMode, toggleDarkMode }) => {
+const FloatingAccountButton = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [profileData, setProfileData] = useState({ firstName: '', lastName: '' });
   const [documentsCount, setDocumentsCount] = useState(0);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const buttonRef = useRef(null);
-  const dropdownRef = useRef(null);
-
-  useClickOutside([dropdownRef, buttonRef], () => {
-    if (showDropdown) setShowDropdown(false);
-  }, showDropdown);
 
   useEffect(() => {
     if (user) {
@@ -56,7 +57,9 @@ const FloatingAccountButton = ({ isDarkMode, toggleDarkMode }) => {
     try {
       const { data, error } = await getDocuments(user.id);
       if (data) {
-        setDocumentsCount(data.length);
+        const count = data.length;
+        setDocumentsCount(count);
+        localStorage.setItem('documentsCount', count.toString());
       }
     } catch (error) {
       console.error('Error loading documents count:', error);
@@ -64,16 +67,13 @@ const FloatingAccountButton = ({ isDarkMode, toggleDarkMode }) => {
   }
 
   const handleClick = () => {
-    if (user) {
-      setShowDropdown(!showDropdown);
-    } else {
+    if (!user) {
       navigate('/login');
     }
   };
 
   const handleSignOut = async () => {
     await signOut();
-    setShowDropdown(false);
     navigate('/login');
   };
 
@@ -84,131 +84,88 @@ const FloatingAccountButton = ({ isDarkMode, toggleDarkMode }) => {
     return 'Benutzer';
   };
 
+  if (!user) {
+    return (
+      <div className="fixed top-6 right-6 z-50 no-print">
+        <Button
+          onClick={handleClick}
+          className="rounded-full w-14 h-14 p-0 shadow-md hover:shadow-lg border border-border transition-all bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center overflow-hidden"
+          title="Anmelden"
+        >
+                  <User size={28} weight="bold" />
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed top-6 right-6 z-50 no-print">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
       <Button
-        ref={buttonRef}
-        onClick={handleClick}
-        className="rounded-full w-10 h-10 p-0 shadow-none hover:shadow-none transition-all bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center overflow-hidden"
-        title={user ? "Mein Konto" : "Anmelden"}
+        className="rounded-full w-12 h-12 p-0 shadow-md hover:shadow-lg border border-border transition-all bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center overflow-hidden"
+            title="Mein Konto"
       >
-        {user && avatarUrl ? (
+            {avatarUrl ? (
           <img 
             src={avatarUrl} 
             alt="Profil" 
             className="w-full h-full object-cover"
           />
         ) : (
-          <User size={20} weight="bold" />
+                  <User size={28} weight="bold" />
         )}
       </Button>
-
-      {/* Dropdown Menu */}
-      {showDropdown && user && (
-        <div
-          ref={dropdownRef}
-          className="absolute top-full right-0 mt-2 w-64 bg-card rounded-lg shadow-lg border border-border py-2 z-50"
-        >
-          {/* Profile Section */}
-          <div className="px-4 py-3 border-b border-border">
-            <div className="font-semibold text-foreground">{getDisplayName()}</div>
-            <div className="text-sm text-muted-foreground mt-0.5">{user.email}</div>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-64" align="end" forceMount>
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium leading-none">{getDisplayName()}</p>
+              <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
           </div>
-
-          {/* Menu Items */}
-          <div className="py-1">
-            <button
-              onClick={() => {
-                navigate('/account?tab=sops');
-                setShowDropdown(false);
-              }}
-              className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-secondary flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <FileText size={18} />
-                Meine Leitfäden
-              </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem onClick={() => navigate('/account?tab=sops')} className="cursor-pointer">
+              <FileText className="mr-2 h-4 w-4" />
+              <span>Meine Leitfäden</span>
               {documentsCount > 0 && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
                   {documentsCount}
                 </span>
               )}
-            </button>
-
-            <button
-              onClick={() => {
-                navigate('/account?tab=templates');
-                setShowDropdown(false);
-              }}
-              className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-secondary flex items-center gap-3"
-            >
-              <Layout size={18} />
-              SOP Templates
-            </button>
-
-            <button
-              onClick={() => {
-                navigate('/account?tab=profile');
-                setShowDropdown(false);
-              }}
-              className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-secondary flex items-center gap-3"
-            >
-              <User size={18} />
-              Profil & Einstellungen
-            </button>
-
-            {/* Theme Toggle */}
-            <div className="px-4 py-2 flex items-center justify-between">
-              <div className="flex items-center gap-3 text-sm text-foreground">
-                {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
-                Darkmode
-              </div>
-              <button
-                onClick={toggleDarkMode}
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                  isDarkMode ? 'bg-primary' : 'bg-gray-300'
-                }`}
-              >
-                <span
-                  className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                    isDarkMode ? 'translate-x-5' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-
-            <button
-              onClick={() => {
-                window.open('mailto:feedback@example.com', '_blank');
-              }}
-              className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-secondary flex items-center gap-3"
-            >
-              <ChatCircleDots size={18} />
-              Feedback geben
-            </button>
-
-            <button
-              onClick={() => {
-                window.open('https://example.com', '_blank');
-              }}
-              className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-secondary flex items-center gap-3"
-            >
-              <Globe size={18} />
-              Webseite
-            </button>
-
-            <div className="my-1 border-t border-border"></div>
-
-            <button
-              onClick={handleSignOut}
-              className="w-full px-4 py-2 text-left text-sm text-destructive hover:bg-destructive/10 flex items-center gap-3"
-            >
-              <SignOut size={18} />
-              Logout
-            </button>
-          </div>
-        </div>
-      )}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/account?tab=templates')} className="cursor-pointer">
+              <Layout className="mr-2 h-4 w-4" />
+              <span>SOP Templates</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/account?tab=design-manual')} className="cursor-pointer">
+              <Palette className="mr-2 h-4 w-4" />
+              <span>Design Manual</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/account?tab=profile')} className="cursor-pointer">
+              <User className="mr-2 h-4 w-4" />
+              <span>Profil & Einstellungen</span>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem onClick={() => window.open('mailto:feedback@example.com', '_blank')} className="cursor-pointer">
+              <ChatCircleDots className="mr-2 h-4 w-4" />
+              <span>Feedback geben</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => window.open('https://example.com', '_blank')} className="cursor-pointer">
+              <Globe className="mr-2 h-4 w-4" />
+              <span>Webseite</span>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive cursor-pointer">
+            <SignOut className="mr-2 h-4 w-4" />
+            <span>Logout</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };

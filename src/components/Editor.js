@@ -6,12 +6,12 @@ import SOPFooter from './SOPFooter';
 import { usePageBreaks } from '../hooks/usePageBreaks';
 import { useEditorHistory } from '../hooks/useEditorHistory';
 import { Button } from './ui/button';
-import { ArrowCounterClockwise, ArrowClockwise, Trash, Download, Upload, FileDoc, FileCode, FilePdf, Moon, Sun, Check, Spinner, CloudArrowUp, Export } from '@phosphor-icons/react';
+import { Spinner } from './ui/spinner';
+import { ArrowCounterClockwise, ArrowClockwise, Trash, Download, Upload, FileDoc, FileCode, FilePdf, Moon, Sun, Check, CloudArrowUp, Export } from '@phosphor-icons/react';
 import { exportAsJson, importFromJson, exportAsWord, exportAsPdf } from '../utils/exportUtils';
 import { useAuth } from '../contexts/AuthContext';
 import { saveDocument, getDocument } from '../services/documentService';
-import { useDropdownPosition } from '../hooks/useDropdownPosition';
-import { useClickOutside } from '../hooks/useClickOutside';
+import { toast } from 'sonner';
 import { getInitialState } from '../hooks/useEditorHistory';
 
 // Wrapper component for blocks to handle refs
@@ -218,7 +218,7 @@ const BlockWrapper = memo(({ block, pageBreak, onUpdate, onDelete, onAddAfter, s
   );
 });
 
-const Editor = ({ isDarkMode, toggleDarkMode }) => {
+const Editor = () => {
   const { user } = useAuth();
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -279,7 +279,9 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
   // Save to Cloud
   const handleCloudSave = async () => {
     if (!user) {
-      alert('Bitte melde dich an, um Dokumente zu speichern.');
+      toast.error('Anmeldung erforderlich', {
+        description: 'Bitte melde dich an, um Dokumente zu speichern.',
+      });
       return;
     }
 
@@ -302,11 +304,18 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
 
       if (error) throw error;
       
-      // Show visual feedback? (Could add a toast notification later)
-      // alert('Dokument erfolgreich gespeichert!'); 
+      toast.success('Dokument erfolgreich in Cloud gespeichert', {
+        description: 'Dein Dokument wurde gespeichert.',
+        action: {
+          label: 'Meine Leitfäden',
+          onClick: () => window.location.href = '/account?tab=sops',
+        },
+      });
     } catch (error) {
       console.error('Cloud save failed:', error);
-      alert('Fehler beim Speichern in der Cloud.');
+      toast.error('Fehler beim Speichern', {
+        description: 'Das Dokument konnte nicht in der Cloud gespeichert werden.',
+      });
     } finally {
       setIsCloudSaving(false);
     }
@@ -338,7 +347,20 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
 
   // Handle Export
   const handleJsonExport = () => {
-    exportAsJson(state);
+    setIsExporting(true);
+    try {
+      exportAsJson(state);
+      toast.success('JSON-Datei erfolgreich heruntergeladen', {
+        description: 'Die JSON-Datei wurde erfolgreich gespeichert.',
+      });
+    } catch (error) {
+      console.error('JSON export failed:', error);
+      toast.error('Fehler beim JSON-Export', {
+        description: 'Bitte versuchen Sie es erneut.',
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleWordExport = async () => {
@@ -347,9 +369,14 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
       // Wait a small tick to ensure any pending renders are done
       await new Promise(resolve => setTimeout(resolve, 100));
       await exportAsWord(containerRef.current, headerTitle, headerStand);
+      toast.success('Word-Dokument erfolgreich heruntergeladen', {
+        description: 'Das Word-Dokument wurde erfolgreich gespeichert.',
+      });
     } catch (error) {
       console.error('Word export failed:', error);
-      alert('Fehler beim Word-Export. Bitte versuchen Sie es erneut.');
+      toast.error('Fehler beim Word-Export', {
+        description: 'Bitte versuchen Sie es erneut.',
+      });
     } finally {
       setIsExporting(false);
     }
@@ -360,9 +387,14 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
     try {
       await new Promise(resolve => setTimeout(resolve, 100));
       await exportAsPdf(containerRef.current, headerTitle, headerStand);
+      toast.success('PDF erfolgreich heruntergeladen', {
+        description: 'Das PDF wurde erfolgreich gespeichert.',
+      });
     } catch (error) {
       console.error('PDF export failed:', error);
-      alert('Fehler beim PDF-Export. Bitte versuchen Sie es erneut.');
+      toast.error('Fehler beim PDF-Export', {
+        description: 'Bitte versuchen Sie es erneut.',
+      });
     } finally {
       setIsExporting(false);
     }
@@ -376,13 +408,18 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
     try {
       const newState = await importFromJson(file);
       setEditorState(newState);
+      toast.success('JSON-Datei erfolgreich importiert', {
+        description: 'Die Datei wurde erfolgreich geladen.',
+      });
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     } catch (error) {
       console.error('Import failed:', error);
-      alert('Fehler beim Importieren der Datei. Das Format ist ungültig.');
+      toast.error('Fehler beim Importieren', {
+        description: 'Das Dateiformat ist ungültig.',
+      });
     }
   };
 
@@ -675,7 +712,7 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
       />
 
       {/* Toolbar */}
-      <div className="no-print flex items-center gap-2 mb-6 p-2 bg-white rounded-lg shadow-sm border border-gray-200 w-full max-w-[210mm]">
+      <div className="no-print flex items-center gap-2 mt-6 mb-4 p-2 bg-white rounded-lg shadow-sm border border-gray-200 w-full max-w-[210mm]">
         {/* History & Reset Controls */}
         <div className="flex items-center gap-0">
           <Button 
@@ -770,18 +807,24 @@ const Editor = ({ isDarkMode, toggleDarkMode }) => {
                 title="In Cloud speichern"
                 className="h-8 text-xs px-2 text-[#003366]"
               >
-                {isCloudSaving ? <Spinner size={16} className="animate-spin mr-1.5" /> : <CloudArrowUp size={16} className="mr-1.5" />}
-                Speichern
+                {isCloudSaving ? <Spinner size="sm" className="mr-1.5" /> : <CloudArrowUp size={16} className="mr-1.5" />}
+                In Cloud speichern
               </Button>
             </>
           )}
         </div>
 
-        <div className="h-4 w-px bg-gray-200 mx-2" />
-        
-        <span className={`text-xs select-none flex-1 text-center flex items-center justify-center gap-1 ${!isExporting && !isSaving && !isCloudSaving ? 'text-[#3399FF]' : 'text-muted-foreground'}`}>
-          {isExporting ? 'Exportiere Daten ...' : (isSaving || isCloudSaving ? <><Spinner size={14} className="animate-spin" /> {isCloudSaving ? 'Speichere in Cloud...' : 'Speichere lokal...'}</> : <><Check size={14} /> Zwischenstand gespeichert</>)}
-        </span>
+        {/* Status Indicator - rechts ausgerichtet */}
+        <div className="ml-auto flex items-center gap-2">
+          <div className="h-4 w-px bg-gray-200" />
+          <div className="flex items-center justify-center px-2">
+            {(isExporting || isSaving || isCloudSaving) ? (
+              <Spinner size="sm" className="text-muted-foreground" />
+            ) : (
+              <Check size={16} weight="bold" className="text-[#3399FF]" />
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="editor print:block" ref={containerRef}>

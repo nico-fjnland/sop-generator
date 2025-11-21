@@ -2,6 +2,7 @@ import { saveAs } from 'file-saver';
 import { Document, Packer, Paragraph, ImageRun, SectionType } from 'docx';
 import jsPDF from 'jspdf';
 import { toPng, toJpeg } from 'html-to-image';
+import { getDocument } from '../services/documentService';
 
 /**
  * Exports the current editor state as a JSON file.
@@ -59,14 +60,30 @@ const createPrintClone = (containerRef) => {
   clone.style.zIndex = '-1';
   clone.style.pointerEvents = 'none';
   
-  // Preserve exact dimensions
-  const rect = containerRef.getBoundingClientRect();
-  clone.style.width = `${rect.width}px`;
+  // WICHTIG: Zoom ignorieren - immer auf 100% skalieren
+  clone.style.transform = 'none';
+  clone.style.zoom = '1';
+  
+  // Preserve exact dimensions (verwende offsetWidth statt getBoundingClientRect für ungezoomte Größe)
+  clone.style.width = '210mm'; // A4 Breite
+  clone.style.minHeight = '297mm'; // A4 Höhe
   
   // Add print styles that only apply to the clone
   const styleElement = document.createElement('style');
   styleElement.textContent = `
     /* All styles target ONLY the clone */
+    /* WICHTIG: Zoom und Transform ignorieren für Export */
+    .export-clone {
+      transform: none !important;
+      zoom: 1 !important;
+      scale: 1 !important;
+    }
+    
+    .export-clone * {
+      transform: none !important;
+      zoom: 1 !important;
+    }
+    
     .export-clone .no-print {
       display: none !important;
       visibility: hidden !important;
@@ -361,4 +378,179 @@ export const exportAsPdf = async (containerRef, title = 'SOP Überschrift', stan
     // Clean up clone and styles
     removePrintClone({ clone, styleElement });
   }
+};
+
+/**
+ * Exports multiple documents in bulk
+ * @param {Array<string>} documentIds - Array of document IDs to export
+ * @param {string} format - Export format ('word' or 'pdf')
+ * @param {Function} onProgress - Progress callback function(current, total)
+ * @returns {Promise<void>}
+ */
+export const exportMultipleDocuments = async (documentIds, format = 'pdf', onProgress = null) => {
+  const total = documentIds.length;
+  let current = 0;
+
+  for (const docId of documentIds) {
+    try {
+      // Load document from database
+      const { data: doc, error } = await getDocument(docId);
+      
+      if (error || !doc) {
+        console.error(`Failed to load document ${docId}:`, error);
+        current++;
+        if (onProgress) onProgress(current, total, false);
+        continue;
+      }
+
+      // Create a temporary container to render the document
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'fixed';
+      tempContainer.style.top = '-9999px';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.width = '210mm';
+      tempContainer.style.minHeight = '297mm';
+      tempContainer.style.background = 'white';
+      tempContainer.style.zIndex = '-1';
+      tempContainer.className = 'page-container';
+      
+      // Build the document HTML structure
+      // Note: This is a simplified version. For full rendering with all features,
+      // you would need to use React to render the actual Editor component
+      const content = doc.content || {};
+      const rows = content.rows || [];
+      
+      // Create a simple HTML representation
+      // In a real implementation, you'd want to use React to render the full Editor
+      let html = `
+        <div class="sop-document" style="padding: 20px; font-family: Arial, sans-serif;">
+          <div class="sop-header" style="margin-bottom: 20px; border-bottom: 2px solid #003366;">
+            <h1 style="color: #003366; font-size: 24px; margin: 0;">${doc.title || 'Unbenanntes Dokument'}</h1>
+            <p style="color: #666; font-size: 14px; margin: 5px 0;">${doc.version || 'v1.0'}</p>
+          </div>
+          <div class="sop-content">
+      `;
+      
+      // Add rows (simplified - just basic text content)
+      rows.forEach((row, index) => {
+        if (row.columns) {
+          row.columns.forEach(col => {
+            if (col.blocks) {
+              col.blocks.forEach(block => {
+                if (block.type === 'contentbox' && block.content) {
+                  html += `<div style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">`;
+                  if (block.content.blocks) {
+                    block.content.blocks.forEach(innerBlock => {
+                      if (innerBlock.content) {
+                        html += `<p style="margin: 10px 0;">${innerBlock.content}</p>`;
+                      }
+                    });
+                  }
+                  html += `</div>`;
+                }
+              });
+            }
+          });
+        }
+      });
+      
+      html += `
+          </div>
+        </div>
+      `;
+      
+      tempContainer.innerHTML = html;
+      document.body.appendChild(tempContainer);
+      
+      // Wait for content to render
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Export based on format
+      const title = doc.title || 'Dokument';
+      const stand = doc.version || 'v1.0';
+      
+      try {
+        if (format === 'word') {
+          await exportAsWord(tempContainer, title, stand);
+        } else {
+          await exportAsPdf(tempContainer, title, stand);
+        }
+      } catch (exportError) {
+        console.error(`Failed to export document ${docId}:`, exportError);
+      }
+      
+      // Clean up
+      document.body.removeChild(tempContainer);
+      
+      // Update progress
+      current++;
+      if (onProgress) onProgress(current, total, false);
+      
+      // Small delay between exports to prevent overwhelming the browser
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+    } catch (err) {
+      console.error(`Error processing document ${docId}:`, err);
+      current++;
+      if (onProgress) onProgress(current, total, false);
+    }
+  }
+  
+  // Signal completion
+  if (onProgress) onProgress(current, total, true);
+};
+
+/**
+ * Simplified bulk export that exports documents as JSON files in a zip
+ * This is a fallback for when full rendering is not feasible
+ * @param {Array<string>} documentIds - Array of document IDs to export
+ * @param {Function} onProgress - Progress callback function(current, total, completed)
+ * @returns {Promise<void>}
+ */
+export const exportMultipleDocumentsAsJson = async (documentIds, onProgress = null) => {
+  const total = documentIds.length;
+  const exports = [];
+
+  for (let i = 0; i < documentIds.length; i++) {
+    const docId = documentIds[i];
+    
+    try {
+      // Load document from database
+      const { data: doc, error } = await getDocument(docId);
+      
+      if (error || !doc) {
+        console.error(`Failed to load document ${docId}:`, error);
+        if (onProgress) onProgress(i + 1, total, false);
+        continue;
+      }
+
+      // Create export state
+      const exportState = {
+        headerTitle: doc.title || 'SOP Überschrift',
+        headerStand: doc.version || 'STAND',
+        headerLogo: doc.content?.headerLogo || null,
+        footerVariant: doc.content?.footerVariant || 'default',
+        rows: doc.content?.rows || []
+      };
+
+      // Export as JSON
+      const fileName = `${doc.title || 'document'}-${doc.version || 'v1'}.json`;
+      const jsonString = JSON.stringify(exportState, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      saveAs(blob, fileName);
+
+      // Update progress
+      if (onProgress) onProgress(i + 1, total, false);
+      
+      // Small delay between exports
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+    } catch (err) {
+      console.error(`Error exporting document ${docId}:`, err);
+      if (onProgress) onProgress(i + 1, total, false);
+    }
+  }
+  
+  // Signal completion
+  if (onProgress) onProgress(total, total, true);
 };

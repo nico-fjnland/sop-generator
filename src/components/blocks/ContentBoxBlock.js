@@ -1,9 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GripVertical, X, Plus, Check } from 'lucide-react';
+import { GripVertical, X, Plus, Check, ChevronDown } from 'lucide-react';
 import Block from '../Block';
 import { CategoryIcons } from '../icons/CategoryIcons';
-import { useDropdownPosition } from '../../hooks/useDropdownPosition';
-import { useClickOutside } from '../../hooks/useClickOutside';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
 
 // Category configurations based on Figma design
 export const CATEGORIES = [
@@ -125,40 +131,7 @@ const ContentBoxBlock = ({
   const [innerBlocks, setInnerBlocks] = useState(
     initialContent.blocks || [{ id: Date.now().toString(), type: 'text', content: '' }]
   );
-  // OPTIMIZED: Grouped related state together
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isAddBoxMenuOpen, setIsAddBoxMenuOpen] = useState(false);
-  const captionRef = useRef(null);
-  const addBoxButtonRef = useRef(null);
-  
-  // Collision detection for caption dropdown
-  const { dropdownRef: captionDropdownRef, position: captionPosition } = useDropdownPosition(
-    isDropdownOpen,
-    captionRef,
-    'bottom',
-    4
-  );
-  
-  // Collision detection for add box dropdown
-  const { dropdownRef: addBoxDropdownRef, position: addBoxPosition } = useDropdownPosition(
-    isAddBoxMenuOpen,
-    addBoxButtonRef,
-    'right',
-    10
-  );
-  
-  // OPTIMIZED: Use custom useClickOutside hook to consolidate duplicate logic
-  useClickOutside(
-    [captionDropdownRef, captionRef],
-    () => setIsDropdownOpen(false),
-    isDropdownOpen
-  );
-  
-  useClickOutside(
-    [addBoxDropdownRef, addBoxButtonRef],
-    () => setIsAddBoxMenuOpen(false),
-    isAddBoxMenuOpen
-  );
   
   // Use ref to track if we're updating from parent to prevent infinite loop
   const isUpdatingFromParent = useRef(false);
@@ -256,19 +229,12 @@ const ContentBoxBlock = ({
     });
   }, [selectedCategory, updateContent]);
 
-  // REMOVED: Old click-outside logic - now using useClickOutside hook
-
-  const handleCaptionClick = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
   const handleCategorySelect = (categoryId) => {
     // Don't allow selecting already used categories (except the current one)
     if (usedCategories.includes(categoryId) && categoryId !== selectedCategory) {
       return;
     }
     handleCategoryChange(categoryId);
-    setIsDropdownOpen(false);
   };
 
   const handleAddBoxCategorySelect = (categoryId) => {
@@ -277,14 +243,12 @@ const ContentBoxBlock = ({
       return;
     }
     onAddBoxAfter(categoryId);
-    setIsAddBoxMenuOpen(false);
+    setIsDropdownOpen(false);
   };
-
-  // REMOVED: Old click-outside logic - now using useClickOutside hook
 
   return (
     <div 
-      className={`content-box-block mb-6 relative group ${(isDropdownOpen || isAddBoxMenuOpen) ? 'z-[9997]' : ''} ${isDragging ? 'dragging-box' : ''}`} 
+      className={`content-box-block mb-6 relative group z-auto ${isDragging ? 'dragging-box' : ''}`} 
       style={{ 
         pageBreakInside: 'avoid', 
         breakInside: 'avoid',
@@ -295,8 +259,7 @@ const ContentBoxBlock = ({
     >
       {/* Hover controls similar to Notion */}
       <div 
-        className={`notion-box-controls no-print ${!isRightColumn ? 'notion-box-controls-left' : ''}`} 
-        style={{ zIndex: isAddBoxMenuOpen ? 10001 : undefined }}
+        className={`notion-box-controls no-print ${!isRightColumn ? 'notion-box-controls-left' : ''} ${isDropdownOpen ? 'dropdown-open' : ''}`} 
       >
         <button
           type="button"
@@ -321,55 +284,64 @@ const ContentBoxBlock = ({
           <GripVertical className="h-4 w-4 text-white" strokeWidth={2} />
         </button>
         {onAddBoxAfter && (
-        <div className="notion-control-with-menu">
-          <button
-            type="button"
-            className="notion-control-button"
-            style={{ backgroundColor: category.color }}
-            aria-label="Box hinzufügen"
-            title="Box hinzufügen"
-            ref={addBoxButtonRef}
-            onClick={(event) => {
-              event.preventDefault();
-              if (!onAddBoxAfter) {
-                return;
-              }
-              setIsAddBoxMenuOpen((prev) => !prev);
-            }}
-          >
-            <Plus className="h-4 w-4 text-white" strokeWidth={2} />
-          </button>
-          {isAddBoxMenuOpen && (
-            <div className="notion-add-box-menu" ref={addBoxDropdownRef} style={addBoxPosition}>
-              <div className="notion-add-box-menu__label">Box hinzufügen</div>
+          <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="notion-control-button"
+                style={{ backgroundColor: category.color }}
+                aria-label="Box hinzufügen"
+                title="Box hinzufügen"
+              >
+                <Plus className="h-4 w-4 text-white" strokeWidth={2} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              className="w-56" 
+              align="start" 
+              side="right" 
+              sideOffset={10}
+              onPointerDownOutside={(e) => {
+                // Prevent closing when clicking on the trigger
+                if (e.target.closest('.notion-control-button')) {
+                  e.preventDefault();
+                }
+              }}
+              onInteractOutside={(e) => {
+                // Keep buttons visible when interacting with menu
+                if (e.target.closest('.notion-box-controls')) {
+                  e.preventDefault();
+                }
+              }}
+            >
+              <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Box hinzufügen
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
               {CATEGORIES.map((cat) => {
                 const isUsed = usedCategories.includes(cat.id);
                 return (
-                  <button
+                  <DropdownMenuItem
                     key={cat.id}
-                    type="button"
                     disabled={isUsed}
-                    className={`notion-add-box-menu__item ${isUsed ? 'disabled' : ''}`}
                     onClick={() => handleAddBoxCategorySelect(cat.id)}
+                    className="flex items-center gap-2 cursor-pointer"
                   >
                     <span
-                      className="notion-add-box-menu__icon"
-                      style={{ color: isUsed ? '#94a3b8' : cat.color }}
+                      className="flex items-center justify-center w-4 h-4"
+                      style={{ color: isUsed ? 'var(--muted-foreground)' : cat.color }}
                     >
                       {cat.iconComponent}
                     </span>
-                    <span className="notion-add-box-menu__text">{cat.label}</span>
+                    <span className="flex-1">{cat.label}</span>
                     {isUsed && (
-                      <span className="notion-add-box-menu__check">
-                        <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
-                      </span>
+                      <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />
                     )}
-                  </button>
+                  </DropdownMenuItem>
                 );
               })}
-            </div>
-          )}
-        </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
         <button
           type="button"
@@ -464,31 +436,60 @@ const ContentBoxBlock = ({
             }}
           >
             {/* Caption on top border - left-aligned with text, vertically centered on border */}
-            {/* Caption box height: 4px (top padding) + 12px (line-height) + 4px (bottom padding) = 20px */}
-            {/* To center on border: move up by half the height = 10px */}
             <div 
-              className={`caption-container absolute left-[26px] ${isDropdownOpen ? 'z-[9998]' : 'z-20'}`} 
+              className={`caption-container absolute left-[26px] z-20`} 
               style={{ top: '-10px' }}
             >
               <div className="relative">
                 {/* Caption Box - clickable in editor, static in print */}
-                <div
-                  ref={captionRef}
-                  onClick={handleCaptionClick}
-                  className="border-2 border-solid border-white box-border flex items-center relative shrink-0 no-print cursor-pointer hover:opacity-90 transition-opacity"
-                  style={{
-                    backgroundColor: category.color,
-                    borderRadius: '6px',
-                    padding: '4px 8px',
-                  }}
-                >
-                  <p 
-                    className="font-semibold italic text-[8px] text-white uppercase tracking-[1.05px] whitespace-nowrap leading-[12px]"
-                    style={{ fontFamily: "'Roboto', sans-serif" }}
-                  >
-                    {category.label}
-                  </p>
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div
+                      className="border-2 border-solid border-white box-border flex items-center relative shrink-0 no-print cursor-pointer hover:opacity-90 transition-opacity"
+                      style={{
+                        backgroundColor: category.color,
+                        borderRadius: '6px',
+                        padding: '4px 8px',
+                      }}
+                    >
+                      <p 
+                        className="font-semibold italic text-[8px] text-white uppercase tracking-[1.05px] whitespace-nowrap leading-[12px]"
+                        style={{ fontFamily: "'Roboto', sans-serif" }}
+                      >
+                        {category.label}
+                      </p>
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="start" sideOffset={4}>
+                    <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      Kategorie ändern
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {CATEGORIES.map((cat) => {
+                      const isUsed = usedCategories.includes(cat.id) && cat.id !== selectedCategory;
+                      return (
+                        <DropdownMenuItem
+                          key={cat.id}
+                          disabled={isUsed}
+                          onClick={() => handleCategorySelect(cat.id)}
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
+                          <span
+                            className="flex items-center justify-center w-4 h-4"
+                            style={{ color: isUsed ? 'var(--muted-foreground)' : cat.color }}
+                          >
+                            {cat.iconComponent}
+                          </span>
+                          <span className="flex-1">{cat.label}</span>
+                          {isUsed && (
+                            <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />
+                          )}
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 {/* Static caption for print */}
                 <div
                   className="caption-box-print box-border flex items-center relative shrink-0 hidden print:block"
@@ -505,42 +506,6 @@ const ContentBoxBlock = ({
                     {category.label}
                   </p>
                 </div>
-                
-                {/* Dropdown Menu - only in editor */}
-                {isDropdownOpen && (
-                  <div
-                    ref={captionDropdownRef}
-                    className="notion-add-box-menu no-print"
-                    style={{ ...captionPosition, zIndex: 10000 }}
-                  >
-                    <div className="notion-add-box-menu__label">Box hinzufügen</div>
-                    {CATEGORIES.map((cat) => {
-                      const isUsed = usedCategories.includes(cat.id) && cat.id !== selectedCategory;
-                      return (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          disabled={isUsed}
-                          className={`notion-add-box-menu__item ${isUsed ? 'disabled' : ''}`}
-                          onClick={() => handleCategorySelect(cat.id)}
-                        >
-                          <span
-                            className="notion-add-box-menu__icon"
-                            style={{ color: isUsed ? '#94a3b8' : cat.color }}
-                          >
-                            {cat.iconComponent}
-                          </span>
-                          <span className="notion-add-box-menu__text">{cat.label}</span>
-                          {isUsed && (
-                            <span className="notion-add-box-menu__check">
-                              <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
             </div>
 
