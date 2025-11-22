@@ -6,20 +6,77 @@ import { getDocument } from '../services/documentService';
 
 /**
  * Exports the current editor state as a JSON file.
+ * Preserves all formatting including line breaks and bullet points.
  * @param {Object} state - The editor state object.
  */
 export const exportAsJson = (state) => {
   const date = new Date().toISOString().split('T')[0];
   const fileName = `sop-state-${date}.json`;
-  const jsonString = JSON.stringify(state, null, 2);
+  
+  // Deep clone state to avoid mutations
+  const stateToExport = JSON.parse(JSON.stringify(state));
+  
+  // Add metadata for validation
+  stateToExport._exportMetadata = {
+    version: '1.0',
+    exportDate: new Date().toISOString(),
+    editorVersion: '2.0'
+  };
+  
+  const jsonString = JSON.stringify(stateToExport, null, 2);
   const blob = new Blob([jsonString], { type: 'application/json' });
   saveAs(blob, fileName);
 };
 
 /**
+ * Validates and sanitizes block content to preserve formatting.
+ * @param {Object} block - Block object to validate.
+ * @returns {Object} - Validated and sanitized block.
+ */
+const validateAndSanitizeBlock = (block) => {
+  if (!block || typeof block !== 'object') {
+    return { id: Date.now().toString(), type: 'text', content: '' };
+  }
+  
+  // Ensure block has required fields
+  const sanitized = {
+    id: block.id || Date.now().toString(),
+    type: block.type || 'text',
+    content: block.content !== undefined ? block.content : ''
+  };
+  
+  // For contentbox blocks, validate nested structure
+  if (sanitized.type === 'contentbox' && typeof sanitized.content === 'object') {
+    sanitized.content = {
+      category: sanitized.content.category || 'definition',
+      blocks: Array.isArray(sanitized.content.blocks) 
+        ? sanitized.content.blocks.map(validateAndSanitizeBlock)
+        : [{ id: Date.now().toString(), type: 'text', content: '' }]
+    };
+  }
+  
+  // For text blocks with HTML content, preserve line breaks
+  if (sanitized.type === 'text' && typeof sanitized.content === 'string') {
+    // Ensure line breaks are preserved as HTML
+    if (!/<br/i.test(sanitized.content) && /\n/.test(sanitized.content)) {
+      sanitized.content = sanitized.content.replace(/\n/g, '<br>');
+    }
+    
+    // Preserve bullet points (both Unicode and HTML entities)
+    if (!sanitized.content.includes('\u2022') && !sanitized.content.includes('&#8226;')) {
+      // Convert markdown-style bullets if present
+      sanitized.content = sanitized.content.replace(/^(\s*[-*])\s+/gm, '$1 ');
+    }
+  }
+  
+  return sanitized;
+};
+
+/**
  * Imports editor state from a JSON file.
+ * Validates structure and preserves formatting including line breaks and bullets.
  * @param {File} file - The uploaded JSON file.
- * @returns {Promise<Object>} - Resolves with the parsed state object.
+ * @returns {Promise<Object>} - Resolves with the parsed and validated state object.
  */
 export const importFromJson = (file) => {
   return new Promise((resolve, reject) => {
@@ -27,14 +84,48 @@ export const importFromJson = (file) => {
     reader.onload = (event) => {
       try {
         const json = JSON.parse(event.target.result);
-        // Basic validation: check if 'rows' exists and is an array
-        if (!json || !Array.isArray(json.rows)) {
+        
+        // Comprehensive validation
+        if (!json || typeof json !== 'object') {
+          reject(new Error('Invalid file format: not a valid JSON object'));
+          return;
+        }
+        
+        if (!Array.isArray(json.rows)) {
           reject(new Error('Invalid file format: missing rows array'));
           return;
         }
-        resolve(json);
+        
+        // Validate and sanitize the imported data
+        const sanitizedState = {
+          headerTitle: json.headerTitle || 'SOP Überschrift',
+          headerStand: json.headerStand || 'STAND 12/22',
+          headerLogo: json.headerLogo || null,
+          footerVariant: json.footerVariant || 'default',
+          rows: json.rows.map(row => {
+            if (!row || typeof row !== 'object' || !Array.isArray(row.blocks)) {
+              return {
+                id: `row-${Date.now()}`,
+                columnRatio: 0.5,
+                blocks: [{ id: Date.now().toString(), type: 'text', content: '' }]
+              };
+            }
+            
+            return {
+              id: row.id || `row-${Date.now()}`,
+              columnRatio: typeof row.columnRatio === 'number' ? row.columnRatio : 0.5,
+              blocks: row.blocks.map(validateAndSanitizeBlock)
+            };
+          })
+        };
+        
+        // Remove metadata if present (not needed in editor state)
+        delete sanitizedState._exportMetadata;
+        
+        resolve(sanitizedState);
       } catch (error) {
-        reject(new Error('Failed to parse JSON file'));
+        console.error('JSON import error:', error);
+        reject(new Error('Failed to parse JSON file: ' + error.message));
       }
     };
     reader.onerror = () => reject(new Error('Failed to read file'));

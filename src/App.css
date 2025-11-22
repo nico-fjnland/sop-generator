@@ -123,7 +123,7 @@
   }
   
   /* Ensure caption boxes are correctly positioned in print - centered on border */
-  /* Caption box height: 4px (top padding) + 12px (line-height) + 4px (bottom padding) = 20px */
+  /* Caption box height: 4px (top padding) + 12px (font-size with line-height 1.5 = 18px total) + 4px (bottom padding) = 20px */
   /* Border is 1.5px thick, so to center: move up by (20px / 2) = 10px */
   /* IMPORTANT: Use margin-top instead of top for better html2canvas compatibility */
   .content-box-block .caption-container {
@@ -162,11 +162,23 @@
   /* Specifically target the icon container */
   .content-box-block .icon-container,
   .content-box-block > div > div[class*="mr-[-14px]"],
-  .content-box-block > div > div[style*="margin-right: -14px"] {
-    margin-right: -14px !important;
+  .content-box-block > div > div[class*="ml-[-14px]"],
+  .content-box-block > div > div[style*="margin-right: -14px"],
+  .content-box-block > div > div[style*="margin-left: -14px"] {
     overflow: visible !important;
     clip-path: none !important;
     clip: auto !important;
+  }
+  
+  /* Ensure negative margins are preserved */
+  .content-box-block .icon-container[class*="mr-[-14px]"],
+  .content-box-block > div > div[class*="mr-[-14px]"] {
+    margin-right: -14px !important;
+  }
+  
+  .content-box-block .icon-container[class*="ml-[-14px]"],
+  .content-box-block > div > div[class*="ml-[-14px]"] {
+    margin-left: -14px !important;
   }
   
   /* Ensure page container and editor don't clip icons */
@@ -306,7 +318,7 @@
   /* Only apply to textarea and text divs, NOT the content container */
   .content-box-block textarea {
     font-size: 12px !important;
-    line-height: 20px !important;
+    line-height: 1.5 !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
@@ -315,7 +327,7 @@
   .content-box-block .block-wrapper > div[style*="fontSize: '12px'"],
   .content-box-block .block-wrapper > div[style*="font-size: 12px"] {
     font-size: 12px !important;
-    line-height: 20px !important;
+    line-height: 1.5 !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
@@ -324,13 +336,13 @@
   /* Ensure content area padding is correct in print - already set above, just ensure font size */
   .content-box-block .content-box-content {
     font-size: 12px !important;
-    line-height: 20px !important;
+    line-height: 1.5 !important;
     overflow: visible !important;
   }
   
   /* Ensure content-editable has enough line-height for superscript/subscript in print */
   .content-box-block .content-editable {
-    line-height: 20px !important;
+    line-height: 1.5 !important;
     overflow: visible !important;
   }
   
@@ -607,9 +619,7 @@ body.export-ready .page-container {
   }
   
   /* Ensure editor content stays white in dark mode */
-  .editor * {
     /* Pages and content remain white for PDF preview */
-  }
   
   /* Drag and Drop styles */
 .drop-indicator {
@@ -640,8 +650,29 @@ body.export-ready .page-container {
     will-change: opacity, transform;
   }
   
+  .icon-container {
+    pointer-events: auto !important;
+    user-select: none;
+    -webkit-user-drag: element;
+    z-index: 50 !important; /* Much higher than bridge and buttons to ensure always draggable */
+    position: relative;
+  }
+  
   .icon-container:active {
     cursor: grabbing !important;
+  }
+  
+  .icon-container:hover {
+    cursor: grab;
+  }
+  
+  /* Ensure icon on right side is also properly positioned */
+  .content-box-block > div.flex-row-reverse {
+    overflow: visible !important;
+  }
+  
+  .content-box-block > div.flex-row-reverse .icon-container {
+    z-index: 50 !important;
   }
   
   .content-box-block[draggable="true"] {
@@ -889,7 +920,7 @@ body.export-ready .page-container {
   transform: translateX(50px) translateY(-50%);
   z-index: 100;
   pointer-events: auto !important;
-  /* Fast transition when appearing, no transition when dropdown is open */
+  /* Fast transition when appearing - NO delay (0s) for immediate appearance */
   transition: opacity 0.15s ease 0s, transform 0.15s ease 0s, pointer-events 0s 0s;
 }
 
@@ -905,15 +936,11 @@ body.export-ready .page-container {
   transform: translateX(-50px) translateY(-50%);
   z-index: 100;
   pointer-events: auto !important;
-  /* Fast transition when appearing, no transition when dropdown is open */
+  /* Fast transition when appearing - NO delay (0s) for immediate appearance */
   transition: opacity 0.15s ease 0s, transform 0.15s ease 0s, pointer-events 0s 0s;
 }
 
-/* Remove stagger delays that might cause perception of "lateness" */
-.content-box-block:hover .notion-control-button,
-.content-box-block:focus-within .notion-control-button {
-  transition-delay: 0s !important;
-}
+/* Button transitions are handled by individual nth-child rules for stagger effect */
 
 /* Default: Buttons on the right (for single column and right column in two-column) */
 .notion-box-controls {
@@ -928,29 +955,34 @@ body.export-ready .page-container {
   transform: translateX(0) translateY(-50%);
   z-index: 5;
   will-change: opacity, transform;
-  /* 1000ms delay before hiding - more time to move mouse to buttons */
-  transition: opacity 0.2s ease 1s, transform 0.2s ease 1s, pointer-events 0s 1.2s;
+  /* 300ms delay before hiding - more time to move mouse to buttons */
+  transition: opacity 0.2s ease 0.3s, transform 0.2s ease 0.3s, pointer-events 0s 0.5s;
 }
 
 /* Create invisible hover bridge using pseudo-element */
+/* Positioned to not overlap with the icon area */
 .notion-box-controls::before {
   content: '';
   position: absolute;
   right: 100%;
   top: 50%;
   transform: translateY(-50%);
-  width: 60px;
+  width: 50px; /* Wide enough for smooth transition, but doesn't block icon (z-50) */
   height: 120px;
   z-index: 1;
+  /* Ensure bridge doesn't block the icon */
+  pointer-events: none;
 }
 
 /* When controls are visible, the bridge should have pointer events */
+/* BUT only if we're not hovering over the icon */
 .content-box-block:hover .notion-box-controls::before,
 .content-box-block:focus-within .notion-box-controls::before,
 .notion-box-controls:hover::before,
 .notion-box-controls.dropdown-open::before {
   pointer-events: auto;
 }
+
 
 /* Left column in two-column layout - positioned on the left side */
 .notion-box-controls-left {
@@ -959,28 +991,38 @@ body.export-ready .page-container {
   transform: translateX(0) translateY(-50%);
   pointer-events: none;
   will-change: opacity, transform;
-  /* 1000ms delay before hiding - more time to move mouse to buttons */
-  transition: opacity 0.2s ease 1s, transform 0.2s ease 1s, pointer-events 0s 1.2s;
+  /* 300ms delay before hiding - more time to move mouse to buttons */
+  transition: opacity 0.2s ease 0.3s, transform 0.2s ease 0.3s, pointer-events 0s 0.5s;
 }
 
 /* Create invisible hover bridge for left column using pseudo-element */
+/* Positioned to not overlap with the icon area */
 .notion-box-controls-left::before {
   content: '';
   position: absolute;
   left: 100%;
   top: 50%;
   transform: translateY(-50%);
-  width: 60px;
+  width: 50px; /* Wide enough for smooth transition, but doesn't block icon (z-50) */
   height: 120px;
   z-index: 1;
+  /* Ensure bridge doesn't block the icon */
+  pointer-events: none;
 }
 
 /* When controls are visible, the bridge should have pointer events */
+/* BUT only if we're not hovering over the icon */
 .content-box-block:hover .notion-box-controls-left::before,
 .content-box-block:focus-within .notion-box-controls-left::before,
 .notion-box-controls-left:hover::before,
 .notion-box-controls-left.dropdown-open::before {
   pointer-events: auto;
+}
+
+/* Override: if icon is being hovered/dragged, disable bridge pointer events */
+.content-box-block:has(.icon-container:hover) .notion-box-controls::before,
+.content-box-block:has(.icon-container:hover) .notion-box-controls-left::before {
+  pointer-events: none !important;
 }
 
 .notion-control-button {
@@ -996,7 +1038,8 @@ body.export-ready .page-container {
   cursor: pointer;
   opacity: 0;
   transform: translateX(10px);
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  /* Base transition - will be overridden by specific nth-child rules for stagger effect */
+  transition: transform 0.2s ease 0.3s, opacity 0.2s ease 0.3s;
   pointer-events: auto;
   will-change: opacity, transform;
 }
@@ -1010,99 +1053,118 @@ body.export-ready .page-container {
 }
 
 /* In dark mode, buttons keep their category colors (set via inline styles) */
-.dark .notion-control-button {
   /* Don't override - let inline styles with category colors take precedence */
-}
 
 /* Stagger effect for buttons appearing */
-/* First button (Drag) */
+/* First button (Drag) - appears first */
 .content-box-block:hover .notion-box-controls > .notion-control-button:nth-child(1),
 .content-box-block:focus-within .notion-box-controls > .notion-control-button:nth-child(1),
 .notion-box-controls:hover > .notion-control-button:nth-child(1) {
   opacity: 1;
   transform: translateX(0);
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  transition-delay: 0s;
+  transition: transform 0.15s ease 0s, opacity 0.15s ease 0s;
 }
 
-/* Second button (Add) - inside DropdownMenu - needs special handling */
-.content-box-block:hover .notion-box-controls > button[data-radix-collection-item],
-.content-box-block:focus-within .notion-box-controls > button[data-radix-collection-item],
-.notion-box-controls:hover > button[data-radix-collection-item],
-/* Also target the DropdownMenu wrapper */
-.content-box-block:hover .notion-box-controls > [data-radix-dropdown-menu-trigger],
-.content-box-block:focus-within .notion-box-controls > [data-radix-dropdown-menu-trigger],
-.notion-box-controls:hover > [data-radix-dropdown-menu-trigger] {
-  opacity: 1 !important;
-  transform: translateX(0) !important;
-  transition: transform 0.2s ease, opacity 0.2s ease !important;
-  transition-delay: 0.05s !important;
+/* First button (Drag) - disappears with base delay */
+.notion-box-controls > .notion-control-button:nth-child(1) {
+  transition: transform 0.2s ease 0.3s, opacity 0.2s ease 0.3s;
 }
 
-/* Ensure the button inside DropdownMenuTrigger is visible */
-.content-box-block:hover .notion-box-controls .notion-control-button,
-.content-box-block:focus-within .notion-box-controls .notion-control-button,
-.notion-box-controls:hover .notion-control-button,
-.notion-box-controls.dropdown-open .notion-control-button {
-  opacity: 1 !important;
-  transform: translateX(0) !important;
+/* Second button (Add) - appears second */
+.content-box-block:hover .notion-box-controls > .notion-control-button:nth-child(2),
+.content-box-block:focus-within .notion-box-controls > .notion-control-button:nth-child(2),
+.notion-box-controls:hover > .notion-control-button:nth-child(2),
+.content-box-block:hover .notion-box-controls > div:nth-child(2) > button,
+.content-box-block:focus-within .notion-box-controls > div:nth-child(2) > button,
+.notion-box-controls:hover > div:nth-child(2) > button {
+  opacity: 1;
+  transform: translateX(0);
+  transition: transform 0.15s ease 0.05s, opacity 0.15s ease 0.05s;
 }
 
-/* Third button (Delete) */
+/* Second button (Add) - disappears with middle staggered delay */
+.notion-box-controls > .notion-control-button:nth-child(2),
+.notion-box-controls > div:nth-child(2) > button {
+  transition: transform 0.2s ease 0.35s, opacity 0.2s ease 0.35s;
+}
+
+/* Third button (Delete) - appears third/last */
 .content-box-block:hover .notion-box-controls > .notion-control-button:nth-child(3),
 .content-box-block:focus-within .notion-box-controls > .notion-control-button:nth-child(3),
 .notion-box-controls:hover > .notion-control-button:nth-child(3) {
   opacity: 1;
   transform: translateX(0);
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  transition-delay: 0.1s;
+  transition: transform 0.15s ease 0.1s, opacity 0.15s ease 0.1s;
 }
 
-/* Left column stagger - slide from left */
+/* Third button (Delete) - disappears with most staggered delay */
+.notion-box-controls > .notion-control-button:nth-child(3) {
+  transition: transform 0.2s ease 0.4s, opacity 0.2s ease 0.4s;
+}
+
+/* Ensure dropdown is visible when open */
+.notion-box-controls.dropdown-open .notion-control-button {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
+}
+
+/* Left column - slide from left with delay when hiding */
 .notion-box-controls-left .notion-control-button {
   transform: translateX(10px);
-  transition: transform 0.15s ease 0.15s, opacity 0.15s ease 0.15s;
+  /* Base transition - will be overridden by specific nth-child rules for stagger effect */
+  transition: transform 0.2s ease 0.3s, opacity 0.2s ease 0.3s;
 }
 
-/* First button (Drag) - left column */
+/* First button (Drag) - left column - appears first */
 .content-box-block:hover .notion-box-controls-left > .notion-control-button:nth-child(1),
 .content-box-block:focus-within .notion-box-controls-left > .notion-control-button:nth-child(1),
 .notion-box-controls-left:hover > .notion-control-button:nth-child(1) {
   opacity: 1;
   transform: translateX(0);
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  transition-delay: 0s;
+  transition: transform 0.15s ease 0s, opacity 0.15s ease 0s;
 }
 
-/* Second button (Add) - left column - inside DropdownMenu */
-.content-box-block:hover .notion-box-controls-left > button[data-radix-collection-item],
-.content-box-block:focus-within .notion-box-controls-left > button[data-radix-collection-item],
-.notion-box-controls-left:hover > button[data-radix-collection-item],
-.content-box-block:hover .notion-box-controls-left > [data-radix-dropdown-menu-trigger],
-.content-box-block:focus-within .notion-box-controls-left > [data-radix-dropdown-menu-trigger],
-.notion-box-controls-left:hover > [data-radix-dropdown-menu-trigger] {
-  opacity: 1 !important;
-  transform: translateX(0) !important;
-  transition: transform 0.2s ease, opacity 0.2s ease !important;
-  transition-delay: 0.05s !important;
+/* First button - left column - disappears with base delay */
+.notion-box-controls-left > .notion-control-button:nth-child(1) {
+  transition: transform 0.2s ease 0.3s, opacity 0.2s ease 0.3s;
 }
 
-.content-box-block:hover .notion-box-controls-left .notion-control-button,
-.content-box-block:focus-within .notion-box-controls-left .notion-control-button,
-.notion-box-controls-left:hover .notion-control-button,
-.notion-box-controls-left.dropdown-open .notion-control-button {
-  opacity: 1 !important;
-  transform: translateX(0) !important;
+/* Second button (Add) - left column - appears second */
+.content-box-block:hover .notion-box-controls-left > .notion-control-button:nth-child(2),
+.content-box-block:focus-within .notion-box-controls-left > .notion-control-button:nth-child(2),
+.notion-box-controls-left:hover > .notion-control-button:nth-child(2),
+.content-box-block:hover .notion-box-controls-left > div:nth-child(2) > button,
+.content-box-block:focus-within .notion-box-controls-left > div:nth-child(2) > button,
+.notion-box-controls-left:hover > div:nth-child(2) > button {
+  opacity: 1;
+  transform: translateX(0);
+  transition: transform 0.15s ease 0.05s, opacity 0.15s ease 0.05s;
 }
 
-/* Third button (Delete) - left column */
+/* Second button (Add) - left column - disappears with middle staggered delay */
+.notion-box-controls-left > .notion-control-button:nth-child(2),
+.notion-box-controls-left > div:nth-child(2) > button {
+  transition: transform 0.2s ease 0.35s, opacity 0.2s ease 0.35s;
+}
+
+/* Third button (Delete) - left column - appears third/last */
 .content-box-block:hover .notion-box-controls-left > .notion-control-button:nth-child(3),
 .content-box-block:focus-within .notion-box-controls-left > .notion-control-button:nth-child(3),
 .notion-box-controls-left:hover > .notion-control-button:nth-child(3) {
   opacity: 1;
   transform: translateX(0);
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  transition-delay: 0.1s;
+  transition: transform 0.15s ease 0.1s, opacity 0.15s ease 0.1s;
+}
+
+/* Third button (Delete) - left column - disappears with most staggered delay */
+.notion-box-controls-left > .notion-control-button:nth-child(3) {
+  transition: transform 0.2s ease 0.4s, opacity 0.2s ease 0.4s;
+}
+
+/* Ensure dropdown is visible when open */
+.notion-box-controls-left.dropdown-open .notion-control-button {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
 }
 
 .notion-control-button:hover {

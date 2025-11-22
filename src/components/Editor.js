@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect, memo, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Block from './Block';
 import SOPHeader from './SOPHeader';
 import SOPFooter from './SOPFooter';
@@ -7,12 +7,22 @@ import { usePageBreaks } from '../hooks/usePageBreaks';
 import { useEditorHistory } from '../hooks/useEditorHistory';
 import { Button } from './ui/button';
 import { Spinner } from './ui/spinner';
-import { ArrowCounterClockwise, ArrowClockwise, Trash, Download, Upload, FileDoc, FileCode, FilePdf, Moon, Sun, Check, CloudArrowUp, Export } from '@phosphor-icons/react';
+import { ArrowCounterClockwise, ArrowClockwise, Trash, Download, Upload, FileDoc, FileCode, FilePdf, Moon, Sun, Check, CloudArrowUp, Export, User, Globe, SignOut, ChatCircleDots, FileText, Layout, Palette } from '@phosphor-icons/react';
 import { exportAsJson, importFromJson, exportAsWord, exportAsPdf } from '../utils/exportUtils';
 import { useAuth } from '../contexts/AuthContext';
-import { saveDocument, getDocument } from '../services/documentService';
+import { saveDocument, getDocument, getDocuments } from '../services/documentService';
 import { toast } from 'sonner';
 import { getInitialState } from '../hooks/useEditorHistory';
+import { supabase } from '../lib/supabase';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuGroup,
+} from './ui/dropdown-menu';
 
 // Wrapper component for blocks to handle refs
 const BlockWrapper = memo(({ block, pageBreak, onUpdate, onDelete, onAddAfter, setBlockRef, onMove, allBlocks, usedCategories = [], isRightColumn = false, iconOnRight = false }) => {
@@ -219,14 +229,15 @@ const BlockWrapper = memo(({ block, pageBreak, onUpdate, onDelete, onAddAfter, s
 });
 
 const Editor = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isCloudSaving, setIsCloudSaving] = useState(false);
-  // Remove showExportMenu state as it's no longer needed
-  // Remove exportButtonRef and exportMenuRef
-  // Remove useDropdownPosition and useClickOutside hooks for export menu
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [profileData, setProfileData] = useState({ firstName: '', lastName: '' });
+  const [documentsCount, setDocumentsCount] = useState(0);
   
   const [searchParams, setSearchParams] = useSearchParams();
   const documentId = searchParams.get('id');
@@ -235,6 +246,99 @@ const Editor = () => {
   // Use Unified History Hook
   const { state, undo, redo, canUndo, canRedo, setEditorState, reset, isSaving } = useEditorHistory();
   const { rows, headerTitle, headerStand, headerLogo, footerVariant } = state;
+
+  // Load user profile data for Account Button
+  useEffect(() => {
+    if (user) {
+      getProfile();
+      loadDocumentsCount();
+    } else {
+      setAvatarUrl(null);
+      setProfileData({ firstName: '', lastName: '' });
+      setDocumentsCount(0);
+    }
+  }, [user]);
+
+  async function getProfile() {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('avatar_url, first_name, last_name')
+        .eq('id', user.id)
+        .single();
+
+      if (data) {
+        setAvatarUrl(data.avatar_url);
+        setProfileData({
+          firstName: data.first_name || '',
+          lastName: data.last_name || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error loading avatar for button:', error);
+    }
+  }
+
+  async function loadDocumentsCount() {
+    try {
+      const { data, error } = await getDocuments(user.id);
+      if (data) {
+        const count = data.length;
+        setDocumentsCount(count);
+        localStorage.setItem('documentsCount', count.toString());
+      }
+    } catch (error) {
+      console.error('Error loading documents count:', error);
+    }
+  }
+
+  const handleAccountClick = () => {
+    if (!user) {
+      navigate('/login');
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      // Lokale Daten löschen
+      localStorage.removeItem('documentsCount');
+      
+      const { error } = await signOut();
+      
+      // Wenn die Session fehlt, ist der Benutzer bereits ausgeloggt
+      // In diesem Fall einfach zur Startseite navigieren
+      if (error && error.message === 'Auth session missing!') {
+        console.log('Session already expired, redirecting to home...');
+        // Erzwinge kompletten Reload um sicherzustellen, dass der State zurückgesetzt wird
+        window.location.href = '/';
+        return;
+      }
+      
+      if (error) {
+        console.error('Logout error:', error);
+        toast.error('Fehler beim Ausloggen', {
+          description: error.message || 'Bitte versuchen Sie es erneut.',
+        });
+        return;
+      }
+      
+      // Erfolgreicher Logout
+      toast.success('Erfolgreich abgemeldet');
+      // Erzwinge kompletten Reload um sicherzustellen, dass der State zurückgesetzt wird
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout exception:', error);
+      // Auch bei Exceptions zur Startseite navigieren
+      window.location.href = '/';
+    }
+  };
+
+  const getDisplayName = () => {
+    if (profileData.firstName || profileData.lastName) {
+      return `${profileData.firstName} ${profileData.lastName}`.trim();
+    }
+    return 'Benutzer';
+  };
 
   // Reset state if new document requested
   useEffect(() => {
@@ -711,8 +815,10 @@ const Editor = () => {
         accept=".json"
       />
 
-      {/* Toolbar */}
-      <div className="no-print flex items-center gap-2 mt-6 mb-4 p-2 bg-white rounded-lg shadow-sm border border-gray-200 w-full max-w-[210mm]">
+      {/* Toolbar - Aufgeteilt in zwei Teile */}
+      <div className="no-print flex items-center gap-3 mt-6 mb-4 w-full max-w-[210mm]">
+        {/* Linke Toolbar - Hauptfunktionen */}
+        <div className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm border border-gray-200 flex-1">
         {/* History & Reset Controls */}
         <div className="flex items-center gap-0">
           <Button 
@@ -761,6 +867,8 @@ const Editor = () => {
             Import
           </Button>
 
+            <div className="h-4 w-px bg-gray-200 mx-1" />
+
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
@@ -794,11 +902,31 @@ const Editor = () => {
               <FileCode size={16} className="mr-1.5" />
               JSON
             </Button>
+            </div>
           </div>
           
-          {user && (
-            <>
-              <div className="h-4 w-px bg-gray-200 mx-2" />
+          {/* Status Indicator */}
+          <div className="ml-auto flex items-center gap-2">
+            <div className="h-4 w-px bg-gray-200" />
+            <div className="flex items-center gap-1.5 px-2 min-w-[120px]">
+              {(isExporting || isSaving || isCloudSaving) ? (
+                <>
+                  <Spinner size="sm" className="text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Aktualisiere</span>
+                </>
+              ) : (
+                <>
+                  <Check size={16} weight="bold" className="text-[#3399FF]" />
+                  <span className="text-xs text-[#3399FF] font-medium">Synchronisiert</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Rechte Toolbar - Cloud & Account */}
+        {user ? (
+          <div className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm border border-gray-200">
               <Button
                 variant="ghost"
                 size="sm"
@@ -810,21 +938,89 @@ const Editor = () => {
                 {isCloudSaving ? <Spinner size="sm" className="mr-1.5" /> : <CloudArrowUp size={16} className="mr-1.5" />}
                 In Cloud speichern
               </Button>
-            </>
-          )}
-        </div>
 
-        {/* Status Indicator - rechts ausgerichtet */}
-        <div className="ml-auto flex items-center gap-2">
           <div className="h-4 w-px bg-gray-200" />
-          <div className="flex items-center justify-center px-2">
-            {(isExporting || isSaving || isCloudSaving) ? (
-              <Spinner size="sm" className="text-muted-foreground" />
+            
+            {/* Account Button - Eingeloggt */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full p-0 transition-all bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center overflow-hidden"
+                  title="Mein Konto"
+                >
+                  {avatarUrl ? (
+                    <img 
+                      src={avatarUrl} 
+                      alt="Profil" 
+                      className="w-full h-full object-cover"
+                    />
             ) : (
-              <Check size={16} weight="bold" className="text-[#3399FF]" />
-            )}
+                    <User size={16} weight="bold" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{getDisplayName()}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
           </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={() => navigate('/account?tab=sops')} className="cursor-pointer">
+                    <FileText className="mr-2 h-4 w-4" />
+                    <span>Meine Leitfäden</span>
+                    {documentsCount > 0 && (
+                      <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                        {documentsCount}
+                      </span>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/account?tab=templates')} className="cursor-pointer">
+                    <Layout className="mr-2 h-4 w-4" />
+                    <span>SOP Templates</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/account?tab=design-manual')} className="cursor-pointer">
+                    <Palette className="mr-2 h-4 w-4" />
+                    <span>Design Manual</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/account?tab=profile')} className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profil & Einstellungen</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={() => window.open('mailto:feedback@example.com', '_blank')} className="cursor-pointer">
+                    <ChatCircleDots className="mr-2 h-4 w-4" />
+                    <span>Feedback geben</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => window.open('https://example.com', '_blank')} className="cursor-pointer">
+                    <Globe className="mr-2 h-4 w-4" />
+                    <span>Webseite</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive cursor-pointer">
+                  <SignOut className="mr-2 h-4 w-4" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
         </div>
+        ) : (
+          /* Anmelden CTA - Gesamter rechter Teil als Button */
+          <button
+            onClick={() => navigate('/login')}
+            className="flex items-center justify-center gap-2 px-4 h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg shadow-sm border border-primary transition-colors cursor-pointer"
+          >
+            <User size={16} weight="bold" />
+            <span className="text-xs font-medium">Anmelden</span>
+          </button>
+        )}
       </div>
 
       <div className="editor print:block" ref={containerRef}>

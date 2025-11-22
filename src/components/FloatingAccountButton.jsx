@@ -73,8 +73,30 @@ const FloatingAccountButton = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/login');
+    try {
+      // Lokale Daten löschen
+      localStorage.removeItem('documentsCount');
+      
+      const { error } = await signOut();
+      
+      // Wenn die Session fehlt, ist der Benutzer bereits ausgeloggt
+      if (error && error.message === 'Auth session missing!') {
+        window.location.href = '/';
+        return;
+      }
+      
+      if (error) {
+        console.error('Logout error:', error);
+        return;
+      }
+      
+      // Erfolgreicher Logout
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout exception:', error);
+      // Auch bei Exceptions zur Startseite navigieren
+      window.location.href = '/';
+    }
   };
 
   const getDisplayName = () => {

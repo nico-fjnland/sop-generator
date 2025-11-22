@@ -1,8 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Editor from './components/Editor';
-import FloatingAccountButton from './components/FloatingAccountButton';
-import Logo from './components/Logo';
 import ZoomControl from './components/ZoomControl';
 import ZoomWrapper from './components/ZoomWrapper';
 import Login from './pages/auth/Login';
@@ -38,8 +36,6 @@ function App() {
       <Router>
         <div className="min-h-screen light-gradient-bg flex flex-col transition-colors duration-200">
             <Toaster position="bottom-left" />
-          <Logo variant={editorGradient} />
-          <FloatingAccountButton />
             <ZoomControl />
           
                 <Routes>

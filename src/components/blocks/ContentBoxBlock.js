@@ -132,6 +132,8 @@ const ContentBoxBlock = ({
     initialContent.blocks || [{ id: Date.now().toString(), type: 'text', content: '' }]
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isIconPressed, setIsIconPressed] = useState(false);
+  const containerRef = useRef(null);
   
   // Use ref to track if we're updating from parent to prevent infinite loop
   const isUpdatingFromParent = useRef(false);
@@ -248,11 +250,12 @@ const ContentBoxBlock = ({
 
   return (
     <div 
-      className={`content-box-block mb-6 relative group z-auto ${isDragging ? 'dragging-box' : ''}`} 
+      ref={containerRef}
+      className={`content-box-block mb-6 relative group z-auto ${isDragging ? 'dragging-box' : ''} ${isIconPressed ? 'scale-[0.995] opacity-90' : ''}`} 
       style={{ 
         pageBreakInside: 'avoid', 
         breakInside: 'avoid',
-        transition: isDragging ? 'none' : 'opacity 0.2s ease',
+        transition: isDragging ? 'none' : 'opacity 0.2s ease, transform 0.1s ease',
         cursor: isDragging ? 'grabbing' : 'default'
       }}
       data-draggable="true"
@@ -370,19 +373,29 @@ const ContentBoxBlock = ({
           style={{ overflow: 'visible', cursor: 'grab' }}
           draggable={true}
           onDragStart={(e) => {
-            // Prevent default drag image
             e.stopPropagation();
+            
+            // Set custom drag image to the whole box
+            if (containerRef.current) {
+              const rect = containerRef.current.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const y = e.clientY - rect.top;
+              e.dataTransfer.setDragImage(containerRef.current, x, y);
+            }
+            
             if (onDragStart) {
               onDragStart(e);
             }
           }}
           onDragEnd={(e) => {
             e.stopPropagation();
+            setIsIconPressed(false);
             if (onDragEnd) {
               onDragEnd(e);
             }
           }}
           onMouseDown={(e) => {
+            setIsIconPressed(true);
             e.currentTarget.style.cursor = 'grabbing';
             // Also change cursor on parent box
             const box = e.currentTarget.closest('.content-box-block');
@@ -391,12 +404,14 @@ const ContentBoxBlock = ({
             }
           }}
           onMouseUp={(e) => {
+            setIsIconPressed(false);
             e.currentTarget.style.cursor = 'grab';
             const box = e.currentTarget.closest('.content-box-block');
             if (box) {
               box.style.cursor = '';
             }
           }}
+          onMouseLeave={() => setIsIconPressed(false)}
         >
           <div 
             className={`h-[42px] w-[28px] rounded-[1000px] flex items-center justify-center transition-opacity ${isDragging ? 'opacity-50' : ''}`}
@@ -513,11 +528,11 @@ const ContentBoxBlock = ({
 
             {/* Content area */}
             <div 
-              className="content-box-content flex flex-col gap-[8px] pb-[20px] pt-[24px] px-[26px]"
+              className="content-box-content flex flex-col gap-[8px] pb-[12px] pt-[24px] px-[26px]"
               style={{
                 fontFamily: "'Roboto', sans-serif",
                 fontSize: '12px',
-                lineHeight: '18px',
+                lineHeight: 1.5,
                 fontWeight: 400
               }}
             >

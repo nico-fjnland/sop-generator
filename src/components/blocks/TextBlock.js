@@ -41,7 +41,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
   }, [isInsideContentBox]);
 
   const handleInput = (e) => {
-    const minHeight = 18; // line-height
+    const minHeight = 18; // line-height: 12px × 1.5 = 18px
     e.target.style.height = 'auto';
     const newHeight = Math.max(e.target.scrollHeight, minHeight);
     e.target.style.height = newHeight + 'px';
@@ -106,28 +106,46 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
 
   const convertMarkdownListsToBullets = (html = '') => {
     if (!html) return html;
+    // Convert markdown list markers (-, *) to bullets
+    // Preserve line breaks before bullets
     return html.replace(LIST_MARKER_PATTERN, '$1' + BULLET_HTML);
   };
 
   const normalizeHtml = (html = '') => {
-    return html
+    if (!html) return '';
+    
+    let normalized = html
+      // Convert div-based line breaks to <br>
       .replace(/<div><br><\/div>/gi, '<br>')
       .replace(/<div>/gi, '<br>')
       .replace(/<\/div>/gi, '')
-      .replace(/&nbsp;/gi, ' ')
-      .replace(/<br><br><br>/gi, '<br><br>')
+      // Normalize whitespace but preserve intentional line breaks
+      .replace(/&nbsp;/gi, '\u00a0') // Keep non-breaking spaces as Unicode
+      // Remove excessive line breaks (3+ becomes 2)
+      .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>')
       .trim();
+    
+    // CRITICAL: Preserve line breaks before bullets
+    // Ensure at least one <br> before bullet if not at start
+    normalized = normalized.replace(/([^\n>])(\u2022)/g, '$1<br>$2');
+    
+    return normalized;
   };
 
   const convertContentToHtml = useCallback((value = '') => {
     if (!value) {
       return '';
     }
+    
+    // Check if content is already HTML
     const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(value);
     let result;
+    
     if (looksLikeHtml) {
+      // Already HTML - sanitize and normalize
       result = sanitizeHtml(value);
     } else {
+      // Plain text - convert to HTML
       if (typeof window === 'undefined') {
         result = value.replace(/\n/g, '<br>');
       } else {
@@ -139,8 +157,12 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
         result = tempDivRef.current.innerHTML.replace(/\n/g, '<br>');
       }
     }
-    return convertMarkdownListsToBullets(result);
-  }, []);
+    
+    // Convert markdown list markers to bullets
+    result = convertMarkdownListsToBullets(result);
+    
+    return result;
+  }, [sanitizeHtml, convertMarkdownListsToBullets]);
 
   // OPTIMIZED: Debounced content sync - reduces onChange calls
   const syncContentFromDom = useMemo(
@@ -152,19 +174,27 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
         return;
       }
       
-      const sanitized = sanitizeHtml(editableRef.current.innerHTML);
+      const rawHtml = editableRef.current.innerHTML;
+      const sanitized = sanitizeHtml(rawHtml);
       const normalized = normalizeHtml(sanitized);
       
-      // Use startTransition for lower priority update
-      startTransition(() => {
-        onChange(normalized);
-      });
+      // Only trigger onChange if content actually changed
+      const currentContent = content || '';
+      const currentNormalized = normalizeHtml(sanitizeHtml(currentContent));
       
+      if (normalized !== currentNormalized) {
+        // Use startTransition for lower priority update
+        startTransition(() => {
+          onChange(normalized);
+        });
+      }
+      
+      // Clear empty content
       if (!normalized && editableRef.current.innerHTML) {
         editableRef.current.innerHTML = '';
       }
-    }, 100), // 100ms debounce
-    [onChange, sanitizeHtml]
+    }, 150), // 150ms debounce for stability
+    [onChange, sanitizeHtml, content]
   );
 
   const updateToolbarFromSelection = () => {
@@ -256,7 +286,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       return;
     }
     
-    // Also don't update during manual edits
+    // Also don't update during manual edits (bullet conversion, etc.)
     if (isManualEdit.current || skipNextCursorRestore.current) {
       return;
     }
@@ -273,7 +303,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     if (normalizedCurrent !== normalizedNew) {
       editableRef.current.innerHTML = html;
     }
-  }, [content, isInsideContentBox]);
+  }, [content, isInsideContentBox, convertContentToHtml, sanitizeHtml]);
 
   useEffect(() => {
     if (!isInsideContentBox) return;
@@ -300,6 +330,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
   }, [syncContentFromDom]);
 
   const handleEditableKeyDown = (event) => {
+    // Handle Enter key - respect list context
     if (event.key === 'Enter') {
       event.preventDefault();
       const handled = handleEnterKeyForLists();
@@ -308,9 +339,13 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
         if (!inserted) {
           document.execCommand('insertHTML', false, '<br>');
         }
+        // Sync after line break
+        syncContentFromDom();
       }
       return;
     }
+    
+    // Handle Space key - auto-convert markdown syntax
     if (event.key === ' ' && !event.shiftKey) {
       // Don't prevent default - let space be typed first
       // Then try to convert markdown formatting or bullets
@@ -320,10 +355,40 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
           convertLineMarkerToBullet();
         }
       }, 0);
+      return;
     }
+    
+    // Handle Backspace - special handling for bullets
+    if (event.key === 'Backspace') {
+      const selection = window.getSelection();
+      if (selection && selection.isCollapsed && editableRef.current) {
+        const range = selection.getRangeAt(0);
+        const offset = range.startOffset;
+        
+        // Check if we're at the start of a bullet line
+        if (offset === 0) {
+          const currentLine = getCurrentLineText();
+          if (currentLine.trim().startsWith('\u2022')) {
+            // Remove bullet and convert to normal line
+            event.preventDefault();
+            // Delete bullet and its space
+            for (let i = 0; i < BULLET_LENGTH; i++) {
+              document.execCommand('delete', false);
+            }
+            syncContentFromDom();
+            return;
+          }
+        }
+      }
+    }
+    
+    // Handle Escape - hide toolbar
     if (event.key === 'Escape') {
       setShowToolbar(false);
+      return;
     }
+    
+    // Pass other keys to parent handler
     if (onKeyDown) {
       onKeyDown(event);
     }
@@ -331,8 +396,36 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
 
   const handlePaste = (event) => {
     event.preventDefault();
+    
+    // Get pasted content
     const text = event.clipboardData.getData('text/plain');
-    document.execCommand('insertText', false, text);
+    const html = event.clipboardData.getData('text/html');
+    
+    if (html && isInsideContentBox) {
+      // If HTML is available and we're in a content box, try to preserve some formatting
+      // But sanitize it first
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      
+      // Convert markdown-style bullets to actual bullets
+      let processedHtml = tempDiv.innerHTML;
+      processedHtml = processedHtml.replace(/^(\s*)([-*])\s+/gm, '$1\u2022\u00a0');
+      
+      // Sanitize and insert
+      const sanitized = sanitizeHtml(processedHtml);
+      document.execCommand('insertHTML', false, sanitized);
+    } else {
+      // Plain text - convert line breaks and markdown bullets
+      let processedText = text;
+      
+      // Convert markdown-style bullets to Unicode bullets
+      processedText = processedText.replace(/^(\s*)([-*])\s+/gm, '$1\u2022\u00a0');
+      
+      // Insert text (execCommand handles line breaks automatically)
+      document.execCommand('insertText', false, processedText);
+    }
+    
+    // Sync changes
     syncContentFromDom();
   };
 
@@ -487,17 +580,27 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     setIsFocused(false);
     isEditing.current = false; // End editing mode
     
+    // Hide toolbar after short delay
     setTimeout(() => {
       setShowToolbar(false);
     }, 50);
     
     // Final sync on blur to ensure parent has latest content
+    // This ensures all changes are properly saved
     if (editableRef.current) {
-      const sanitized = sanitizeHtml(editableRef.current.innerHTML);
+      const rawHtml = editableRef.current.innerHTML;
+      const sanitized = sanitizeHtml(rawHtml);
       const normalized = normalizeHtml(sanitized);
-      onChange(normalized);
+      
+      // Only call onChange if content actually differs
+      const currentContent = content || '';
+      const currentNormalized = normalizeHtml(sanitizeHtml(currentContent));
+      
+      if (normalized !== currentNormalized) {
+        onChange(normalized);
+      }
     }
-  }, [sanitizeHtml, onChange]);
+  }, [sanitizeHtml, onChange, content]);
 
   const handleFocus = useCallback(() => {
     setIsFocused(true);
@@ -711,6 +814,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     let textBeforeCursor = textNode.textContent.substring(0, offset);
     
     // Walk backwards to get text from previous sibling text nodes
+    // Stop at line break to only consider current line
     let prevNode = textNode.previousSibling;
     while (prevNode) {
       if (prevNode.nodeType === Node.TEXT_NODE) {
@@ -724,11 +828,14 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       prevNode = prevNode.previousSibling;
     }
     
+    // Normalize spaces for pattern matching
+    textBeforeCursor = textBeforeCursor.replace(/\u00a0/g, ' ');
+    
     // Patterns for inline formatting
-    // **text** → Bold (at least one character between **)
+    // **text** → Bold (at least one non-space character between **)
     const boldPattern = /\*\*(.+?)\*\*\s$/;
-    // *text* → Italic (but not ** which is bold)
-    const italicPattern = /(?<!\*)\*(.+?)\*\s$/;
+    // *text* → Italic (but not ** which is bold, at least one non-space character)
+    const italicPattern = /(?<!\*)\*([^*\s][^*]*?)\*\s$/;
     
     let match = null;
     let formatType = null;
@@ -743,7 +850,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       return false;
     }
     
-    // Set flags
+    // Set flags to prevent interference
     isManualEdit.current = true;
     skipNextCursorRestore.current = true;
     
@@ -757,16 +864,19 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
         document.execCommand('delete', false);
       }
       
-      // Insert formatted text with a space after
+      // Insert formatted text with a non-breaking space after
       document.execCommand('insertHTML', false, 
-        `<${formatType === 'bold' ? 'strong' : 'em'}>${innerText}</${formatType === 'bold' ? 'strong' : 'em'}>&nbsp;`
+        `<${formatType === 'bold' ? 'strong' : 'em'}>${innerText}</${formatType === 'bold' ? 'strong' : 'em'}>\u00a0`
       );
+      
+      // Sync changes
+      syncContentFromDom();
       
       // Reset flags
       setTimeout(() => {
         isManualEdit.current = false;
         skipNextCursorRestore.current = false;
-      }, 100);
+      }, 150);
       
       return true;
     } catch (error) {
@@ -775,14 +885,13 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       skipNextCursorRestore.current = false;
       return false;
     }
-  }, []);
+  }, [syncContentFromDom]);
 
   const convertLineMarkerToBullet = useCallback(() => {
     if (!editableRef.current) return false;
     
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0 || !selection.isCollapsed) {
-      console.log('Bullet: No valid selection');
       return false;
     }
 
@@ -795,14 +904,12 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     if (textNode.nodeType === Node.ELEMENT_NODE) {
       textNode = textNode.childNodes[Math.max(0, offset - 1)] || textNode;
       if (!textNode || textNode.nodeType !== Node.TEXT_NODE) {
-        console.log('Bullet: Not in text node');
         return false;
       }
       offset = textNode.textContent.length;
     }
     
     if (textNode.nodeType !== Node.TEXT_NODE) {
-      console.log('Bullet: Not a text node');
       return false;
     }
     
@@ -810,12 +917,13 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     let textBeforeCursor = textNode.textContent.substring(0, offset);
     
     // Walk backwards to get text from previous sibling text nodes
+    // Stop at line break to only get current line
     let prevNode = textNode.previousSibling;
     while (prevNode) {
       if (prevNode.nodeType === Node.TEXT_NODE) {
         textBeforeCursor = prevNode.textContent + textBeforeCursor;
       } else if (prevNode.nodeName === 'BR') {
-        break; // Stop at line break
+        break; // Stop at line break - we only want current line
       } else if (prevNode.nodeType === Node.ELEMENT_NODE) {
         const textContent = prevNode.textContent || '';
         textBeforeCursor = textContent + textBeforeCursor;
@@ -823,28 +931,23 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       prevNode = prevNode.previousSibling;
     }
     
-    // Normalize spaces
+    // Normalize spaces for pattern matching
     textBeforeCursor = textBeforeCursor.replace(/\u00a0/g, ' ');
-    
-    console.log('Bullet: Text before cursor:', JSON.stringify(textBeforeCursor));
     
     // Extract only the current line (after last line break)
     const lines = textBeforeCursor.split(/\n/);
     const currentLine = lines[lines.length - 1];
     
-    console.log('Bullet: Current line:', JSON.stringify(currentLine));
-    
     // Check if current line starts with "- " or "* " (at start or after only whitespace)
+    // Pattern: optional whitespace, marker (- or *), space
     const bulletPattern = /^(\s*)([-*])\s$/;
     const match = currentLine.match(bulletPattern);
-    
-    console.log('Bullet: Match result:', match);
     
     if (!match) {
       return false;
     }
     
-    // Set flags to prevent any external interference
+    // Set flags to prevent any external interference during conversion
     isManualEdit.current = true;
     skipNextCursorRestore.current = true;
     
@@ -852,21 +955,22 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       const fullMatch = match[0]; // Full match including whitespace and space after
       const charsToDelete = fullMatch.length;
       
-      console.log('Bullet: Converting! Deleting', charsToDelete, 'chars');
-      
-      // Delete backwards to remove "- " or "* "
+      // Delete backwards to remove "- " or "* " (and any leading whitespace)
       for (let i = 0; i < charsToDelete; i++) {
         document.execCommand('delete', false);
       }
       
-      // Insert bullet and space - cursor will automatically be after it
+      // Insert bullet and non-breaking space - cursor will automatically be after it
       document.execCommand('insertText', false, '\u2022\u00a0');
+      
+      // Sync changes immediately
+      syncContentFromDom();
       
       // Reset flags after a brief moment
       setTimeout(() => {
         isManualEdit.current = false;
         skipNextCursorRestore.current = false;
-      }, 100);
+      }, 150);
       
       return true;
     } catch (error) {
@@ -875,7 +979,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       skipNextCursorRestore.current = false;
       return false;
     }
-  }, []);
+  }, [syncContentFromDom]);
 
   const handleEnterKeyForLists = useCallback(() => {
     if (!editableRef.current) return false;
@@ -892,7 +996,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       return false;
     }
 
-    // Set flags
+    // Set flags to prevent interference
     isManualEdit.current = true;
     skipNextCursorRestore.current = true;
 
@@ -902,21 +1006,47 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
 
     try {
       if (!hasTextAfterBullet) {
-        // Empty bullet line - exit list
-        // Delete the bullet
+        // Empty bullet line - exit list mode
+        // Delete the bullet and its space
         for (let i = 0; i < BULLET_LENGTH; i++) {
           document.execCommand('delete', false);
         }
         
         // Insert line break for normal paragraph
-        document.execCommand('insertLineBreak');
+        const inserted = document.execCommand('insertLineBreak');
+        if (!inserted) {
+          document.execCommand('insertHTML', false, '<br>');
+        }
+        
+        // Sync changes
+        syncContentFromDom();
+        
+        // Reset flags
+        setTimeout(() => {
+          isManualEdit.current = false;
+          skipNextCursorRestore.current = false;
+        }, 150);
         
         return true;
       }
       
-      // Has text - create new bullet point
-      document.execCommand('insertLineBreak');
+      // Has text after bullet - create new bullet point on next line
+      const inserted = document.execCommand('insertLineBreak');
+      if (!inserted) {
+        document.execCommand('insertHTML', false, '<br>');
+      }
+      
+      // Insert new bullet and space
       document.execCommand('insertText', false, '\u2022\u00a0');
+      
+      // Sync changes
+      syncContentFromDom();
+      
+      // Reset flags
+      setTimeout(() => {
+        isManualEdit.current = false;
+        skipNextCursorRestore.current = false;
+      }, 150);
       
       return true;
     } catch (error) {
@@ -925,7 +1055,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       skipNextCursorRestore.current = false;
       return false;
     }
-  }, []);
+  }, [syncContentFromDom]);
 
   // Inside content boxes: use inline rich-text editor
   if (isInsideContentBox) {
@@ -942,7 +1072,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
             overflow: 'visible',
             fontFamily: "'Roboto', sans-serif",
             fontSize: '12px',
-            lineHeight: '20px',
+            lineHeight: 1.5,
             fontWeight: 400,
             color: '#003366',
             margin: 0,
