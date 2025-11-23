@@ -37,8 +37,26 @@ export const AuthProvider = ({ children }) => {
     return supabase.auth.signInWithPassword({ email, password });
   };
 
-  const signOut = () => {
-    return supabase.auth.signOut();
+  const signOut = async () => {
+    try {
+      // Zuerst den User-State lokal zurücksetzen
+      setUser(null);
+      
+      // Dann Supabase Logout durchführen
+      const { error } = await supabase.auth.signOut();
+      
+      // LocalStorage aufräumen
+      localStorage.removeItem('documentsCount');
+      
+      if (error) {
+        console.error('SignOut error:', error);
+      }
+      
+      return { error };
+    } catch (error) {
+      console.error('SignOut exception:', error);
+      return { error };
+    }
   };
 
   const value = {

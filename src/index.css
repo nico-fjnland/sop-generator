@@ -52,3 +52,21 @@
   }
 }
 
+/* Account Page Floating Sidebar Enhancements */
+@layer utilities {
+  .floating-sidebar-shadow {
+    box-shadow: 
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06),
+      0 0 0 1px rgba(0, 0, 0, 0.05);
+  }
+  
+  .card-hover-effect {
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .card-hover-effect:hover {
+    transform: translateY(-2px);
+  }
+}
+

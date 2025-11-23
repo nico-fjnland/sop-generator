@@ -1,14 +1,71 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialStand = 'STAND 12/22', logo: initialLogo = null, onTitleChange, onStandChange, onLogoChange }) => {
+  const { user } = useAuth();
   const [title, setTitle] = useState(initialTitle);
   const [stand, setStand] = useState(initialStand);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingStand, setIsEditingStand] = useState(false);
   const [logo, setLogo] = useState(initialLogo);
+  const [companyLogo, setCompanyLogo] = useState(null);
   const titleInputRef = useRef(null);
   const standInputRef = useRef(null);
   const logoInputRef = useRef(null);
+
+  // Load company logo from profile
+  useEffect(() => {
+    async function loadCompanyLogo() {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('company_logo')
+          .eq('id', user.id)
+          .single();
+        
+        if (error) {
+          console.error('Error loading company logo:', error);
+          return;
+        }
+        
+        if (data && data.company_logo) {
+          setCompanyLogo(data.company_logo);
+        } else {
+          setCompanyLogo(null);
+        }
+      } catch (error) {
+        console.error('Error loading company logo:', error);
+      }
+    }
+    
+    loadCompanyLogo();
+    
+    // Set up real-time subscription for profile changes
+    const channel = supabase
+      .channel('profile-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user?.id}`
+        },
+        (payload) => {
+          if (payload.new && payload.new.company_logo !== undefined) {
+            setCompanyLogo(payload.new.company_logo);
+          }
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   useEffect(() => {
     setTitle(initialTitle);
@@ -132,7 +189,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                 letterSpacing: '2px',
                 textTransform: 'uppercase',
                 lineHeight: '1',
-                border: '1px solid #3399FF',
+                border: '1.5px solid #3399FF',
                 borderRadius: '4px',
                 padding: '2px 4px',
                 background: 'white',
@@ -152,7 +209,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                 letterSpacing: '2px',
                 textTransform: 'uppercase',
                 lineHeight: '1',
-                border: '1px solid transparent'
+                border: '1.5px solid transparent'
               }}
             >
               {stand}
@@ -194,7 +251,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               textTransform: 'uppercase',
               lineHeight: '1.2',
               width: '100%',
-              border: '1px solid #3399FF',
+              border: '1.5px solid #3399FF',
               borderRadius: '6px',
               padding: '4px 8px',
               background: 'white',
@@ -214,7 +271,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               textTransform: 'uppercase',
               lineHeight: '1.2',
               width: '100%',
-              border: '1px solid transparent'
+              border: '1.5px solid transparent'
             }}
           >
             {title}
@@ -256,19 +313,32 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
           
           {/* Logo Display */}
           <div 
-            onClick={() => logoInputRef.current?.click()}
-            className="no-print cursor-pointer sop-header-logo-editable"
+            onClick={() => !companyLogo && logoInputRef.current?.click()}
+            className="no-print sop-header-logo-editable"
             style={{ 
               width: '100%', 
               height: '100%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'flex-end',
-              border: '1px solid transparent'
+              border: '1.5px solid transparent',
+              cursor: companyLogo ? 'default' : 'pointer'
             }}
-            title="Klicken Sie, um das Logo zu ändern"
+            title={companyLogo ? 'Firmenlogo (im Profil festgelegt)' : 'Klicken Sie, um das Logo zu ändern'}
           >
-            {logo ? (
+            {companyLogo ? (
+              <img 
+                src={companyLogo} 
+                alt="Firmenlogo" 
+                style={{ 
+                  maxWidth: '100%', 
+                  height: '49.2px', 
+                  width: 'auto',
+                  objectFit: 'contain',
+                  objectPosition: 'right center'
+                }} 
+              />
+            ) : logo ? (
               <img 
                 src={logo} 
                 alt="Logo" 
@@ -304,7 +374,18 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
           
           {/* Static logo for print */}
           <div className="hidden print:block" style={{ width: '100%', height: '100%' }}>
-            {logo ? (
+            {companyLogo ? (
+              <img 
+                src={companyLogo} 
+                alt="Firmenlogo" 
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'contain',
+                  objectPosition: 'right center'
+                }} 
+              />
+            ) : logo ? (
               <img 
                 src={logo} 
                 alt="Logo" 

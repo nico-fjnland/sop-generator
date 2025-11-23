@@ -7,7 +7,7 @@ import { usePageBreaks } from '../hooks/usePageBreaks';
 import { useEditorHistory } from '../hooks/useEditorHistory';
 import { Button } from './ui/button';
 import { Spinner } from './ui/spinner';
-import { ArrowCounterClockwise, ArrowClockwise, Trash, Download, Upload, FileDoc, FileCode, FilePdf, Moon, Sun, Check, CloudArrowUp, Export, User, Globe, SignOut, ChatCircleDots, FileText, Layout, Palette } from '@phosphor-icons/react';
+import { ArrowCounterClockwise, ArrowClockwise, Trash, Download, Upload, FileDoc, FileCode, FilePdf, Moon, Sun, Check, CloudArrowUp, Export, User, Globe, SignOut, ChatCircleDots, FileText, Layout } from '@phosphor-icons/react';
 import { exportAsJson, importFromJson, exportAsWord, exportAsPdf } from '../utils/exportUtils';
 import { useAuth } from '../contexts/AuthContext';
 import { saveDocument, getDocument, getDocuments } from '../services/documentService';
@@ -912,7 +912,7 @@ const Editor = () => {
               {(isExporting || isSaving || isCloudSaving) ? (
                 <>
                   <Spinner size="sm" className="text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Aktualisiere</span>
+                  <span className="text-xs text-muted-foreground">Aktualisiere ...</span>
                 </>
               ) : (
                 <>
@@ -982,10 +982,6 @@ const Editor = () => {
                   <DropdownMenuItem onClick={() => navigate('/account?tab=templates')} className="cursor-pointer">
                     <Layout className="mr-2 h-4 w-4" />
                     <span>SOP Templates</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/account?tab=design-manual')} className="cursor-pointer">
-                    <Palette className="mr-2 h-4 w-4" />
-                    <span>Design Manual</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/account?tab=profile')} className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />

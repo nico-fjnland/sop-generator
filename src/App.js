@@ -1,12 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Editor from './components/Editor';
 import ZoomControl from './components/ZoomControl';
 import ZoomWrapper from './components/ZoomWrapper';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Account from './pages/Account';
-import DesignManual from './pages/DesignManual';
 import PrivateRoute from './components/PrivateRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import { ZoomProvider } from './contexts/ZoomContext';
@@ -43,17 +42,14 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
             
-            {/* Fullscreen Pages - No Zoom wrapper */}
+            {/* Account Page - With Zoom wrapper */}
                   <Route path="/account" element={
                     <PrivateRoute>
-                <Account editorGradient={editorGradient} toggleEditorGradient={toggleEditorGradient} />
+                      <ZoomWrapper>
+                        <Account />
+                      </ZoomWrapper>
                     </PrivateRoute>
                   } />
-                      <Route path="/design-manual" element={
-                        <PrivateRoute>
-                        <Navigate to="/account?tab=design-manual" replace />
-                        </PrivateRoute>
-                      } />
             
             {/* Editor Route - With Zoom wrapper */}
             <Route path="/" element={

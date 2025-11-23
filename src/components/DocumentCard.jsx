@@ -33,7 +33,13 @@ const DocumentCard = ({
       
       <div className="flex-1 flex justify-center items-center">
         <span className="text-xs text-muted-foreground whitespace-nowrap leading-none">
-          Zuletzt bearbeitet am: {new Date(doc.updated_at).toLocaleDateString('de-DE')}
+          Bearbeitet am: {new Date(doc.updated_at).toLocaleString('de-DE', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })} Uhr
         </span>
       </div>
       

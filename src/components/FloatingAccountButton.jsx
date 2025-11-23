@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { User, Globe, SignOut, ChatCircleDots, FileText, Layout, Palette } from '@phosphor-icons/react';
+import { User, Globe, SignOut, ChatCircleDots, FileText, Layout } from '@phosphor-icons/react';
 import { Button } from './ui/button';
 import { getDocuments } from '../services/documentService';
 import {
@@ -41,8 +41,25 @@ const FloatingAccountButton = () => {
         .eq('id', user.id)
         .single();
 
+      if (error) {
+        // Wenn kein Profil existiert, erstelle ein leeres
+        if (error.code === 'PGRST116') {
+          console.log('Creating new profile for user:', user.id);
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert([{ id: user.id, updated_at: new Date() }]);
+          
+          if (insertError) {
+            console.error('Error creating profile:', insertError);
+          }
+        } else {
+          console.error('Error loading profile:', error);
+        }
+        return;
+      }
+
       if (data) {
-        setAvatarUrl(data.avatar_url);
+        setAvatarUrl(data.avatar_url || null);
         setProfileData({
           firstName: data.first_name || '',
           lastName: data.last_name || ''
@@ -74,28 +91,13 @@ const FloatingAccountButton = () => {
 
   const handleSignOut = async () => {
     try {
-      // Lokale Daten löschen
-      localStorage.removeItem('documentsCount');
-      
-      const { error } = await signOut();
-      
-      // Wenn die Session fehlt, ist der Benutzer bereits ausgeloggt
-      if (error && error.message === 'Auth session missing!') {
-        window.location.href = '/';
-        return;
-      }
-      
-      if (error) {
-        console.error('Logout error:', error);
-        return;
-      }
-      
-      // Erfolgreicher Logout
-      window.location.href = '/';
+      await signOut();
+      // Navigation zur Startseite
+      navigate('/');
     } catch (error) {
       console.error('Logout exception:', error);
       // Auch bei Exceptions zur Startseite navigieren
-      window.location.href = '/';
+      navigate('/');
     }
   };
 
@@ -160,10 +162,6 @@ const FloatingAccountButton = () => {
             <DropdownMenuItem onClick={() => navigate('/account?tab=templates')} className="cursor-pointer">
               <Layout className="mr-2 h-4 w-4" />
               <span>SOP Templates</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/account?tab=design-manual')} className="cursor-pointer">
-              <Palette className="mr-2 h-4 w-4" />
-              <span>Design Manual</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate('/account?tab=profile')} className="cursor-pointer">
               <User className="mr-2 h-4 w-4" />

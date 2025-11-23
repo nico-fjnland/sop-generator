@@ -5,8 +5,8 @@ import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Separator } from '../components/ui/separator';
 import { Checkbox } from '../components/ui/checkbox';
+import { Spinner } from '../components/ui/spinner';
 import EmptyState from '../components/EmptyState';
 import DocumentCard from '../components/DocumentCard';
 import BulkExportDialog from '../components/BulkExportDialog';
@@ -18,19 +18,499 @@ import {
   Layout,
   ArrowLeft,
   Export,
-  CheckSquare,
-  Square,
-  Palette as PaletteIcon,
-  TextAa,
-  PuzzlePiece,
-  Ruler,
-  CornersOut
+  CloudArrowUp,
+  Globe,
+  SignOut,
+  ChatCircleDots,
+  Trash,
+  Warning,
+  Buildings,
+  MapPin,
+  UsersThree,
+  Link as LinkIcon,
+  LockKey as LockKeyIcon
 } from '@phosphor-icons/react';
 import { getDocuments, deleteDocument, saveDocument } from '../services/documentService';
-import { importFromJson, exportMultipleDocuments } from '../utils/exportUtils';
+import { exportMultipleDocuments } from '../utils/exportUtils';
 import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuGroup,
+} from '../components/ui/dropdown-menu';
 
-export default function Account({ editorGradient, toggleEditorGradient }) {
+// SopsView Component
+const SopsView = React.memo(({ 
+  documents, loadingDocs, selectedDocs, toggleSelectAll, handleBulkExport,
+  triggerImport, navigate, handleOpenDocument, handleDeleteDocument, toggleDocSelection
+}) => (
+  <div className="page-container bg-white shadow-lg">
+    <div className="space-y-6 py-6">
+      {/* Header */}
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight">Meine Leitfäden</h1>
+        <p className="text-muted-foreground">
+          Verwalte deine gespeicherten SOP-Dokumente
+        </p>
+      </div>
+
+    {/* Action Bar */}
+    <div className="flex items-center justify-between flex-wrap gap-4 py-4 border-b">
+      <div className="flex items-center gap-3">
+        {documents.length > 0 && (
+          <>
+            <Checkbox
+              checked={selectedDocs.size === documents.length}
+              onCheckedChange={toggleSelectAll}
+            />
+            <span className="text-sm font-medium cursor-pointer" onClick={toggleSelectAll}>
+              {selectedDocs.size === documents.length ? 'Alle abwählen' : 'Alle auswählen'}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              ({documents.length} {documents.length === 1 ? 'Dokument' : 'Dokumente'})
+            </span>
+          </>
+        )}
+      </div>
+      
+      <div className="flex items-center gap-2">
+        {selectedDocs.size > 0 && (
+          <Button 
+            onClick={handleBulkExport} 
+            variant="outline" 
+            size="sm" 
+            className="gap-2"
+          >
+            <Export size={16} />
+            Exportieren ({selectedDocs.size})
+          </Button>
+        )}
+        <Button onClick={triggerImport} size="sm" variant="outline" className="gap-2">
+          <Upload size={16} />
+          Importieren
+        </Button>
+        <Button onClick={() => navigate('/?new=true')} size="sm" className="gap-2">
+          <Plus size={16} weight="bold" />
+          Neu
+        </Button>
+      </div>
+    </div>
+
+    {/* Documents List */}
+    {loadingDocs ? (
+      <div className="space-y-3">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="h-20 bg-muted/30 rounded-lg animate-pulse"></div>
+        ))}
+      </div>
+    ) : documents.length === 0 ? (
+      <div className="py-16">
+        <EmptyState 
+          icon={FileText}
+          title="Noch keine Dokumente vorhanden"
+          description="Erstelle dein erstes SOP-Dokument oder importiere ein bestehendes."
+          action={
+            <div className="flex gap-2 justify-center">
+              <Button onClick={() => navigate('/?new=true')} variant="default" size="sm">
+                Erstes Dokument erstellen
+              </Button>
+              <Button onClick={triggerImport} variant="outline" size="sm">
+                Dokument importieren
+              </Button>
+            </div>
+          }
+        />
+      </div>
+    ) : (
+      <div className="space-y-2">
+        {documents.map((doc) => (
+          <DocumentCard
+            key={doc.id} 
+            doc={doc}
+            onOpen={handleOpenDocument}
+            onDelete={handleDeleteDocument}
+            isSelected={selectedDocs.has(doc.id)}
+            onSelectToggle={toggleDocSelection}
+          />
+        ))}
+      </div>
+    )}
+    </div>
+  </div>
+));
+
+// TemplatesView Component
+const TemplatesView = React.memo(() => (
+  <div className="page-container bg-white shadow-lg">
+    <div className="space-y-6 py-6">
+      {/* Header */}
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight">SOP Templates</h1>
+        <p className="text-muted-foreground">
+          Vorgefertigte Vorlagen für häufige SOPs
+        </p>
+      </div>
+      
+      <div className="py-16">
+        <EmptyState 
+          icon={Layout}
+          title="Demnächst verfügbar"
+          description="Wir arbeiten an einer Sammlung professioneller SOP-Vorlagen für verschiedene medizinische Bereiche."
+        />
+      </div>
+    </div>
+  </div>
+));
+
+// ProfileView Component
+const ProfileView = React.memo(({ 
+  avatarUrl, uploading, uploadAvatar, firstName, setFirstName, lastName, setLastName,
+  jobPosition, setJobPosition, user, companyLogo, uploadingLogo, uploadCompanyLogo,
+  removeCompanyLogo, hospitalName, setHospitalName, hospitalEmployees, setHospitalEmployees,
+  hospitalWebsite, setHospitalWebsite, hospitalAddress, setHospitalAddress, updating,
+  updateProfile, newPassword, setNewPassword,
+  confirmPassword, setConfirmPassword, updatingPassword, updatePassword, isDeletingAccount,
+  handleDeleteAccount
+}) => (
+  <div className="page-container bg-white shadow-lg">
+    <div className="space-y-8 py-6">
+      {/* Header */}
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight">Profil & Einstellungen</h1>
+        <p className="text-muted-foreground">
+          Verwalte deine persönlichen Informationen und Kontoeinstellungen
+        </p>
+      </div>
+
+    {/* 1. Persönliche Informationen */}
+    <form onSubmit={updateProfile} className="space-y-8 pb-8 border-b">
+      <div className="space-y-6">
+        <div className="flex items-center gap-2">
+          <User size={20} className="text-primary" weight="duotone" />
+          <h2 className="text-xl font-semibold">Persönliche Informationen</h2>
+        </div>
+
+        {/* Avatar */}
+        <div className="flex items-start gap-6">
+          <div className="relative">
+            <div className="h-24 w-24 rounded-full overflow-hidden bg-muted border-2 border-border">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="Avatar"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                  <User size={40} />
+                </div>
+              )}
+            </div>
+            <label 
+              htmlFor="avatar-upload" 
+              className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-md"
+              title="Bild ändern"
+            >
+              <Upload size={14} weight="bold" />
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                onChange={uploadAvatar}
+                disabled={uploading}
+                className="hidden"
+              />
+            </label>
+          </div>
+          <div className="flex-1 pt-2">
+            <p className="text-sm font-medium mb-1">
+              {avatarUrl ? 'Profilbild hochgeladen' : 'Kein Profilbild'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              JPG, PNG oder GIF, max. 2MB
+            </p>
+          </div>
+        </div>
+
+        {/* Name Fields */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="firstName">Vorname</Label>
+            <Input
+              id="firstName"
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="Max"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lastName">Nachname</Label>
+            <Input
+              id="lastName"
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Mustermann"
+            />
+          </div>
+        </div>
+
+        {/* Job Position & Email */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="jobPosition">Position</Label>
+            <Input
+              id="jobPosition"
+              type="text"
+              value={jobPosition}
+              onChange={(e) => setJobPosition(e.target.value)}
+              placeholder="Arzt, Pfleger, etc."
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">E-Mail-Adresse</Label>
+            <Input
+              id="email"
+              type="email"
+              value={user?.email || ''}
+              disabled
+              className="bg-muted cursor-not-allowed"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <Button type="submit" disabled={updating}>
+            {updating ? 'Wird gespeichert...' : 'Änderungen speichern'}
+          </Button>
+        </div>
+      </div>
+    </form>
+
+    {/* 2. Organisation / Krankenhaus */}
+    <div className="space-y-6 pb-8 border-b">
+      <div className="flex items-center gap-2">
+        <Buildings size={20} className="text-primary" weight="duotone" />
+        <h2 className="text-xl font-semibold">Organisation</h2>
+      </div>
+
+      {/* Firmenlogo */}
+      <div className="space-y-4">
+        <Label>Firmenlogo</Label>
+        <div className="flex items-start gap-6">
+          <div className="relative">
+            <div className="w-32 h-32 rounded-lg overflow-hidden bg-muted border-2 border-border flex items-center justify-center">
+              {companyLogo ? (
+                <img
+                  src={companyLogo}
+                  alt="Firmenlogo"
+                  className="w-full h-full object-contain p-2"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center text-muted-foreground">
+                  <Buildings size={40} weight="duotone" />
+                  <span className="text-xs mt-2">Kein Logo</span>
+                </div>
+              )}
+            </div>
+            {companyLogo && (
+              <button
+                type="button"
+                onClick={removeCompanyLogo}
+                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground p-1.5 rounded-full hover:bg-destructive/90 transition-colors shadow-md"
+                title="Logo entfernen"
+              >
+                <Trash size={12} weight="bold" />
+              </button>
+            )}
+          </div>
+          <div className="flex-1 pt-2">
+            <p className="text-sm font-medium mb-2">
+              {companyLogo ? 'Logo hochgeladen' : 'Kein Logo hochgeladen'}
+            </p>
+            <p className="text-xs text-muted-foreground mb-4">
+              Dieses Logo wird automatisch in allen deinen SOPs am oberen rechten Rand des Headers angezeigt.
+            </p>
+            <label htmlFor="logo-upload">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-2 cursor-pointer"
+                onClick={() => document.getElementById('logo-upload').click()}
+                disabled={uploadingLogo}
+              >
+                <Upload size={16} />
+                {uploadingLogo ? 'Wird hochgeladen...' : 'Logo hochladen'}
+              </Button>
+              <input
+                id="logo-upload"
+                type="file"
+                accept="image/*"
+                onChange={uploadCompanyLogo}
+                disabled={uploadingLogo}
+                className="hidden"
+              />
+            </label>
+            <p className="text-xs text-muted-foreground mt-2">
+              Empfohlen: Quadratisches Format, PNG mit transparentem Hintergrund
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="hospitalName">Name des Krankenhauses</Label>
+          <Input
+            id="hospitalName"
+            type="text"
+            value={hospitalName}
+            onChange={(e) => setHospitalName(e.target.value)}
+            placeholder="Klinikum Berlin"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="hospitalEmployees">Anzahl Mitarbeitende</Label>
+          <div className="relative">
+            <UsersThree size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="hospitalEmployees"
+              type="text"
+              value={hospitalEmployees}
+              onChange={(e) => setHospitalEmployees(e.target.value)}
+              placeholder="500"
+              className="pl-10"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="hospitalWebsite">Webseite (optional)</Label>
+          <div className="relative">
+            <LinkIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="hospitalWebsite"
+              type="url"
+              value={hospitalWebsite}
+              onChange={(e) => setHospitalWebsite(e.target.value)}
+              placeholder="https://example.com"
+              className="pl-10"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="hospitalAddress">Adresse</Label>
+          <div className="relative">
+            <MapPin size={18} className="absolute left-3 top-3 text-muted-foreground" />
+            <textarea
+              id="hospitalAddress"
+              value={hospitalAddress}
+              onChange={(e) => setHospitalAddress(e.target.value)}
+              placeholder="Musterstraße 123&#10;12345 Berlin&#10;Deutschland"
+              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              rows={3}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={updateProfile} disabled={updating}>
+          {updating ? 'Wird gespeichert...' : 'Änderungen speichern'}
+        </Button>
+      </div>
+    </div>
+
+    {/* 3. Sicherheit */}
+    <div className="space-y-6 pb-8 border-b">
+      <div className="flex items-center gap-2">
+        <LockKeyIcon size={20} className="text-primary" weight="duotone" />
+        <h2 className="text-xl font-semibold">Sicherheit</h2>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <Label className="text-base">Passwort ändern</Label>
+          <p className="text-xs text-muted-foreground mt-1">
+            Aktualisiere dein Passwort regelmäßig für erhöhte Sicherheit
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="newPassword">Neues Passwort</Label>
+            <Input
+              id="newPassword"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Passwort bestätigen</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <Button 
+            onClick={updatePassword} 
+            disabled={updatingPassword || !newPassword || !confirmPassword}
+            variant="secondary"
+          >
+            {updatingPassword ? 'Wird aktualisiert...' : 'Passwort ändern'}
+          </Button>
+        </div>
+      </div>
+    </div>
+
+    {/* 4. Gefährlicher Bereich */}
+    <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <Warning size={20} className="text-destructive" weight="duotone" />
+        <h2 className="text-xl font-semibold text-destructive">Gefährlicher Bereich</h2>
+      </div>
+
+      <div className="p-4 border-2 border-destructive/20 rounded-lg bg-destructive/5">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-base font-semibold text-destructive mb-1">Account löschen</h3>
+            <p className="text-sm text-muted-foreground">
+              Lösche deinen Account und alle damit verbundenen Daten permanent. Diese Aktion kann nicht rückgängig gemacht werden.
+            </p>
+          </div>
+          <Button 
+            onClick={handleDeleteAccount} 
+            variant="destructive"
+            disabled={isDeletingAccount}
+            className="gap-2"
+          >
+            <Trash size={16} weight="bold" />
+            {isDeletingAccount ? 'Wird gelöscht...' : 'Account dauerhaft löschen'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+));
+
+export default function Account() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -39,7 +519,7 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
   // Get current tab from URL, with fallback to 'sops'
   const currentTab = (() => {
     const tabParam = searchParams.get('tab');
-    return tabParam && ['sops', 'templates', 'design-manual', 'profile'].includes(tabParam) ? tabParam : 'sops';
+    return tabParam && ['sops', 'templates', 'profile'].includes(tabParam) ? tabParam : 'sops';
   })();
 
   // Function to change tabs - updates URL only
@@ -48,7 +528,6 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
   };
 
   // Data State
-  const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -56,8 +535,15 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [jobPosition, setJobPosition] = useState('');
-  const [hospital, setHospital] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  
+  // Organization State
+  const [hospitalName, setHospitalName] = useState('');
+  const [hospitalEmployees, setHospitalEmployees] = useState('');
+  const [hospitalAddress, setHospitalAddress] = useState('');
+  const [hospitalWebsite, setHospitalWebsite] = useState('');
+  const [companyLogo, setCompanyLogo] = useState(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   
   // Account Security State
   const [newEmail, setNewEmail] = useState('');
@@ -65,6 +551,7 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [updatingEmail, setUpdatingEmail] = useState(false);
   const [updatingPassword, setUpdatingPassword] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   // Documents State
   const [documents, setDocuments] = useState([]);
@@ -87,28 +574,46 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
     let ignore = false;
     
     async function fetchData() {
-      setLoading(true);
       try {
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select(`first_name, last_name, job_position, hospital, avatar_url`)
+          .select(`first_name, last_name, job_position, avatar_url, hospital_name, hospital_employees, hospital_address, hospital_website, company_logo`)
           .eq('id', user.id)
           .single();
 
         if (!ignore) {
-          if (profileError && profileError.code !== 'PGRST116') {
-            console.warn(profileError);
+          if (profileError) {
+            // Wenn kein Profil existiert, erstelle ein leeres
+            if (profileError.code === 'PGRST116') {
+              console.log('Creating new profile for user:', user.id);
+              const { error: insertError } = await supabase
+                .from('profiles')
+                .insert([{ id: user.id, updated_at: new Date() }]);
+              
+              if (insertError) {
+                console.error('Error creating profile:', insertError);
+              }
+            } else {
+              console.warn(profileError);
+            }
           } else if (profile) {
+            console.log('Profile loaded:', profile);
+            console.log('Avatar URL from DB:', profile.avatar_url);
             setFirstName(profile.first_name || '');
             setLastName(profile.last_name || '');
             setJobPosition(profile.job_position || '');
-            setHospital(profile.hospital || '');
-            setAvatarUrl(profile.avatar_url || '');
+            // Cache-Buster für Bilder beim Laden hinzufügen
+            setAvatarUrl(profile.avatar_url ? `${profile.avatar_url}?t=${Date.now()}` : null);
+            setHospitalName(profile.hospital_name || '');
+            setHospitalEmployees(profile.hospital_employees || '');
+            setHospitalAddress(profile.hospital_address || '');
+            setHospitalWebsite(profile.hospital_website || '');
+            setCompanyLogo(profile.company_logo ? `${profile.company_logo}?t=${Date.now()}` : null);
           }
         }
 
         setLoadingDocs(true);
-        const { data: docs, error: docsError } = await getDocuments(user.id);
+        const { data: docs } = await getDocuments(user.id);
         if (!ignore && docs) {
           setDocuments(docs);
         }
@@ -116,8 +621,7 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
 
       } catch (error) {
         console.error('Error loading data!', error);
-      } finally {
-        if (!ignore) setLoading(false);
+        setLoadingDocs(false);
       }
     }
 
@@ -137,8 +641,12 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
         first_name: firstName,
         last_name: lastName,
         job_position: jobPosition,
-        hospital: hospital,
         avatar_url: avatarUrl,
+        hospital_name: hospitalName,
+        hospital_employees: hospitalEmployees,
+        hospital_address: hospitalAddress,
+        hospital_website: hospitalWebsite,
+        company_logo: companyLogo,
         updated_at: new Date(),
       };
 
@@ -153,6 +661,71 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
       setUpdating(false);
     }
   }
+
+  const uploadCompanyLogo = async (event) => {
+    try {
+      setUploadingLogo(true);
+
+      if (!event.target.files || event.target.files.length === 0) {
+        throw new Error('Du musst ein Bild auswählen.');
+      }
+
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-company-logo-${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      let { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      
+      // Cache-Buster hinzufügen, damit der Browser das neue Bild lädt
+      const logoUrlWithCacheBuster = `${data.publicUrl}?t=${Date.now()}`;
+      console.log('New company logo URL:', logoUrlWithCacheBuster);
+      
+      setCompanyLogo(logoUrlWithCacheBuster);
+      
+      const updates = {
+        id: user.id,
+        company_logo: data.publicUrl, // In DB ohne Cache-Buster speichern
+        updated_at: new Date(),
+      };
+      await supabase.from('profiles').upsert(updates);
+      toast.success('Firmenlogo erfolgreich aktualisiert');
+
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const removeCompanyLogo = async () => {
+    if (!window.confirm('Möchtest du das Firmenlogo wirklich entfernen?')) {
+      return;
+    }
+
+    try {
+      setCompanyLogo(null);
+      
+      const updates = {
+        id: user.id,
+        company_logo: null,
+        updated_at: new Date(),
+      };
+      await supabase.from('profiles').upsert(updates);
+      toast.success('Firmenlogo entfernt');
+    } catch (error) {
+      toast.error('Fehler beim Entfernen des Logos');
+      console.error(error);
+    }
+  };
 
   const updateEmail = async (e) => {
     e.preventDefault();
@@ -226,11 +799,15 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
 
       const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
       
-      setAvatarUrl(data.publicUrl);
+      // Cache-Buster hinzufügen, damit der Browser das neue Bild lädt
+      const avatarUrlWithCacheBuster = `${data.publicUrl}?t=${Date.now()}`;
+      console.log('New avatar URL:', avatarUrlWithCacheBuster);
+      
+      setAvatarUrl(avatarUrlWithCacheBuster);
       
       const updates = {
         id: user.id,
-        avatar_url: data.publicUrl,
+        avatar_url: data.publicUrl, // In DB ohne Cache-Buster speichern
         updated_at: new Date(),
       };
       await supabase.from('profiles').upsert(updates);
@@ -284,7 +861,7 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
         footerVariant: importedState.footerVariant || 'default'
       };
 
-      const { data, error } = await saveDocument(
+      const { error } = await saveDocument(
         user.id,
         importedState.headerTitle || 'Importiertes Dokument',
         importedState.headerStand || 'STAND',
@@ -314,6 +891,77 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
 
   const triggerImport = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      // Navigation zur Startseite
+      navigate('/');
+    } catch (error) {
+      console.error('Logout exception:', error);
+      // Auch bei Exceptions zur Startseite navigieren
+      navigate('/');
+    }
+  };
+
+  const getDisplayName = () => {
+    if (firstName || lastName) {
+      return `${firstName} ${lastName}`.trim();
+    }
+    return 'Benutzer';
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmText = 'Account löschen';
+    const userInput = window.prompt(
+      `Diese Aktion kann nicht rückgängig gemacht werden!\n\nAlle Ihre Dokumente und Daten werden permanent gelöscht.\n\nGeben Sie "${confirmText}" ein, um fortzufahren:`
+    );
+
+    if (userInput !== confirmText) {
+      if (userInput !== null) {
+        toast.error('Bestätigung fehlgeschlagen');
+      }
+      return;
+    }
+
+    setIsDeletingAccount(true);
+
+    try {
+      // Erst alle Dokumente des Users löschen
+      const { error: docsError } = await supabase
+        .from('documents')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (docsError) throw docsError;
+
+      // Dann das Profil löschen
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
+      // Dann den Auth-User löschen (über die Admin API oder Self-Service)
+      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
+      
+      if (authError) {
+        // Fallback: User ausloggen
+        await signOut();
+        toast.success('Account-Daten wurden gelöscht');
+        window.location.href = '/';
+        return;
+      }
+
+      toast.success('Account wurde erfolgreich gelöscht');
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast.error('Fehler beim Löschen des Accounts');
+      setIsDeletingAccount(false);
+    }
   };
 
   const toggleSelectAll = () => {
@@ -377,645 +1025,10 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
     }
   };
 
-  // --- Sub-Components ---
-
-  const TabButton = ({ id, icon: Icon, label, count }) => (
-    <button
-      onClick={() => changeTab(id)}
-      className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-        currentTab === id 
-          ? 'bg-primary text-primary-foreground shadow-sm' 
-          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        <Icon size={18} weight={currentTab === id ? 'fill' : 'regular'} />
-        <span>{label}</span>
-      </div>
-      {count !== undefined ? (
-        <span className={`text-xs px-2 py-0.5 rounded-full ${
-          currentTab === id 
-            ? 'bg-primary-foreground/20 text-primary-foreground' 
-            : 'bg-muted text-muted-foreground'
-        }`}>
-          {count}
-        </span>
-      ) : (
-        <span className="w-0"></span>
-      )}
-    </button>
-  );
-
   // --- Views ---
 
-  const SopsView = () => (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Meine Leitfäden</h1>
-          <p className="text-muted-foreground mt-1">
-            Verwalte deine gespeicherten SOP-Dokumente
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {selectedDocs.size > 0 && (
-            <Button 
-              onClick={handleBulkExport} 
-              variant="outline" 
-              size="sm" 
-              className="gap-2"
-            >
-              <Export size={16} />
-              Exportieren ({selectedDocs.size})
-            </Button>
-          )}
-          <Button onClick={triggerImport} size="sm" variant="outline" className="gap-2">
-            <Upload size={16} />
-            Importieren
-          </Button>
-          <Button onClick={() => navigate('/?new=true')} size="sm" className="gap-2">
-            <Plus size={16} weight="bold" />
-            Neu
-          </Button>
-        </div>
-      </div>
-
-      {/* Bulk Actions Toolbar */}
-      {documents.length > 0 && (
-        <div className="flex items-center gap-2 py-2">
-          <Checkbox
-            checked={selectedDocs.size === documents.length}
-            onCheckedChange={toggleSelectAll}
-          />
-          <span className="text-sm text-muted-foreground cursor-pointer" onClick={toggleSelectAll}>
-            {selectedDocs.size === documents.length ? 'Alle abwählen' : 'Alle auswählen'}
-          </span>
-        </div>
-      )}
-
-      {/* Documents List */}
-      {loadingDocs ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-20 bg-muted/30 rounded-lg animate-pulse"></div>
-          ))}
-        </div>
-      ) : documents.length === 0 ? (
-      <EmptyState 
-        icon={FileText}
-        title="Noch keine Dokumente vorhanden"
-        description="Erstelle dein erstes SOP-Dokument oder importiere ein bestehendes."
-        action={
-          <div className="flex gap-2 justify-center">
-            <Button onClick={() => navigate('/?new=true')} variant="default" size="sm">
-            Erstes Dokument erstellen
-          </Button>
-            <Button onClick={triggerImport} variant="outline" size="sm">
-              Dokument importieren
-            </Button>
-        </div>
-        }
-      />
-      ) : (
-        <div className="space-y-2">
-          {documents.map((doc) => (
-          <DocumentCard
-              key={doc.id} 
-            doc={doc}
-            onOpen={handleOpenDocument}
-            onDelete={handleDeleteDocument}
-            isSelected={selectedDocs.has(doc.id)}
-            onSelectToggle={toggleDocSelection}
-          />
-          ))}
-                </div>
-      )}
-                  </div>
-  );
-
-  const TemplatesView = () => (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">SOP Templates</h1>
-        <p className="text-muted-foreground mt-1">
-          Vorgefertigte Vorlagen für häufige SOPs
-        </p>
-                </div>
-      
-      <EmptyState 
-        icon={Layout}
-        title="Demnächst verfügbar"
-        description="Wir arbeiten an einer Sammlung professioneller SOP-Vorlagen für verschiedene medizinische Bereiche."
-      />
-              </div>
-  );
-
-  const DesignManualView = () => {
-    const colors = [
-      { name: 'Primary', class: 'bg-primary text-primary-foreground' },
-      { name: 'Secondary', class: 'bg-secondary text-secondary-foreground' },
-      { name: 'Destructive', class: 'bg-destructive text-destructive-foreground' },
-      { name: 'Muted', class: 'bg-muted text-muted-foreground' },
-      { name: 'Accent', class: 'bg-accent text-accent-foreground' },
-      { name: 'Popover', class: 'bg-popover text-popover-foreground' },
-      { name: 'Card', class: 'bg-card text-card-foreground' },
-      { name: 'Border', class: 'bg-border text-foreground' },
-      { name: 'Input', class: 'bg-input text-foreground' },
-      { name: 'Ring', class: 'bg-ring text-white' },
-    ];
-
-    const sopColors = [
-      { name: 'Full Dark', hex: '#000000', text: 'white' },
-      { name: 'Primary Text', hex: '#003366', text: 'white' },
-      { name: 'Blue Shade 1', hex: '#004D99', text: 'white' },
-      { name: 'Blue Shade 2', hex: '#0066CC', text: 'white' },
-      { name: 'Blue Shade 3', hex: '#0080FF', text: 'white' },
-      { name: 'Brand Primary', hex: '#3399FF', text: 'black' },
-      { name: 'Blue Shade 4', hex: '#66B3FF', text: 'black' },
-      { name: 'Blue Shade 5', hex: '#99CCFF', text: 'black' },
-      { name: 'Blue Shade 6', hex: '#CCE6FF', text: 'black' },
-      { name: 'Blue Shade 7', hex: '#E5F2FF', text: 'black' },
-      { name: 'Full White', hex: '#FFFFFF', text: 'black' },
-      { name: 'Dark Red', hex: '#8A1A0F', text: 'white' },
-      { name: 'Primary Red', hex: '#EB5547', text: 'white' },
-      { name: 'Light Red', hex: '#FCEAE8', text: 'black' },
-      { name: 'Dark Green', hex: '#23631D', text: 'white' },
-      { name: 'Primary Green', hex: '#57CB4D', text: 'black' },
-      { name: 'Light Green', hex: '#ECF9EB', text: 'black' },
-      { name: 'Dark Yellow', hex: '#B27700', text: 'white' },
-      { name: 'Primary Yellow', hex: '#FFBB33', text: 'black' },
-      { name: 'Light Yellow', hex: '#FFF7E6', text: 'black' },
-      { name: 'Dark Petrol', hex: '#1F7A73', text: 'white' },
-      { name: 'Primary Petrol', hex: '#47D1C6', text: 'black' },
-      { name: 'Light Petrol', hex: '#EBFAF9', text: 'black' },
-      { name: 'Dark Violett', hex: '#4D0891', text: 'white' },
-      { name: 'Primary Violett', hex: '#993DF5', text: 'white' },
-      { name: 'Light Violett', hex: '#F5ECFE', text: 'black' },
-      { name: 'Dark Grey', hex: '#B3B3B3', text: 'black' },
-      { name: 'Primary Grey', hex: '#EDEDED', text: 'black' },
-      { name: 'Light Grey', hex: '#F4F4F4', text: 'black' },
-    ];
-
-    const typography = [
-      { label: 'Heading 1', element: <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">The quick brown fox</h1>, description: 'text-4xl font-extrabold tracking-tight lg:text-5xl' },
-      { label: 'Heading 2', element: <h2 className="text-2xl font-semibold tracking-tight first:mt-0">The quick brown fox</h2>, description: 'text-2xl font-semibold tracking-tight' },
-      { label: 'Heading 3', element: <h3 className="text-xl font-semibold tracking-tight">The quick brown fox</h3>, description: 'text-xl font-semibold tracking-tight' },
-      { label: 'Heading 4', element: <h4 className="text-lg font-semibold tracking-tight">The quick brown fox</h4>, description: 'text-lg font-semibold tracking-tight' },
-      { label: 'Paragraph', element: <p className="leading-7 [&:not(:first-child)]:mt-6">The quick brown fox jumps over the lazy dog. Sphinx of black quartz, judge my vow.</p>, description: 'leading-7 [&:not(:first-child)]:mt-6' },
-      { label: 'Small', element: <small className="text-sm font-medium leading-none">The quick brown fox jumps over the lazy dog.</small>, description: 'text-sm font-medium leading-none' },
-      { label: 'Muted', element: <p className="text-sm text-muted-foreground">The quick brown fox jumps over the lazy dog.</p>, description: 'text-sm text-muted-foreground' },
-    ];
-
     return (
-      <div className="space-y-16">
-        {/* Hero Section - Geist Style */}
-        <div className="space-y-2 pb-8 border-b">
-          <h1 className="text-2xl font-semibold tracking-tight">Design System</h1>
-          <p className="text-sm text-muted-foreground">
-            Designrichtlinien, Komponenten und Ressourcen für konsistente Benutzererfahrungen.
-          </p>
-              </div>
-
-        {/* Color Section - Geist Style */}
-        <section className="space-y-12">
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold">Farben</h2>
-            <p className="text-sm text-muted-foreground">
-              Ein kontrastreiches, zugängliches Farbsystem.
-            </p>
-          </div>
-          
-          {/* Theme Colors */}
-          <div className="space-y-6">
-            <h3 className="text-sm font-medium text-muted-foreground">Theme Colors</h3>
-            <div className="flex flex-wrap gap-2">
-              {colors.map((color) => (
-                <div key={color.name} className="group">
-                  <div 
-                    className={`w-16 h-16 rounded border hover:border-foreground/20 transition-all cursor-pointer ${color.class}`}
-                    onClick={() => {
-                      navigator.clipboard.writeText(color.name);
-                      toast.success('Kopiert!');
-                    }}
-                    title={color.name}
-                  />
-            </div>
-          ))}
-        </div>
-    </div>
-
-          {/* SOP Color System */}
-    <div className="space-y-6">
-            <h3 className="text-sm font-medium text-muted-foreground">SOP Farbsystem</h3>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(48px,1fr))] gap-2">
-              {sopColors.map((color) => (
-                <div key={color.hex} className="group">
-                  <div 
-                    className="w-full aspect-square rounded border hover:border-foreground/20 transition-all cursor-pointer"
-                    style={{ backgroundColor: color.hex }}
-                    onClick={() => {
-                      navigator.clipboard.writeText(color.hex);
-                      toast.success('Kopiert!');
-                    }}
-                    title={`${color.name} - ${color.hex}`}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Background Gradients */}
-          <div className="space-y-6">
-            <h3 className="text-sm font-medium text-muted-foreground">Hintergrund-Verläufe</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <div className="h-24 rounded border light-gradient-bg" />
-                <p className="text-xs font-mono text-muted-foreground">Light</p>
-              </div>
-              <div className="space-y-2">
-                <div className="h-24 rounded border dark-gradient-bg dark" />
-                <p className="text-xs font-mono text-muted-foreground">Dark</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Typography Section - Geist Style */}
-        <section className="space-y-12">
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold">Typografie</h2>
-            <p className="text-sm text-muted-foreground">
-              Klare typografische Hierarchie für Lesbarkeit und Ordnung.
-            </p>
-          </div>
-          
-          <div className="space-y-8">
-            {typography.map((type, index) => (
-              <div key={index} className="space-y-3">
-                <div className="flex items-center gap-4 pb-2 border-b">
-                  <span className="text-xs font-mono text-muted-foreground min-w-[80px]">{type.label}</span>
-                  <code className="text-xs font-mono text-muted-foreground/60">{type.description}</code>
-                </div>
-                <div className="pl-2">
-                  {type.element}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Components Section - Geist Style */}
-        <section className="space-y-12">
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold">Komponenten</h2>
-            <p className="text-sm text-muted-foreground">
-              Bausteine für React-Anwendungen.
-            </p>
-          </div>
-          
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-muted-foreground">Buttons</h3>
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <p className="text-xs font-mono text-muted-foreground/60">Variants</p>
-                  <div className="flex flex-wrap gap-2">
-                    <Button>Default</Button>
-                    <Button variant="secondary">Secondary</Button>
-                    <Button variant="destructive">Destructive</Button>
-                    <Button variant="outline">Outline</Button>
-                    <Button variant="ghost">Ghost</Button>
-                    <Button variant="link">Link</Button>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <p className="text-xs font-mono text-muted-foreground/60">Sizes</p>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button size="sm">Small</Button>
-                    <Button>Medium</Button>
-                    <Button size="lg">Large</Button>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <p className="text-xs font-mono text-muted-foreground/60">States</p>
-                  <div className="flex flex-wrap gap-2">
-                    <Button disabled>Disabled</Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Spacing Section - Geist Style */}
-        <section className="space-y-12">
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold">Abstände</h2>
-            <p className="text-sm text-muted-foreground">
-              8px-basiertes System für konsistente Layouts.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-5 md:grid-cols-10 gap-4">
-            {[4, 8, 12, 16, 20, 24, 32, 40, 48, 64].map((space) => (
-              <div key={space} className="space-y-2">
-                <div className="flex items-end justify-center h-20 border rounded p-2">
-                  <div 
-                    className="bg-foreground w-full"
-                    style={{ height: `${space/4}rem` }}
-                  />
-                </div>
-                <p className="text-xs font-mono text-center text-muted-foreground">{space}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Border Radius Section - Geist Style */}
-        <section className="space-y-12">
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold">Eckenradien</h2>
-            <p className="text-sm text-muted-foreground">
-              Definierte Rundungen für verschiedene UI-Elemente.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-4 md:grid-cols-7 gap-4">
-            <div className="space-y-2">
-              <div className="w-full aspect-square bg-foreground rounded-none border" />
-              <p className="text-xs font-mono text-center text-muted-foreground">0</p>
-            </div>
-            <div className="space-y-2">
-              <div className="w-full aspect-square bg-foreground rounded border" />
-              <p className="text-xs font-mono text-center text-muted-foreground">4</p>
-            </div>
-            <div className="space-y-2">
-              <div className="w-full aspect-square bg-foreground rounded-md border" />
-              <p className="text-xs font-mono text-center text-muted-foreground">6</p>
-            </div>
-            <div className="space-y-2">
-              <div className="w-full aspect-square bg-foreground rounded-lg border" />
-              <p className="text-xs font-mono text-center text-muted-foreground">8</p>
-            </div>
-            <div className="space-y-2">
-              <div className="w-full aspect-square bg-foreground rounded-xl border" />
-              <p className="text-xs font-mono text-center text-muted-foreground">12</p>
-            </div>
-            <div className="space-y-2">
-              <div className="w-full aspect-square bg-foreground rounded-2xl border" />
-              <p className="text-xs font-mono text-center text-muted-foreground">16</p>
-            </div>
-            <div className="space-y-2">
-              <div className="w-full aspect-square bg-foreground rounded-full border" />
-              <p className="text-xs font-mono text-center text-muted-foreground">full</p>
-            </div>
-          </div>
-        </section>
-
-        {/* Footer - Geist Style */}
-        <div className="pt-16 pb-8">
-          <p className="text-xs text-muted-foreground/60 text-center">
-            Design-Elemente für konsistente Benutzererfahrungen
-          </p>
-      </div>
-    </div>
-  );
-  };
-
-  const ProfileView = () => (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Profil & Einstellungen</h1>
-        <p className="text-muted-foreground mt-1">
-          Verwalte deine persönlichen Informationen und Kontoeinstellungen
-        </p>
-      </div>
-
-      {/* Profile Information */}
-      <form onSubmit={updateProfile} className="space-y-8">
-        {/* Avatar Section */}
-        <div className="flex items-start gap-6">
-          <div className="relative">
-            <div className="h-24 w-24 rounded-full overflow-hidden bg-muted border-2 border-border">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt="Avatar"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-                  <User size={40} />
-                </div>
-              )}
-            </div>
-            <label 
-              htmlFor="avatar-upload" 
-              className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-md"
-              title="Bild ändern"
-            >
-              <Upload size={14} weight="bold" />
-              <input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                onChange={uploadAvatar}
-                disabled={uploading}
-                className="hidden"
-              />
-            </label>
-          </div>
-          <div className="flex-1 pt-2">
-            <p className="font-semibold text-lg">
-              {firstName || lastName ? `${firstName} ${lastName}` : 'Benutzer'}
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">{user.email}</p>
-            <p className="text-xs text-muted-foreground mt-2">
-              {uploading ? 'Wird hochgeladen...' : 'Klicke auf das Symbol um dein Profilbild zu ändern'}
-            </p>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Personal Information */}
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Persönliche Informationen</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-                <Label htmlFor="firstName">Vorname</Label>
-            <Input
-              id="firstName"
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Max"
-            />
-          </div>
-          <div className="space-y-2">
-                <Label htmlFor="lastName">Nachname</Label>
-            <Input
-              id="lastName"
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Mustermann"
-            />
-          </div>
-          <div className="space-y-2">
-                <Label htmlFor="jobPosition">Position</Label>
-            <Input
-              id="jobPosition"
-              type="text"
-              value={jobPosition}
-              onChange={(e) => setJobPosition(e.target.value)}
-              placeholder="Assistenzarzt"
-            />
-          </div>
-          <div className="space-y-2">
-                <Label htmlFor="hospital">Krankenhaus</Label>
-            <Input
-              id="hospital"
-              type="text"
-              value={hospital}
-              onChange={(e) => setHospital(e.target.value)}
-              placeholder="Klinikum Berlin"
-            />
-              </div>
-          </div>
-        </div>
-
-          <div className="flex justify-end">
-          <Button type="submit" disabled={updating}>
-            {updating ? 'Wird gespeichert...' : 'Änderungen speichern'}
-          </Button>
-          </div>
-        </div>
-      </form>
-
-      <Separator />
-
-      {/* Appearance Settings */}
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-xl font-semibold mb-1">Darstellung</h2>
-          <p className="text-sm text-muted-foreground">
-            Passe das Erscheinungsbild der Anwendung an
-          </p>
-        </div>
-
-        {/* Editor Gradient Setting */}
-        <div className="space-y-4 p-6 border rounded-lg bg-muted/30">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <PaletteIcon size={18} className="text-muted-foreground" />
-                <Label className="text-base font-medium">Editor-Hintergrund</Label>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Wähle zwischen hellem und dunklem Verlauf für den Editor
-              </p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3 mt-4">
-            <button
-              type="button"
-              onClick={() => editorGradient === 'dark' && toggleEditorGradient()}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                editorGradient === 'light'
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50'
-              }`}
-            >
-              <div className="h-16 w-full rounded light-gradient-bg mb-3"></div>
-              <div className="text-sm font-medium">Heller Verlauf</div>
-              <div className="text-xs text-muted-foreground mt-1">Standard</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editorGradient === 'light' && toggleEditorGradient()}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                editorGradient === 'dark'
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50'
-              }`}
-            >
-              <div className="h-16 w-full rounded dark-gradient-bg dark mb-3"></div>
-              <div className="text-sm font-medium">Dunkler Verlauf</div>
-              <div className="text-xs text-muted-foreground mt-1">Alternative</div>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Security Settings */}
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-xl font-semibold mb-1">Sicherheitseinstellungen</h2>
-          <p className="text-sm text-muted-foreground">
-            Aktualisiere deine E-Mail-Adresse oder dein Passwort
-          </p>
-        </div>
-
-        {/* Change Email */}
-        <form onSubmit={updateEmail} className="space-y-4 p-6 border rounded-lg bg-muted/30">
-          <div className="space-y-2">
-            <Label>E-Mail-Adresse ändern</Label>
-            <p className="text-xs text-muted-foreground">Aktuelle E-Mail: {user.email}</p>
-          </div>
-          <div className="space-y-2">
-            <Input
-              type="email"
-              value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
-              placeholder="neue-email@example.com"
-            />
-          </div>
-          <Button type="submit" size="sm" disabled={updatingEmail}>
-            {updatingEmail ? 'Wird aktualisiert...' : 'E-Mail ändern'}
-          </Button>
-        </form>
-
-        {/* Change Password */}
-        <form onSubmit={updatePassword} className="space-y-4 p-6 border rounded-lg bg-muted/30">
-          <div className="space-y-2">
-            <Label>Passwort ändern</Label>
-            <p className="text-xs text-muted-foreground">Mindestens 6 Zeichen</p>
-          </div>
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <Input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Neues Passwort"
-              />
-            </div>
-            <div className="space-y-2">
-              <Input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Passwort bestätigen"
-              />
-            </div>
-          </div>
-          <Button type="submit" size="sm" disabled={updatingPassword}>
-            {updatingPassword ? 'Wird aktualisiert...' : 'Passwort ändern'}
-          </Button>
-        </form>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className={`min-h-screen ${editorGradient === 'light' ? 'light-gradient-bg' : 'dark-gradient-bg dark'} transition-colors duration-200`}>
+    <div className="min-h-screen light-gradient-bg transition-colors duration-200">
       {/* Hidden file input for JSON import */}
       <input
         type="file"
@@ -1035,62 +1048,186 @@ export default function Account({ editorGradient, toggleEditorGradient }) {
         progress={exportProgress}
       />
       
-      <div className="flex min-h-screen">
-        {/* Sidebar Navigation - Fixed, full height, left aligned */}
-        <aside className="fixed left-0 top-0 w-64 no-print bg-background border-r border-border">
-          <div className="h-screen flex flex-col py-8 px-6">
-            {/* Spacer to push content to bottom */}
-            <div className="flex-1"></div>
-
-            {/* Navigation - Bottom section */}
-            <nav className="space-y-1">
-              <TabButton 
-                id="sops" 
-                icon={FileText} 
-                label="Meine Leitfäden" 
-                count={documents.length} 
-              />
-              <TabButton 
-                id="templates" 
-                icon={Layout} 
-                label="SOP Templates" 
-              />
-              <TabButton 
-                id="design-manual" 
-                icon={PaletteIcon} 
-                label="Design Manual" 
-              />
-              <TabButton 
-                id="profile" 
-                icon={User} 
-                label="Profil & Einstellungen" 
-              />
-            </nav>
-
-            {/* Back to Editor - Very bottom */}
-            <div className="pt-6">
-              <Separator className="mb-4" />
+      <div className="flex flex-col items-center w-full">
+        {/* Toolbar - Aufgeteilt in zwei Teile (wie im Editor) */}
+        <div className="no-print flex items-center gap-3 mt-6 mb-4 w-full max-w-[210mm]">
+          {/* Linke Toolbar - Navigation */}
+          <div className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm border border-gray-200 flex-1">
+            {/* Navigation Links */}
+            <div className="flex items-center gap-1">
               <Button
-                onClick={() => navigate('/')}
-                variant="ghost"
+                variant={currentTab === 'sops' ? 'default' : 'ghost'}
                 size="sm"
-                className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+                onClick={() => changeTab('sops')}
+                className="h-8 text-xs px-3 relative"
               >
-                <ArrowLeft size={16} />
-                Zurück zum Editor
+                <FileText size={16} className="mr-1.5" weight={currentTab === 'sops' ? 'fill' : 'regular'} />
+                Meine Leitfäden
+                {documents.length > 0 && (
+                  <span className={`ml-2 min-w-[18px] h-[18px] px-1.5 flex items-center justify-center text-[10px] font-bold rounded-full ${
+                    currentTab === 'sops'
+                      ? 'bg-white text-primary'
+                      : 'bg-primary/20 text-primary'
+                  }`}>
+                    {documents.length}
+                  </span>
+                )}
+              </Button>
+              <Button
+                variant={currentTab === 'templates' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => changeTab('templates')}
+                className="h-8 text-xs px-3"
+              >
+                <Layout size={16} className="mr-1.5" weight={currentTab === 'templates' ? 'fill' : 'regular'} />
+                SOP Templates
+              </Button>
+              <Button
+                variant={currentTab === 'profile' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => changeTab('profile')}
+                className="h-8 text-xs px-3"
+              >
+                <User size={16} className="mr-1.5" weight={currentTab === 'profile' ? 'fill' : 'regular'} />
+                Profil & Einstellungen
               </Button>
             </div>
-            </div>
-          </aside>
-
-        {/* Main Content - Aligned near sidebar */}
-        <main className="flex-1 overflow-y-auto p-6 ml-64">
-          <div className="w-full max-w-5xl pt-6 pb-8 px-8">
-            {currentTab === 'sops' && <SopsView />}
-            {currentTab === 'templates' && <TemplatesView />}
-            {currentTab === 'design-manual' && <DesignManualView />}
-            {currentTab === 'profile' && <ProfileView />}
           </div>
+
+          {/* Rechte Toolbar - Back to Editor & Account */}
+          {user && (
+            <div className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm border border-gray-200">
+              {/* Back to Editor */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/')}
+                className="h-8 text-xs px-3 text-[#003366]"
+              >
+                <ArrowLeft size={16} className="mr-1.5" />
+                Zurück zum Editor
+              </Button>
+
+              <div className="h-4 w-px bg-gray-200" />
+              
+              {/* Account Button - Eingeloggt */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full p-0 transition-all bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center overflow-hidden"
+                    title="Mein Konto"
+                  >
+                    {avatarUrl ? (
+                      <img 
+                        src={avatarUrl} 
+                        alt="Profil" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User size={16} weight="bold" />
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-64" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{getDisplayName()}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+            </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onClick={() => changeTab('sops')} className="cursor-pointer">
+                      <FileText className="mr-2 h-4 w-4" />
+                      <span>Meine Leitfäden</span>
+                      {documents.length > 0 && (
+                        <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                          {documents.length}
+                        </span>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => changeTab('templates')} className="cursor-pointer">
+                      <Layout className="mr-2 h-4 w-4" />
+                      <span>SOP Templates</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => changeTab('profile')} className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profil & Einstellungen</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onClick={() => window.open('mailto:feedback@example.com', '_blank')} className="cursor-pointer">
+                      <ChatCircleDots className="mr-2 h-4 w-4" />
+                      <span>Feedback geben</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => window.open('https://example.com', '_blank')} className="cursor-pointer">
+                      <Globe className="mr-2 h-4 w-4" />
+                      <span>Webseite</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive cursor-pointer">
+                    <SignOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+        </div>
+
+        {/* Main Content - Gleiche Breite wie Toolbar */}
+        <main className="w-full max-w-[210mm]">
+          {currentTab === 'sops' && <SopsView 
+            documents={documents}
+            loadingDocs={loadingDocs}
+            selectedDocs={selectedDocs}
+            toggleSelectAll={toggleSelectAll}
+            handleBulkExport={handleBulkExport}
+            triggerImport={triggerImport}
+            navigate={navigate}
+            handleOpenDocument={handleOpenDocument}
+            handleDeleteDocument={handleDeleteDocument}
+            toggleDocSelection={toggleDocSelection}
+          />}
+            {currentTab === 'templates' && <TemplatesView />}
+          {currentTab === 'profile' && <ProfileView 
+            avatarUrl={avatarUrl}
+            uploading={uploading}
+            uploadAvatar={uploadAvatar}
+            firstName={firstName}
+            setFirstName={setFirstName}
+            lastName={lastName}
+            setLastName={setLastName}
+            jobPosition={jobPosition}
+            setJobPosition={setJobPosition}
+            user={user}
+            companyLogo={companyLogo}
+            uploadingLogo={uploadingLogo}
+            uploadCompanyLogo={uploadCompanyLogo}
+            removeCompanyLogo={removeCompanyLogo}
+            hospitalName={hospitalName}
+            setHospitalName={setHospitalName}
+            hospitalEmployees={hospitalEmployees}
+            setHospitalEmployees={setHospitalEmployees}
+            hospitalWebsite={hospitalWebsite}
+            setHospitalWebsite={setHospitalWebsite}
+            hospitalAddress={hospitalAddress}
+            setHospitalAddress={setHospitalAddress}
+            updating={updating}
+            updateProfile={updateProfile}
+            newPassword={newPassword}
+            setNewPassword={setNewPassword}
+            confirmPassword={confirmPassword}
+            setConfirmPassword={setConfirmPassword}
+            updatingPassword={updatingPassword}
+            updatePassword={updatePassword}
+            isDeletingAccount={isDeletingAccount}
+            handleDeleteAccount={handleDeleteAccount}
+          />}
           </main>
       </div>
     </div>

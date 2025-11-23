@@ -422,12 +422,12 @@
 }
 
 .sop-header-editable:hover {
-  border: 1px solid #3399FF !important;
+  border: 1.5px solid #3399FF !important;
   background: white !important;
 }
 
 .sop-header-editable:active {
-  border: 1px solid #3399FF !important;
+  border: 1.5px solid #3399FF !important;
   background: white !important;
 }
 
@@ -438,12 +438,12 @@
 }
 
 .sop-header-title-editable:hover {
-  border: 1px solid #3399FF !important;
+  border: 1.5px solid #3399FF !important;
   background: white !important;
 }
 
 .sop-header-title-editable:active {
-  border: 1px solid #3399FF !important;
+  border: 1.5px solid #3399FF !important;
   background: white !important;
 }
 
@@ -454,12 +454,12 @@
 }
 
 .sop-header-logo-editable:hover {
-  border: 1px solid #3399FF !important;
+  border: 1.5px solid #3399FF !important;
   background: white !important;
 }
 
 .sop-header-logo-editable:active {
-  border: 1px solid #3399FF !important;
+  border: 1.5px solid #3399FF !important;
   background: white !important;
 }
 
@@ -779,7 +779,7 @@ body.export-ready .page-container {
     cursor: col-resize;
     position: absolute; /* Removed from flex flow */
     top: 0;
-    bottom: 0;
+    height: calc(100% - 1.5rem); /* Match content box height, excluding margin-bottom */
     transform: translateX(-50%); /* Center exactly on the line */
     z-index: 20; /* Higher than content */
     display: flex;
@@ -843,6 +843,7 @@ body.export-ready .page-container {
 .block-row {
   display: flex;
   align-items: flex-start;
+  position: relative; /* Needed for column resizer positioning */
 }
 
 .block-row.two-columns {
