@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import Block from './Block';
 import SOPHeader from './SOPHeader';
 import SOPFooter from './SOPFooter';
+import Page from './Page';
 import { usePageBreaks } from '../hooks/usePageBreaks';
 import { useEditorHistory } from '../hooks/useEditorHistory';
 import { Button } from './ui/button';
@@ -25,17 +26,11 @@ import {
 } from './ui/dropdown-menu';
 
 // Wrapper component for blocks to handle refs
-const BlockWrapper = memo(({ block, pageBreak, onUpdate, onDelete, onAddAfter, setBlockRef, onMove, allBlocks, usedCategories = [], isRightColumn = false, iconOnRight = false }) => {
+const BlockWrapper = memo(({ block, pageBreak, onUpdate, onDelete, onAddAfter, onMove, allBlocks, usedCategories = [], isRightColumn = false, iconOnRight = false }) => {
   const blockRef = useRef(null);
   const indicatorRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-  
-  useEffect(() => {
-    if (blockRef.current) {
-      setBlockRef(block.id, blockRef);
-    }
-  }, [block.id, setBlockRef]);
 
   const handleDragStart = useCallback((e) => {
     if (block.type !== 'contentbox') return;
@@ -535,10 +530,8 @@ const Editor = () => {
   const [resizingRowId, setResizingRowId] = useState(null);
   const resizingStateRef = useRef({ startX: 0, startRatio: 0.5, rowWidth: 0 });
 
-  // Flatten rows into blocks array for pageBreaks calculation
-  const blocks = useMemo(() => rows.flatMap(row => row.blocks), [rows]);
-  
-  const { setBlockRef, pageBreaks } = usePageBreaks(blocks, containerRef, footerVariant);
+  // Use new page breaks hook with row-based measurements
+  const { pageBreaks, setRowRef } = usePageBreaks(rows, containerRef, footerVariant);
 
   const addBlock = useCallback((type, afterId = null, category = 'definition') => {
     const newBlock = type === 'contentbox' 
@@ -585,10 +578,11 @@ const Editor = () => {
 
   // Get list of already used box categories - MEMOIZED for performance
   const usedCategories = useMemo(() => {
-    return blocks
+    return rows
+      .flatMap(row => row.blocks)
       .filter(block => block.type === 'contentbox' && block.content?.category)
       .map(block => block.content.category);
-  }, [blocks]);
+  }, [rows]);
 
 
   const updateBlock = useCallback((id, content) => {
@@ -770,39 +764,40 @@ const Editor = () => {
   }, [handleResizeMoveStable, handleResizeEnd]);
 
 
-  // Calculate page numbers for visual display
-  let currentPageNumber = 1;
-  const blockPageNumbers = {};
-  
-  blocks.forEach((block, index) => {
-    if (index > 0 && pageBreaks[block.id]) {
-      currentPageNumber++;
-    }
-    blockPageNumbers[block.id] = currentPageNumber;
-  });
+  // Stable ref callback for rows - never recreated
+  const rowRefCallback = useCallback((rowId) => {
+    return (element) => {
+      setRowRef(rowId, element);
+    };
+  }, [setRowRef]);
 
-  // Group rows by page for visual page containers
-  const pages = [];
-  let currentPageRows = [];
-  let pageNum = 1;
-
-  rows.forEach((row, index) => {
-    // Check if any block in this row triggers a page break
-    const hasPageBreak = row.blocks.some((block, blockIdx) => 
-      blockIdx === 0 && pageBreaks[block.id]
-    );
+  // Group rows into pages based on pageBreaks
+  const pages = useMemo(() => {
+    const groupedPages = [];
+    let currentPage = [];
     
-    if (index > 0 && hasPageBreak && currentPageRows.length > 0) {
-      pages.push({ rows: currentPageRows, pageNumber: pageNum++ });
-      currentPageRows = [row];
-    } else {
-      currentPageRows.push(row);
+    rows.forEach((row) => {
+      // If this row should have a page break before it, start a new page
+      if (pageBreaks.has(row.id) && currentPage.length > 0) {
+        groupedPages.push(currentPage);
+        currentPage = [];
+      }
+      
+      currentPage.push(row);
+    });
+    
+    // Add the last page if it has content
+    if (currentPage.length > 0) {
+      groupedPages.push(currentPage);
     }
-  });
-  
-  if (currentPageRows.length > 0) {
-    pages.push({ rows: currentPageRows, pageNumber: pageNum });
-  }
+    
+    // If no pages, create one empty page
+    if (groupedPages.length === 0) {
+      groupedPages.push([]);
+    }
+    
+    return groupedPages;
+  }, [rows, pageBreaks]);
 
   return (
     <div className="flex flex-col items-center w-full">
@@ -816,7 +811,7 @@ const Editor = () => {
       />
 
       {/* Toolbar - Aufgeteilt in zwei Teile */}
-      <div className="no-print flex items-center gap-3 mt-6 mb-4 w-full max-w-[210mm]">
+      <div className="no-print flex items-center gap-3 mt-6 mb-0 w-full max-w-[210mm]">
         {/* Linke Toolbar - Hauptfunktionen */}
         <div className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm border border-gray-200 flex-1">
         {/* History & Reset Controls */}
@@ -1020,108 +1015,120 @@ const Editor = () => {
       </div>
 
       <div className="editor print:block" ref={containerRef}>
-        {pages.map((page, pageIndex) => (
-          <div
-            key={`page-${page.pageNumber}`}
-            className="page-container"
-            style={{
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: '297mm'
-            }}
+        {/* Render pages with A4 formatting */}
+        {pages.map((pageRows, pageIndex) => (
+          <Page 
+            key={`page-${pageIndex}`}
+            pageNumber={pageIndex + 1}
+            isFirstPage={pageIndex === 0}
           >
-            {pageIndex > 0 && (
-              <div className="page-break-indicator no-print" />
-            )}
-            {/* Header only on first page */}
-            {pageIndex === 0 && (
-              <SOPHeader 
-                title={headerTitle}
-                stand={headerStand}
-                logo={headerLogo}
-                onTitleChange={setHeaderTitle}
-                onStandChange={setHeaderStand}
-                onLogoChange={setHeaderLogo}
-              />
-            )}
-            
-            {/* Content area - flex grow to push footer down */}
-            <div style={{ flex: '1 1 auto', paddingBottom: '100px', minHeight: 0 }}>
-            {/* Render rows - each row can have 1 or 2 blocks */}
-            {page.rows.map((row) => (
-              <div 
-                key={row.id} 
-                className={`block-row ${row.blocks.length === 2 ? 'two-columns' : 'single-column'}`}
-                style={{
-                  display: 'flex',
-                  gap: row.blocks.length === 2 ? '20px' : '0',
-                  marginBottom: '0',
-                  alignItems: 'flex-start',
-                  position: 'relative' // Needed for resizer positioning if we used absolute, but flex is better
-                }}
-              >
-                {row.blocks.map((block, blockIndex) => {
-                  // Buttons should be on the right by default (single column + right column in two-column)
-                  // Only show on left for left column in two-column layout
-                  const isRightColumn = row.blocks.length !== 2 || blockIndex === 1;
-                  
-                  // Icon position: In two-column layout, right box has icon on right side
-                  const iconOnRight = row.blocks.length === 2 && blockIndex === 1;
-                  
-                  // Calculate flex basis based on ratio
-                  // Default is 0.5 (50%)
-                  const ratio = row.columnRatio || 0.5;
-                  const flexBasis = row.blocks.length === 2 
-                    ? (blockIndex === 0 ? `${ratio * 100}%` : `${(1 - ratio) * 100}%`)
-                    : '100%';
+            {/* Page content wrapper with padding */}
+            <div 
+              className="page-content"
+              style={{
+                height: '100%',
+                width: '100%',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '32px 32px 0 32px', // Content gets padding, not page
+                boxSizing: 'border-box',
+              }}
+            >
+              {/* Header - only on first page */}
+              {pageIndex === 0 && (
+                <SOPHeader 
+                  title={headerTitle}
+                  stand={headerStand}
+                  logo={headerLogo}
+                  onTitleChange={setHeaderTitle}
+                  onStandChange={setHeaderStand}
+                  onLogoChange={setHeaderLogo}
+                />
+              )}
+              
+              {/* Content area for this page - with padding for footer */}
+              <div style={{ 
+                flex: 1, 
+                position: 'relative',
+                paddingBottom: '120px', // Space for footer (adjust based on footer variant)
+                minHeight: 0,
+                overflow: 'visible', // Allow hover buttons to extend outside
+              }}>
+                {pageRows.map((row) => (
+                <div 
+                  key={row.id}
+                  ref={rowRefCallback(row.id)}
+                  className={`block-row ${row.blocks.length === 2 ? 'two-columns' : 'single-column'}`}
+                  style={{
+                    display: 'flex',
+                    gap: row.blocks.length === 2 ? '20px' : '0',
+                    marginBottom: '0',
+                    alignItems: 'flex-start',
+                    position: 'relative'
+                  }}
+                >
+                  {row.blocks.map((block, blockIndex) => {
+                    const isRightColumn = row.blocks.length !== 2 || blockIndex === 1;
+                    const iconOnRight = row.blocks.length === 2 && blockIndex === 1;
+                    const ratio = row.columnRatio || 0.5;
+                    const flexBasis = row.blocks.length === 2 
+                      ? (blockIndex === 0 ? `${ratio * 100}%` : `${(1 - ratio) * 100}%`)
+                      : '100%';
 
-                  return (
-                    <React.Fragment key={block.id}>
-                      <div 
-                        style={{ 
-                          flex: row.blocks.length === 2 ? `0 0 calc(${flexBasis} - 10px)` : '1 1 100%', // Subtract half gap (10px)
-                          maxWidth: row.blocks.length === 2 ? `calc(${flexBasis} - 10px)` : '100%',
-                          minWidth: 0,
-                          position: 'relative',
-                          transition: resizingRowId === row.id ? 'none' : 'flex-basis 0.2s ease, max-width 0.2s ease' // Smooth transition unless resizing
-                        }}
-                      >
-                        <BlockWrapper
-                          block={block}
-                          pageBreak={pageBreaks[block.id]}
-                          onUpdate={updateBlock}
-                          onDelete={deleteBlock}
-                          onAddAfter={addBlock}
-                          setBlockRef={setBlockRef}
-                          onMove={moveBlock}
-                          allBlocks={blocks}
-                          usedCategories={usedCategories}
-                          isRightColumn={isRightColumn}
-                          iconOnRight={iconOnRight}
-                        />
-                      </div>
-                      {/* Insert Resizer between blocks */}
-                      {blockIndex === 0 && row.blocks.length === 2 && (
+                    return (
+                      <React.Fragment key={block.id}>
                         <div 
-                          className={`column-resizer ${resizingRowId === row.id ? 'resizing' : ''}`}
-                          style={{ left: `${(row.columnRatio || 0.5) * 100}%` }}
-                          onMouseDown={(e) => onResizeStart(e, row.id, row.columnRatio)}
-                        />
-                      )}
-                    </React.Fragment>
-                  );
-                })}
+                          style={{ 
+                            flex: row.blocks.length === 2 ? `0 0 calc(${flexBasis} - 10px)` : '1 1 100%',
+                            maxWidth: row.blocks.length === 2 ? `calc(${flexBasis} - 10px)` : '100%',
+                            minWidth: 0,
+                            position: 'relative',
+                            transition: resizingRowId === row.id ? 'none' : 'flex-basis 0.2s ease, max-width 0.2s ease'
+                          }}
+                        >
+                          <BlockWrapper
+                            block={block}
+                            pageBreak={false}
+                            onUpdate={updateBlock}
+                            onDelete={deleteBlock}
+                            onAddAfter={addBlock}
+                            onMove={moveBlock}
+                            allBlocks={rows.flatMap(r => r.blocks)}
+                            usedCategories={usedCategories}
+                            isRightColumn={isRightColumn}
+                            iconOnRight={iconOnRight}
+                          />
+                        </div>
+                        {blockIndex === 0 && row.blocks.length === 2 && (
+                          <div 
+                            className={`column-resizer ${resizingRowId === row.id ? 'resizing' : ''}`}
+                            style={{ left: `${(row.columnRatio || 0.5) * 100}%` }}
+                            onMouseDown={(e) => onResizeStart(e, row.id, row.columnRatio)}
+                          />
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              ))}
               </div>
-            ))}
             </div>
             
-            {/* Footer on every page - positioned at bottom */}
-            <SOPFooter 
-              variant={footerVariant}
-              onVariantChange={setFooterVariant}
-            />
-          </div>
+            {/* Footer - fixed at bottom of every page, full width */}
+            <div style={{ 
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              width: '100%',
+            }}>
+              <SOPFooter 
+                variant={footerVariant}
+                onVariantChange={setFooterVariant}
+              />
+            </div>
+          </Page>
         ))}
       </div>
     </div>

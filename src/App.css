@@ -9,6 +9,16 @@
     zoom: 1 !important;
     transform: none !important;
   }
+
+  /* Page break element triggers new page in print */
+  .page-break {
+    display: block;
+    page-break-before: always !important;
+    break-before: page !important;
+    height: 0;
+    margin: 0;
+    padding: 0;
+  }
   
   /* Zoom beim Drucken zurücksetzen - KRITISCH für korrektes Druckergebnis */
   #zoom-wrapper {
@@ -30,25 +40,6 @@
     margin: 8mm; /* Equal margins on all sides */
   }
   
-  /* Unified padding for all pages in print - 32px on all sides */
-  .page-container {
-    padding-left: 32px !important;
-    padding-right: 32px !important;
-    padding-bottom: 32px !important;
-    position: relative !important;
-    display: flex !important;
-    flex-direction: column !important;
-    min-height: 297mm !important;
-  }
-  
-  .page-container:first-child {
-    padding-top: 32px !important;
-  }
-  
-  .page-container:not(:first-child) {
-    padding-top: 64px !important;
-  }
-  
   /* Header styles for print */
   .sop-header {
     display: flex !important;
@@ -64,16 +55,13 @@
   
   /* Footer styles for print */
   .sop-footer {
-    position: absolute !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
     width: 100% !important;
     padding-top: 16px !important;
-    padding-left: 46px !important;
-    padding-right: 46px !important;
-    padding-bottom: 46px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    padding-bottom: 16px !important;
     overflow: visible !important;
+    margin-top: auto !important;
   }
   
   /* Footer content gap - ensure 16px spacing between elements */
@@ -123,15 +111,22 @@
   }
   
   /* Ensure caption boxes are correctly positioned in print - centered on border */
-  /* Caption box height: 4px (top padding) + 12px (font-size with line-height 1.5 = 18px total) + 4px (bottom padding) = 20px */
-  /* Border is 1.5px thick, so to center: move up by (20px / 2) = 10px */
-  /* IMPORTANT: Use margin-top instead of top for better html2canvas compatibility */
   .content-box-block .caption-container {
     left: 26px !important;
-    top: 0 !important; /* Reset top */
-    margin-top: -10px !important; /* Use margin instead - better for html2canvas */
+    top: 0 !important;
+    margin-top: -10px !important;
     position: absolute !important;
     transform: none !important;
+  }
+  
+  /* Page breaks in print mode */
+  .page-break {
+    display: block;
+    page-break-before: always !important;
+    break-before: page !important;
+    height: 0;
+    margin: 0;
+    padding: 0;
   }
   
   /* Ensure caption box border radius matches editor exactly (6px) - very specific selector */
@@ -243,29 +238,42 @@
     page-break-inside: avoid;
   }
 
-  /* A4 Page Layout with padding */
+  /* Editor container for print */
   .editor {
     width: 100% !important;
     max-width: none !important;
     margin: 0;
     padding: 0;
     background: white;
-  }
-
-  /* Page container with padding for print */
-  .page-container {
-    width: 100% !important;
-    max-width: none !important;
-    padding: 0 12mm 8mm 12mm; /* Padding-top is set separately above, horizontal and bottom padding to prevent clipping */
-    min-height: auto;
-    margin: 0 !important;
-    box-shadow: none !important;
-    border-radius: 0 !important; /* Remove border radius in print */
-    background: white !important; /* Remove texture in print - pure white */
-    background-image: none !important; /* Remove paper texture for print */
-    page-break-after: always;
-    break-after: page;
     box-sizing: border-box;
+  }
+  
+  /* A4 Pages for print */
+  .a4-page {
+    width: 100% !important;
+    min-height: 100vh !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 32px !important;
+    box-shadow: none !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* Last page shouldn't force a page break after */
+  .a4-page:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+  
+  /* Page content for print */
+  .page-content {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    flex: 1 !important;
   }
   
   /* Row layout for print - dynamically single or two column */
@@ -285,12 +293,6 @@
   /* Single column boxes should be indented 14px on the right side */
   .block-row.single-column .content-box-block {
     margin-right: 14px !important;
-  }
-
-  /* Last page should not have page break after */
-  .page-container:last-child {
-    page-break-after: auto;
-    break-after: auto;
   }
 
   /* Prevent content boxes from breaking across pages */
@@ -607,19 +609,60 @@ body.export-ready .page-container {
   }
 }
 
-/* Screen view - simulate A4 pages with visible page breaks */
+/* Screen view - A4 pages with Google Docs-style presentation */
 @media screen {
+  /* Editor container - now just holds the pages */
   .editor {
-    width: 210mm;
+    width: 100%;
+    max-width: none;
     margin: 0 auto;
     padding: 0;
     background: transparent;
+    box-shadow: none;
+    border: none;
+    box-sizing: border-box;
     display: block;
     position: relative;
   }
   
-  /* Ensure editor content stays white in dark mode */
-    /* Pages and content remain white for PDF preview */
+  /* Individual A4 page styling */
+  .a4-page {
+    width: 210mm;
+    height: 297mm; /* Fixed height for consistent page size */
+    margin: 20px auto;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: visible; /* Allow hover buttons to extend outside */
+    box-sizing: border-box;
+    padding: 32px 32px 0 32px; /* top right bottom left - bottom is 0 */
+    border-radius: 8px; /* Same as toolbar (rounded-lg) */
+  }
+  
+  /* First page - reduced top margin to match toolbar gap */
+  .a4-page[data-first-page="true"] {
+    margin-top: 12px;
+  }
+  
+  /* Dark mode - enhance page shadow */
+  .dark .a4-page {
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.2),
+      0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Page content wrapper */
+  .page-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  
+  /* Footer positioning in screen mode - fixed at bottom */
+  .a4-page .sop-footer {
+    width: 100%;
+  }
   
   /* Drag and Drop styles */
 .drop-indicator {
@@ -683,94 +726,13 @@ body.export-ready .page-container {
     cursor: grabbing;
   }
 
-  /* Page container styling for screen view */
-  /* Editor pages always stay white, even in dark mode */
-  .page-container {
-    width: 210mm;
-    min-height: 297mm; /* Full A4 height - always maintain minimum A4 dimensions */
-    margin: 0 auto 24mm auto; /* Increased space between pages for better breathing room */
-    padding-left: 32px !important;
-    padding-right: 32px !important;
-    padding-bottom: 32px !important;
-    background: white !important; /* Always white for PDF preview */
-    /* Paper texture - only visible on screen */
-    background-image: 
-      repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.04) 0px,
-        transparent 1px,
-        transparent 2px,
-        rgba(0, 0, 0, 0.04) 3px
-      ),
-      repeating-linear-gradient(
-        90deg,
-        rgba(0, 0, 0, 0.04) 0px,
-        transparent 1px,
-        transparent 2px,
-        rgba(0, 0, 0, 0.04) 3px
-      ),
-      radial-gradient(
-        circle at 20% 80%,
-        rgba(0, 0, 0, 0.025) 0%,
-        transparent 50%
-      ),
-      radial-gradient(
-        circle at 80% 20%,
-        rgba(0, 0, 0, 0.025) 0%,
-        transparent 50%
-      ),
-      radial-gradient(
-        circle at 50% 50%,
-        rgba(0, 0, 0, 0.015) 0%,
-        transparent 100%
-      ),
-      white;
-    box-shadow: 
-      0 4px 6px -1px rgba(0, 0, 0, 0.1),
-      0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    border: 1px solid hsl(var(--border));
-    box-sizing: border-box;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    border-radius: 8px; /* Match Toolbar and ZoomBox (rounded-lg) */
-    z-index: 10; /* Ensure page is above controls when hidden */
-  }
-  
-  /* First page padding-top */
-  .page-container:first-child {
-    padding-top: 32px !important;
-  }
-  
-  /* Following pages - double padding-top */
-  .page-container:not(:first-child) {
-    padding-top: 64px !important;
-  }
-  
-  /* In dark mode, add stronger shadow for better visibility */
-  .dark .page-container {
-    box-shadow: 
-      0 10px 15px -3px rgba(0, 0, 0, 0.3),
-      0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  /* Page break styles for screen mode - now visible */
+  .page-break {
+    display: block;
+    width: 100%;
   }
 
-  /* Visual page break indicator */
-  .page-break-indicator {
-    position: absolute;
-    top: -12mm;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: repeating-linear-gradient(
-      to right,
-      #3399FF 0px, /* SOP Accent Light Blue */
-      #3399FF 10px,
-      transparent 10px,
-      transparent 20px
-    );
-    pointer-events: none;
-    opacity: 0.6;
-  }
+  /* Visual page break indicator already styled inline in PageBreak component */
 
 
   /* Column Resizer Styles */

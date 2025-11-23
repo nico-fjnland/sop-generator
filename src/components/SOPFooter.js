@@ -370,8 +370,8 @@ const SOPFooter = ({ variant: initialVariant = 'tiny', onVariantChange }) => {
             borderRadius: '6px',
             paddingTop: variant === 'x-large' ? '24px' : '16px',
             paddingBottom: '12px',
-            paddingLeft: '32px',
-            paddingRight: '32px',
+            paddingLeft: '26px',
+            paddingRight: '26px',
             width: '100%'
           }}>
             {renderFooterContent()}
