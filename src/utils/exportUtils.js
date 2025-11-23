@@ -343,7 +343,7 @@ export const exportAsWord = async (containerRef, title = 'SOP Überschrift', sta
   // Wait for clone to render
   await new Promise(resolve => setTimeout(resolve, 100));
   
-  const pages = Array.from(clone.querySelectorAll('.page-container'));
+  const pages = Array.from(clone.querySelectorAll('.a4-page'));
   
   if (!pages || pages.length === 0) {
     removePrintClone({ clone, styleElement });
@@ -424,7 +424,7 @@ export const exportAsPdf = async (containerRef, title = 'SOP Überschrift', stan
   // Wait for clone to render
   await new Promise(resolve => setTimeout(resolve, 100));
   
-  const pages = Array.from(clone.querySelectorAll('.page-container'));
+  const pages = Array.from(clone.querySelectorAll('.a4-page'));
   
   if (!pages || pages.length === 0) {
     removePrintClone({ clone, styleElement });
@@ -503,7 +503,7 @@ export const exportMultipleDocuments = async (documentIds, format = 'pdf', onPro
       tempContainer.style.minHeight = '297mm';
       tempContainer.style.background = 'white';
       tempContainer.style.zIndex = '-1';
-      tempContainer.className = 'page-container';
+      tempContainer.className = 'a4-page';
       
       // Build the document HTML structure
       // Note: This is a simplified version. For full rendering with all features,

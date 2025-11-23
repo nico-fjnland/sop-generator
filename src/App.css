@@ -177,7 +177,7 @@
   }
   
   /* Ensure page container and editor don't clip icons */
-  .page-container,
+  .a4-page,
   .editor {
     overflow: visible !important;
   }
@@ -478,7 +478,7 @@
 
 /* Styles for export mode */
 /* Minimal changes - just disable animations and hide no-print */
-.exporting-mode .page-container {
+.exporting-mode .a4-page {
   animation: none !important;
   transform: none !important;
 }
@@ -587,7 +587,7 @@ body.export-ready .no-print {
 }
 
 /* Disable animations during export */
-body.export-ready .page-container {
+body.export-ready .a4-page {
   animation: none !important;
   transform: none !important;
 }
@@ -596,7 +596,7 @@ body.export-ready .page-container {
 /* Pages now appear immediately without animation */
 
 @media screen {
-  .page-container {
+  .a4-page {
     /* Animation disabled - pages appear immediately */
     opacity: 1;
     transform: none;
@@ -604,7 +604,7 @@ body.export-ready .page-container {
 }
 
 @media print {
-  .page-container {
+  .a4-page {
     animation: none !important;
   }
 }
