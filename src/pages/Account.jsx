@@ -48,8 +48,8 @@ const SopsView = React.memo(({
   documents, loadingDocs, selectedDocs, toggleSelectAll, handleBulkExport,
   triggerImport, navigate, handleOpenDocument, handleDeleteDocument, toggleDocSelection
 }) => (
-  <div className="page-container bg-white shadow-lg">
-    <div className="space-y-6 py-6">
+  <div className="page-container bg-white shadow-lg rounded-lg">
+    <div className="space-y-6 p-8">
       {/* Header */}
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">Meine Leitfäden</h1>
@@ -145,8 +145,8 @@ const SopsView = React.memo(({
 
 // TemplatesView Component
 const TemplatesView = React.memo(() => (
-  <div className="page-container bg-white shadow-lg">
-    <div className="space-y-6 py-6">
+  <div className="page-container bg-white shadow-lg rounded-lg">
+    <div className="space-y-6 p-8">
       {/* Header */}
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">SOP Templates</h1>
@@ -176,8 +176,8 @@ const ProfileView = React.memo(({
   confirmPassword, setConfirmPassword, updatingPassword, updatePassword, isDeletingAccount,
   handleDeleteAccount
 }) => (
-  <div className="page-container bg-white shadow-lg">
-    <div className="space-y-8 py-6">
+  <div className="page-container bg-white shadow-lg rounded-lg">
+    <div className="space-y-8 p-8">
       {/* Header */}
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">Profil & Einstellungen</h1>
@@ -1048,7 +1048,7 @@ export default function Account() {
         progress={exportProgress}
       />
       
-      <div className="flex flex-col items-center w-full">
+      <div className="flex flex-col items-center w-full mb-12">
         {/* Toolbar - Aufgeteilt in zwei Teile (wie im Editor) */}
         <div className="no-print flex items-center gap-3 mt-6 mb-4 w-full max-w-[210mm]">
           {/* Linke Toolbar - Navigation */}
