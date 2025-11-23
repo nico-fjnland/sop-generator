@@ -132,7 +132,7 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
   return (
     <div 
       ref={blockRef} 
-      className="block-wrapper mb-4 relative group"
+      className="block-wrapper mb-1 relative group"
       data-block-id={block.id}
       onMouseEnter={() => setShowDeleteButton(true)}
       onMouseLeave={() => setShowDeleteButton(false)}

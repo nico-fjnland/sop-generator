@@ -1,0 +1,58 @@
+/* TipTap Editor Styling */
+.tiptap-wrapper .tiptap-editor {
+  min-height: 18px;
+  overflow: visible;
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #003366;
+  margin: 0;
+  padding: 0;
+  outline: none;
+}
+
+.tiptap-wrapper .tiptap-editor:focus {
+  outline: none;
+}
+
+.tiptap-wrapper .tiptap-paragraph {
+  margin: 0;
+  padding: 0;
+}
+
+.tiptap-wrapper .bullet-list {
+  margin: 0;
+  padding-left: 20px;
+  list-style-type: disc;
+}
+
+.tiptap-wrapper .bullet-list li {
+  margin: 0;
+  padding: 0;
+}
+
+/* Placeholder styling */
+.tiptap-wrapper .tiptap-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
+
+.tiptap-wrapper .ProseMirror-focused {
+  outline: none;
+}
+
+.tiptap-wrapper .ProseMirror {
+  outline: none;
+}
+
+/* Print styles */
+@media print {
+  .tiptap-wrapper .tiptap-editor {
+    color: black;
+  }
+}
+

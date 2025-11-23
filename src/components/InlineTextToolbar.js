@@ -15,9 +15,10 @@ const TOOLBAR_BUTTONS = [
 
 const InlineTextToolbar = ({
   visible,
-  position,
+  position = { top: 0, left: 0 },
   activeStates = {},
   onCommand,
+  usePortal = true, // Set to false when used with TipTap's BubbleMenu
 }) => {
   if (!visible) {
     return null;
@@ -26,10 +27,10 @@ const InlineTextToolbar = ({
   const toolbar = (
     <div
       className="inline-text-toolbar pointer-events-auto flex items-center gap-1 p-1 bg-popover rounded-lg border border-border"
-      style={{
+      style={usePortal ? {
         top: Math.max(position.top, 8),
         left: position.left,
-      }}
+      } : {}}
     >
       {TOOLBAR_BUTTONS.map((button) => {
         const Icon = button.icon;
@@ -53,7 +54,8 @@ const InlineTextToolbar = ({
     </div>
   );
 
-  return createPortal(toolbar, document.body);
+  // When used with TipTap's BubbleMenu, don't use portal (BubbleMenu handles it)
+  return usePortal ? createPortal(toolbar, document.body) : toolbar;
 };
 
 export default InlineTextToolbar;

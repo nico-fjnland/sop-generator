@@ -528,7 +528,7 @@ const ContentBoxBlock = ({
 
             {/* Content area */}
             <div 
-              className="content-box-content flex flex-col gap-[8px] pb-[12px] pt-[24px] px-[26px]"
+              className="content-box-content flex flex-col gap-[8px] pt-[24px] px-[26px]"
               style={{
                 fontFamily: "'Roboto', sans-serif",
                 fontSize: '12px',
