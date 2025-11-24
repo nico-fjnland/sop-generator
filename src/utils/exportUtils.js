@@ -175,6 +175,12 @@ const createPrintClone = (containerRef) => {
       zoom: 1 !important;
     }
     
+    /* WICHTIG: A4-Pages ohne Margin im Export - nur der reine Container */
+    .export-clone .a4-page {
+      margin: 0 !important;
+      box-shadow: none !important;
+    }
+    
     .export-clone .no-print {
       display: none !important;
       visibility: hidden !important;
@@ -261,7 +267,7 @@ const createPrintClone = (containerRef) => {
     .export-clone .sop-header img[alt="Logo"],
     .export-clone .sop-header svg[width="87.6"] {
       max-width: 100% !important;
-      height: 49.2px !important;
+      height: 54.12px !important;
       width: auto !important;
       object-fit: contain !important;
       object-position: right center !important;
@@ -279,9 +285,15 @@ const createPrintClone = (containerRef) => {
     .export-clone .content-box-block .caption-container .caption-box-print,
     .export-clone .content-box-block .caption-box-print[class*="print:block"],
     .export-clone .content-box-block .caption-container .hidden.print\\:block {
+      border: 2px solid white !important;
       border-radius: 4px !important;
       -webkit-border-radius: 4px !important;
       -moz-border-radius: 4px !important;
+    }
+    
+    .export-clone .content-box-block .caption-box-print p {
+      font-size: 9px !important;
+      line-height: 9px !important;
     }
   `;
   

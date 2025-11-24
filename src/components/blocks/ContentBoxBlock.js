@@ -30,7 +30,7 @@ export const CATEGORIES = [
   { 
     id: 'symptome', 
     label: 'Symptome', 
-    color: '#003366', 
+    color: '#004D99', 
     bgColor: '#E5F2FF',
     iconComponent: CategoryIcons.symptome
   },
@@ -447,7 +447,7 @@ const ContentBoxBlock = ({
         {/* Text container - Box with colored border */}
         <div className="relative flex-1 min-w-0">
           <div 
-            className="bg-white border-[1.5px] border-solid relative rounded-[6px] min-h-[50px] w-full notion-box-shell"
+            className="bg-white border-[1.8px] border-solid relative rounded-[6px] min-h-[50px] w-full notion-box-shell"
             style={{
               borderColor: category.color,
             }}
@@ -470,7 +470,7 @@ const ContentBoxBlock = ({
                       }}
                     >
                       <p 
-                        className="font-semibold italic text-[8px] text-white uppercase tracking-[1.05px] whitespace-nowrap leading-[12px]"
+                        className="font-semibold italic text-[10px] text-white uppercase tracking-[1.05px] whitespace-nowrap leading-[10px]"
                         style={{ fontFamily: "'Roboto', sans-serif" }}
                       >
                         {category.label}
@@ -509,7 +509,7 @@ const ContentBoxBlock = ({
 
                 {/* Static caption for print */}
                 <div
-                  className="caption-box-print box-border flex items-center relative shrink-0 hidden print:block"
+                  className="caption-box-print border-2 border-solid border-white box-border flex items-center relative shrink-0 hidden print:block"
                   style={{
                     backgroundColor: category.color,
                     borderRadius: '6px',
@@ -517,7 +517,7 @@ const ContentBoxBlock = ({
                   }}
                 >
                   <p 
-                    className="font-semibold italic text-[8px] text-white uppercase tracking-[1.05px] whitespace-nowrap leading-[12px]"
+                    className="font-semibold italic text-[10px] text-white uppercase tracking-[1.05px] whitespace-nowrap leading-[10px]"
                     style={{ fontFamily: "'Roboto', sans-serif" }}
                   >
                     {category.label}

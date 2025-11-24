@@ -47,7 +47,7 @@
     align-items: flex-start !important;
     width: 100% !important;
     margin-bottom: 1.5rem !important;
-    padding-top: 14px !important;
+    padding-top: 0 !important;
     padding-bottom: 14px !important;
     padding-left: 14px !important;
     padding-right: 14px !important;
@@ -133,6 +133,7 @@
   .content-box-block .caption-container .caption-box-print,
   .content-box-block .caption-box-print[class*="print:block"],
   .content-box-block .caption-container .hidden.print\:block {
+    border: 2px solid white !important;
     border-radius: 6px !important;
     -webkit-border-radius: 6px !important;
     -moz-border-radius: 6px !important;
@@ -186,6 +187,12 @@
   .content-box-block div[class*="print:block"] p,
   .content-box-block .hidden.print\:block p {
     color: #fff !important;
+  }
+  
+  /* Caption text size in print */
+  .content-box-block .caption-box-print p {
+    font-size: 9px !important;
+    line-height: 9px !important;
   }
   
   /* Ensure header text colors are correct in print */
@@ -254,7 +261,7 @@
     min-height: 100vh !important;
     max-height: none !important;
     margin: 0 !important;
-    padding: 32px !important;
+    padding: 16px 32px 32px 32px !important;
     box-shadow: none !important;
     page-break-after: always !important;
     break-after: page !important;
@@ -302,6 +309,11 @@
     margin-bottom: 1.5rem !important; /* Increased spacing between boxes in print */
     display: block;
     overflow: visible !important; /* Allow icon to extend beyond container */
+  }
+  
+  /* Increase border width in print for better visibility */
+  .content-box-block .notion-box-shell {
+    border-width: 2px !important;
   }
 
   /* Ensure boxes don't break across pages */
@@ -635,7 +647,7 @@ body.export-ready .a4-page {
     position: relative;
     overflow: visible; /* Allow hover buttons to extend outside */
     box-sizing: border-box;
-    padding: 32px 32px 0 32px; /* top right bottom left - bottom is 0 */
+    padding: 16px 32px 0 32px; /* top right bottom left - bottom is 0 */
     border-radius: 8px; /* Same as toolbar (rounded-lg) */
   }
   

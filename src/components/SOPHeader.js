@@ -141,7 +141,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
   };
 
   return (
-    <div className="sop-header mb-8 print:mb-6" style={{ 
+    <div className="sop-header mb-4" style={{ 
       display: 'flex', 
       justifyContent: 'space-between', 
       alignItems: 'center',
@@ -184,7 +184,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               style={{ 
                 fontFamily: "'Quicksand', sans-serif",
                 fontWeight: 600,
-                fontSize: '10px',
+                fontSize: '12px',
                 color: '#003366',
                 letterSpacing: '2px',
                 textTransform: 'uppercase',
@@ -204,7 +204,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               style={{ 
                 fontFamily: "'Quicksand', sans-serif",
                 fontWeight: 600,
-                fontSize: '10px',
+                fontSize: '12px',
                 color: '#003366',
                 letterSpacing: '2px',
                 textTransform: 'uppercase',
@@ -221,7 +221,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
             style={{ 
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 600,
-              fontSize: '10px',
+              fontSize: '12px',
               color: '#003366',
               letterSpacing: '2px',
               textTransform: 'uppercase',
@@ -245,7 +245,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
             style={{ 
               fontFamily: "'Roboto', sans-serif",
               fontWeight: 600,
-              fontSize: '26px',
+              fontSize: '32px',
               color: '#003366',
               letterSpacing: '1.04px',
               textTransform: 'uppercase',
@@ -265,7 +265,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
             style={{ 
               fontFamily: "'Roboto', sans-serif",
               fontWeight: 600,
-              fontSize: '26px',
+              fontSize: '32px',
               color: '#003366',
               letterSpacing: '1.04px',
               textTransform: 'uppercase',
@@ -283,7 +283,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
           style={{ 
             fontFamily: "'Roboto', sans-serif",
             fontWeight: 600,
-            fontSize: '26px',
+            fontSize: '32px',
             color: '#003366',
             letterSpacing: '1.04px',
             textTransform: 'uppercase',
@@ -332,7 +332,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                 alt="Firmenlogo" 
                 style={{ 
                   maxWidth: '100%', 
-                  height: '49.2px', 
+                  height: '54.12px', 
                   width: 'auto',
                   objectFit: 'contain',
                   objectPosition: 'right center'
@@ -344,7 +344,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                 alt="Logo" 
                 style={{ 
                   maxWidth: '100%', 
-                  height: '49.2px', 
+                  height: '54.12px', 
                   width: 'auto',
                   objectFit: 'contain',
                   objectPosition: 'right center'

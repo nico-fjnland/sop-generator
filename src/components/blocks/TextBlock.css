@@ -28,8 +28,12 @@
 }
 
 .tiptap-wrapper .bullet-list li {
-  margin: 0;
+  margin: 0 0 2px 0;
   padding: 0;
+}
+
+.tiptap-wrapper .bullet-list li:last-child {
+  margin-bottom: 0;
 }
 
 .tiptap-wrapper .ordered-list {
@@ -39,8 +43,12 @@
 }
 
 .tiptap-wrapper .ordered-list li {
-  margin: 0;
+  margin: 0 0 2px 0;
   padding: 0;
+}
+
+.tiptap-wrapper .ordered-list li:last-child {
+  margin-bottom: 0;
 }
 
 /* Placeholder styling - TipTap Placeholder Extension */
