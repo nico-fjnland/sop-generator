@@ -4,8 +4,14 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
+import Image from '@tiptap/extension-image';
+import Placeholder from '@tiptap/extension-placeholder';
 import { Mark, mergeAttributes } from '@tiptap/core';
+import { ReactRenderer } from '@tiptap/react';
+import tippy from 'tippy.js';
 import InlineTextToolbar from '../InlineTextToolbar';
+import SlashMenu from '../SlashMenu';
+import { SlashCommand } from '../extensions/SlashCommand';
 import './TextBlock.css';
 
 // Custom extension for smaller font size (10px)
@@ -52,6 +58,11 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
             class: 'bullet-list',
           },
         },
+        orderedList: {
+          HTMLAttributes: {
+            class: 'ordered-list',
+          },
+        },
         listItem: {},
         bold: {},
         italic: {},
@@ -73,12 +84,82 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       Subscript,
       Superscript,
       SmallFont,
+      Placeholder.configure({
+        placeholder: 'Schreibe oder gib "/" für Befehle ein',
+      }),
+      Image.configure({
+        HTMLAttributes: {
+          class: 'tiptap-image',
+        },
+        inline: true,
+        allowBase64: true,
+      }),
+      SlashCommand.configure({
+        suggestion: {
+          items: () => {
+            return [];
+          },
+          render: () => {
+            let component;
+            let popup;
+
+            return {
+              onStart: (props) => {
+                component = new ReactRenderer(SlashMenu, {
+                  props,
+                  editor: props.editor,
+                });
+
+                if (!props.clientRect) {
+                  return;
+                }
+
+                popup = tippy('body', {
+                  getReferenceClientRect: props.clientRect,
+                  appendTo: () => document.body,
+                  content: component.element,
+                  showOnCreate: true,
+                  interactive: true,
+                  trigger: 'manual',
+                  placement: 'bottom-start',
+                  arrow: false,
+                });
+              },
+
+              onUpdate(props) {
+                component.updateProps(props);
+
+                if (!props.clientRect) {
+                  return;
+                }
+
+                popup[0].setProps({
+                  getReferenceClientRect: props.clientRect,
+                });
+              },
+
+              onKeyDown(props) {
+                if (props.event.key === 'Escape') {
+                  popup[0].hide();
+                  return true;
+                }
+
+                return component.ref?.onKeyDown(props);
+              },
+
+              onExit() {
+                popup[0].destroy();
+                component.destroy();
+              },
+            };
+          },
+        },
+      }),
     ],
     content: content || '',
     editorProps: {
       attributes: {
         class: 'tiptap-editor',
-        'data-placeholder': 'Text eingeben...',
       },
     },
     onUpdate: ({ editor }) => {
@@ -193,6 +274,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       fontSize: editor.isActive('smallFont'),
       superscript: editor.isActive('superscript'),
       subscript: editor.isActive('subscript'),
+      bulletList: editor.isActive('bulletList'),
     };
   };
 
@@ -218,6 +300,9 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
         break;
       case 'subscript':
         editor.chain().focus().toggleSubscript().run();
+        break;
+      case 'bulletList':
+        editor.chain().focus().toggleBulletList().run();
         break;
       case 'removeFormat':
         editor.chain().focus().clearNodes().unsetAllMarks().run();

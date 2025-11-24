@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { TextB, TextItalic, TextUnderline, TextTSlash, TextSuperscript, TextSubscript, TextAa } from '@phosphor-icons/react';
+import { TextB, TextItalic, TextUnderline, TextTSlash, TextSuperscript, TextSubscript, TextAa, ListBullets } from '@phosphor-icons/react';
 import { Toggle } from './ui/toggle';
 
 const TOOLBAR_BUTTONS = [
@@ -10,6 +10,7 @@ const TOOLBAR_BUTTONS = [
   { id: 'fontSize', icon: TextAa, label: 'Kleinere Schrift', command: 'fontSize' },
   { id: 'superscript', icon: TextSuperscript, label: 'Hochgestellt', command: 'superscript' },
   { id: 'subscript', icon: TextSubscript, label: 'Tiefgestellt', command: 'subscript' },
+  { id: 'bulletList', icon: ListBullets, label: 'Aufzählungsliste', command: 'bulletList' },
   { id: 'clear', icon: TextTSlash, label: 'Formatierung entfernen', command: 'removeFormat' },
 ];
 
@@ -26,7 +27,7 @@ const InlineTextToolbar = ({
 
   const toolbar = (
     <div
-      className="inline-text-toolbar pointer-events-auto flex items-center gap-1 p-1 bg-popover rounded-lg border border-border"
+      className="inline-text-toolbar pointer-events-auto flex items-center gap-0.5 p-1 bg-popover rounded-lg border border-border"
       style={usePortal ? {
         top: Math.max(position.top, 8),
         left: position.left,
@@ -35,6 +36,7 @@ const InlineTextToolbar = ({
       {TOOLBAR_BUTTONS.map((button) => {
         const Icon = button.icon;
         const isActive = activeStates[button.id];
+        const isClearButton = button.id === 'clear';
         return (
           <Toggle
             key={button.id}
@@ -45,9 +47,13 @@ const InlineTextToolbar = ({
               event.preventDefault();
               onCommand(button.command);
             }}
-            className="h-8 w-8 p-1"
+            className={`h-8 w-8 p-1 ${isClearButton ? 'hover:bg-red-50 [&_svg]:text-red-500 hover:[&_svg]:!text-red-600' : ''}`}
           >
-            <Icon size={16} weight="bold" style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+            <Icon 
+              size={16} 
+              weight="bold" 
+              style={{ width: '16px', height: '16px', flexShrink: 0 }} 
+            />
           </Toggle>
         );
       })}

@@ -8,7 +8,8 @@ import { usePageBreaks } from '../hooks/usePageBreaks';
 import { useEditorHistory } from '../hooks/useEditorHistory';
 import { Button } from './ui/button';
 import { Spinner } from './ui/spinner';
-import { ArrowCounterClockwise, ArrowClockwise, Trash, Download, Upload, FileDoc, FileCode, FilePdf, Moon, Sun, Check, CloudArrowUp, Export, User, Globe, SignOut, ChatCircleDots, FileText, Layout } from '@phosphor-icons/react';
+import { UndoRedoButton } from './ui/undo-redo-button';
+import { Trash, Download, Upload, FileDoc, FileCode, FilePdf, Moon, Sun, Check, CloudArrowUp, Export, User, Globe, SignOut, ChatCircleDots, FileText, Layout } from '@phosphor-icons/react';
 import { exportAsJson, importFromJson, exportAsWord, exportAsPdf } from '../utils/exportUtils';
 import { useAuth } from '../contexts/AuthContext';
 import { saveDocument, getDocument, getDocuments } from '../services/documentService';
@@ -825,26 +826,16 @@ const Editor = () => {
           >
             <Trash size={18} />
           </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={undo} 
-            disabled={!canUndo}
-            title="Rückgängig (Ctrl+Z)"
-            className="h-8 w-8 text-[#003366]"
-          >
-            <ArrowCounterClockwise size={18} />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={redo} 
-            disabled={!canRedo}
-            title="Wiederholen (Ctrl+Y)"
-            className="h-8 w-8 text-[#003366]"
-          >
-            <ArrowClockwise size={18} />
-          </Button>
+          <UndoRedoButton
+            action="undo"
+            onAction={undo}
+            canExecute={canUndo}
+          />
+          <UndoRedoButton
+            action="redo"
+            onAction={redo}
+            canExecute={canRedo}
+          />
         </div>
         
         <div className="h-4 w-px bg-gray-200 mx-2" />
