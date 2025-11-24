@@ -8,6 +8,7 @@ import ListBlock from './blocks/ListBlock';
 import ImageBlock from './blocks/ImageBlock';
 import DividerBlock from './blocks/DividerBlock';
 import ContentBoxBlock from './blocks/ContentBoxBlock';
+import FlowchartBlock from './blocks/FlowchartBlock';
 import { X } from 'lucide-react';
 
 const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideContentBox = false, onDragStart, onDragEnd, isDragging, usedCategories = [], isRightColumn = false, iconOnRight = false }) => {
@@ -70,6 +71,8 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             onChange={(content) => onUpdate(block.id, content)}
             onKeyDown={handleKeyDown}
             isInsideContentBox={isInsideContentBox}
+            onAddAfter={isInsideContentBox ? onAddAfter : undefined}
+            blockId={block.id}
           />
         );
       case 'table':
@@ -95,6 +98,13 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
         );
       case 'divider':
         return <DividerBlock />;
+      case 'flowchart':
+        return (
+          <FlowchartBlock
+            content={block.content}
+            onChange={(content) => onUpdate(block.id, content)}
+          />
+        );
       case 'contentbox':
         return (
           <ContentBoxBlock

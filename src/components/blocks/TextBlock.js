@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useState, useCallback } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -40,13 +40,20 @@ const SmallFont = Mark.create({
   },
 });
 
-const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox = false }, ref) => {
+const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox = false, onAddAfter, blockId }, ref) => {
   // For non-content-box blocks, use simple textarea
   const textareaRef = React.useRef(null);
   
   // State for toolbar
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState({ top: 0, left: 0 });
+  
+  // Callback for adding flowchart blocks
+  const handleAddFlowchart = React.useCallback(() => {
+    if (onAddAfter && blockId) {
+      onAddAfter('flowchart', blockId);
+    }
+  }, [onAddAfter, blockId]);
   
   // TipTap editor for content boxes
   const editor = useEditor({
@@ -106,7 +113,10 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
             return {
               onStart: (props) => {
                 component = new ReactRenderer(SlashMenu, {
-                  props,
+                  props: {
+                    ...props,
+                    onAddFlowchart: handleAddFlowchart,
+                  },
                   editor: props.editor,
                 });
 
@@ -127,7 +137,10 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
               },
 
               onUpdate(props) {
-                component.updateProps(props);
+                component.updateProps({
+                  ...props,
+                  onAddFlowchart: handleAddFlowchart,
+                });
 
                 if (!props.clientRect) {
                   return;

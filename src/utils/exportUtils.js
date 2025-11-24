@@ -170,8 +170,8 @@ const createPrintClone = (containerRef) => {
       scale: 1 !important;
     }
     
-    .export-clone * {
-      transform: none !important;
+    /* Reset zoom for most elements, but preserve ReactFlow viewport transforms */
+    .export-clone *:not(.react-flow__viewport):not(.react-flow__viewport *):not(.react-flow__edge):not(.react-flow__node) {
       zoom: 1 !important;
     }
     
@@ -187,6 +187,34 @@ const createPrintClone = (containerRef) => {
       opacity: 0 !important;
       position: absolute !important;
       pointer-events: none !important;
+    }
+    
+    /* Hide all placeholder text in export */
+    .export-clone ::placeholder {
+      opacity: 0 !important;
+      color: transparent !important;
+    }
+    
+    .export-clone ::-webkit-input-placeholder {
+      opacity: 0 !important;
+      color: transparent !important;
+    }
+    
+    .export-clone ::-moz-placeholder {
+      opacity: 0 !important;
+      color: transparent !important;
+    }
+    
+    .export-clone :-ms-input-placeholder {
+      opacity: 0 !important;
+      color: transparent !important;
+    }
+    
+    /* Hide TipTap placeholder text in export */
+    .export-clone .tiptap-wrapper .tiptap-editor .is-editor-empty::before,
+    .export-clone .tiptap-wrapper .tiptap-editor .is-empty::before {
+      content: none !important;
+      display: none !important;
     }
     
     .export-clone .hidden.print\\:block {
@@ -291,9 +319,112 @@ const createPrintClone = (containerRef) => {
       -moz-border-radius: 4px !important;
     }
     
-    .export-clone .content-box-block .caption-box-print p {
+    .export-clone .content-box-block .caption-box-print p,
+    .export-clone .content-box-block .caption-container .caption-box-print p,
+    .export-clone .content-box-block div.caption-box-print p,
+    .export-clone .content-box-block .caption-box-print p.font-semibold,
+    .export-clone .content-box-block .caption-box-print p.italic,
+    .export-clone .content-box-block .caption-box-print p.text-white {
       font-size: 9px !important;
       line-height: 9px !important;
+    }
+    
+    /* Flowchart Block Export Styles */
+    .export-clone .flowchart-block-container {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      /* Preserve the actual height from the editor, don't override it */
+      overflow: hidden !important;
+    }
+    
+    .export-clone .flowchart-wrapper {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    
+    .export-clone .react-flow {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    
+    .export-clone .flowchart-toolbar,
+    .export-clone .flowchart-controls {
+      display: none !important;
+    }
+    
+    /* Hide background grid */
+    .export-clone .react-flow__background {
+      display: none !important;
+    }
+    
+    /* Hide helper lines SVG */
+    .export-clone svg.no-print {
+      display: none !important;
+    }
+    
+    /* Hide all handles */
+    .export-clone .react-flow__handle,
+    .export-clone .flowchart-custom-handle {
+      display: none !important;
+      visibility: hidden !important;
+    }
+    
+    /* Hide resize handle */
+    .export-clone .flowchart-resize-handle {
+      display: none !important;
+    }
+    
+    /* Remove shadows from flowchart nodes */
+    .export-clone .flowchart-node {
+      box-shadow: none !important;
+    }
+    
+    /* Keep viewport interactive elements disabled but preserve transforms */
+    .export-clone .react-flow__viewport {
+      pointer-events: none !important;
+      /* DO NOT override transform - ReactFlow needs it for positioning */
+    }
+    
+    .export-clone .react-flow__renderer {
+      pointer-events: none !important;
+    }
+    
+    /* Ensure nodes and edges preserve their positioning */
+    .export-clone .react-flow__node,
+    .export-clone .flowchart-node {
+      pointer-events: none !important;
+      /* Transform is needed for node positioning */
+    }
+    
+    .export-clone .react-flow__edge {
+      pointer-events: none !important;
+      /* Transform is needed for edge positioning */
+    }
+    
+    .export-clone .flowchart-node-input {
+      pointer-events: none !important;
+      cursor: default !important;
+    }
+    
+    /* Hide flowchart node placeholder text */
+    .export-clone .flowchart-node-input::placeholder {
+      opacity: 0 !important;
+      color: transparent !important;
+    }
+    
+    .export-clone .flowchart-node-input::-webkit-input-placeholder {
+      opacity: 0 !important;
+      color: transparent !important;
+    }
+    
+    .export-clone .flowchart-node-input::-moz-placeholder {
+      opacity: 0 !important;
+      color: transparent !important;
+    }
+    
+    .export-clone .flowchart-node-input:-ms-input-placeholder {
+      opacity: 0 !important;
+      color: transparent !important;
     }
   `;
   
@@ -612,7 +743,6 @@ export const exportMultipleDocuments = async (documentIds, format = 'pdf', onPro
  */
 export const exportMultipleDocumentsAsJson = async (documentIds, onProgress = null) => {
   const total = documentIds.length;
-  const exports = [];
 
   for (let i = 0; i < documentIds.length; i++) {
     const docId = documentIds[i];

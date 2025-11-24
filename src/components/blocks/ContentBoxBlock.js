@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GripVertical, X, Plus, Check, ChevronDown } from 'lucide-react';
+import { GripVertical, X, Plus, Check } from 'lucide-react';
 import Block from '../Block';
 import { CategoryIcons } from '../icons/CategoryIcons';
 import {
@@ -184,11 +184,11 @@ const ContentBoxBlock = ({
   }, [innerBlocks, updateContent]);
 
   const handleAddInnerBlock = useCallback((type, afterId = null) => {
-    // Only allow text blocks inside content boxes
+    // Allow text and flowchart blocks inside content boxes
     const newBlock = {
       id: Date.now().toString(),
-      type: 'text',
-      content: '',
+      type: type || 'text',
+      content: type === 'flowchart' ? { nodes: [{ id: '1', type: 'start', position: { x: 250, y: 50 }, data: { label: 'Start' } }], edges: [], nodeIdCounter: 2 } : '',
     };
 
     setInnerBlocks(prevBlocks => {
@@ -470,8 +470,12 @@ const ContentBoxBlock = ({
                       }}
                     >
                       <p 
-                        className="font-semibold italic text-[10px] text-white uppercase tracking-[1.05px] whitespace-nowrap leading-[10px]"
-                        style={{ fontFamily: "'Roboto', sans-serif" }}
+                        className="font-semibold italic text-white uppercase tracking-[1.05px] whitespace-nowrap"
+                        style={{ 
+                          fontFamily: "'Roboto', sans-serif",
+                          fontSize: '9px',
+                          lineHeight: '9px'
+                        }}
                       >
                         {category.label}
                       </p>
@@ -517,8 +521,12 @@ const ContentBoxBlock = ({
                   }}
                 >
                   <p 
-                    className="font-semibold italic text-[10px] text-white uppercase tracking-[1.05px] whitespace-nowrap leading-[10px]"
-                    style={{ fontFamily: "'Roboto', sans-serif" }}
+                    className="font-semibold italic text-white uppercase tracking-[1.05px] whitespace-nowrap"
+                    style={{ 
+                      fontFamily: "'Roboto', sans-serif",
+                      fontSize: '9px',
+                      lineHeight: '9px'
+                    }}
                   >
                     {category.label}
                   </p>

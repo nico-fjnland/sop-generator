@@ -189,8 +189,14 @@
     color: #fff !important;
   }
   
-  /* Caption text size in print */
-  .content-box-block .caption-box-print p {
+  /* Caption text size in print - very specific to override Tailwind classes */
+  .content-box-block .caption-box-print p,
+  .content-box-block .caption-container .caption-box-print p,
+  .content-box-block div.caption-box-print p,
+  .content-box-block .caption-box-print p.font-semibold,
+  .content-box-block .caption-box-print p.italic,
+  .content-box-block .caption-box-print p.text-white,
+  .content-box-block .caption-container > div > div.caption-box-print p {
     font-size: 9px !important;
     line-height: 9px !important;
   }
