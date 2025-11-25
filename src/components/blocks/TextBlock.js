@@ -200,6 +200,24 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     }
   }, [content, editor, isInsideContentBox]);
 
+  // Hide toolbar on scroll
+  useEffect(() => {
+    if (!isInsideContentBox) return;
+    
+    const handleScroll = () => {
+      if (showToolbar) {
+        setShowToolbar(false);
+      }
+    };
+
+    // Listen to scroll events on window and any scrollable parent
+    window.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [showToolbar, isInsideContentBox]);
+
   // Handle selection changes and toolbar positioning
   useEffect(() => {
     if (!editor || !isInsideContentBox) return;
@@ -221,7 +239,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       
       // Calculate toolbar position (centered above selection)
       const left = (start.left + end.right) / 2;
-      const top = start.top - 8; // 8px above selection
+      const top = start.top - 10; // 10px above selection
       
       setToolbarPosition({ top, left });
       setShowToolbar(true);

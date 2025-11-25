@@ -1,12 +1,17 @@
 import React, { useEffect, useCallback, useState, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
+import { Mark } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import Superscript from '@tiptap/extension-superscript';
+import Subscript from '@tiptap/extension-subscript';
 import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
 import { GripVertical, X, Plus, Check, MoreHorizontal } from 'lucide-react';
 import { Table as TableIcon } from '@phosphor-icons/react';
+import InlineTextToolbar from '../InlineTextToolbar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,6 +94,31 @@ const CustomTableHeader = TableHeader.extend({
   },
 });
 
+// Custom mark for smaller font size
+const SmallFont = Mark.create({
+  name: 'smallFont',
+  
+  parseHTML() {
+    return [
+      {
+        tag: 'span.small-font',
+      },
+    ];
+  },
+  
+  renderHTML() {
+    return ['span', { class: 'small-font' }, 0];
+  },
+  
+  addCommands() {
+    return {
+      toggleSmallFont: () => ({ commands }) => {
+        return commands.toggleMark(this.name);
+      },
+    };
+  },
+});
+
 const TipTapTableBlock = forwardRef(({ 
   content, 
   onChange,
@@ -105,6 +135,8 @@ const TipTapTableBlock = forwardRef(({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [tableTitle, setTableTitle] = useState('');
+  const [showToolbar, setShowToolbar] = useState(false);
+  const [toolbarPosition, setToolbarPosition] = useState({ top: 0, left: 0 });
   const containerRef = useRef(null);
   const titleInputRef = useRef(null);
 
@@ -181,9 +213,11 @@ const TipTapTableBlock = forwardRef(({
         codeBlock: false,
         blockquote: false,
         horizontalRule: false,
-        bulletList: false,
-        orderedList: false,
       }),
+      Underline,
+      Superscript,
+      Subscript,
+      SmallFont,
       Table.configure({
         resizable: true,
         HTMLAttributes: {
@@ -206,7 +240,33 @@ const TipTapTableBlock = forwardRef(({
       if (tableTitle || (typeof content === 'object' && content !== null)) {
         onChange({ table: html, title: tableTitle });
       } else {
-      onChange(html);
+        onChange(html);
+      }
+    },
+    onSelectionUpdate: ({ editor }) => {
+      const { selection } = editor.state;
+      const { from, to } = selection;
+      
+      // Check if this is a CellSelection (whole cells/rows selected)
+      // CellSelection has $anchorCell and $headCell properties
+      const isCellSelection = selection.$anchorCell !== undefined || 
+                              selection.$headCell !== undefined ||
+                              selection.isColSelection !== undefined ||
+                              selection.isRowSelection !== undefined;
+      
+      // Show toolbar only if there's a text selection (not just cursor and not cell selection)
+      if (from !== to && !isCellSelection) {
+        const start = editor.view.coordsAtPos(from);
+        const end = editor.view.coordsAtPos(to);
+        
+        // Calculate position (center of selection, close above it)
+        setToolbarPosition({
+          top: start.top - 10,
+          left: (start.left + end.left) / 2,
+        });
+        setShowToolbar(true);
+      } else {
+        setShowToolbar(false);
       }
     },
   }, []);
@@ -241,6 +301,22 @@ const TipTapTableBlock = forwardRef(({
       }
     }
   }, [content, editor, parseContent]);
+
+  // Hide toolbar on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (showToolbar) {
+        setShowToolbar(false);
+      }
+    };
+
+    // Listen to scroll events on window and any scrollable parent
+    window.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [showToolbar]);
 
   // Handle title change
   const handleTitleChange = useCallback((e) => {
@@ -300,6 +376,55 @@ const TipTapTableBlock = forwardRef(({
     editor.chain().focus().updateAttributes('tableCell', { backgroundColor: null }).run();
     editor.chain().focus().updateAttributes('tableHeader', { backgroundColor: null }).run();
   };
+
+  // Handle inline text toolbar commands
+  const handleToolbarCommand = useCallback((command) => {
+    if (!editor) return;
+
+    switch (command) {
+      case 'bold':
+        editor.chain().focus().toggleBold().run();
+        break;
+      case 'italic':
+        editor.chain().focus().toggleItalic().run();
+        break;
+      case 'underline':
+        editor.chain().focus().toggleUnderline().run();
+        break;
+      case 'superscript':
+        editor.chain().focus().toggleSuperscript().run();
+        break;
+      case 'subscript':
+        editor.chain().focus().toggleSubscript().run();
+        break;
+      case 'bulletList':
+        editor.chain().focus().toggleBulletList().run();
+        break;
+      case 'fontSize':
+        editor.chain().focus().toggleSmallFont().run();
+        break;
+      case 'removeFormat':
+        editor.chain().focus().clearNodes().unsetAllMarks().run();
+        break;
+      default:
+        break;
+    }
+  }, [editor]);
+
+  // Get active states for toolbar
+  const getActiveStates = useCallback(() => {
+    if (!editor) return {};
+    
+    return {
+      bold: editor.isActive('bold'),
+      italic: editor.isActive('italic'),
+      underline: editor.isActive('underline'),
+      superscript: editor.isActive('superscript'),
+      subscript: editor.isActive('subscript'),
+      bulletList: editor.isActive('bulletList'),
+      fontSize: editor.isActive('smallFont'),
+    };
+  }, [editor]);
 
   const handleAddBoxCategorySelect = (categoryId) => {
     if (!onAddBoxAfter) return;
@@ -504,6 +629,17 @@ const TipTapTableBlock = forwardRef(({
         </div>
       </div>
 
+      {/* Inline Text Toolbar */}
+      {showToolbar && editor && (
+        <InlineTextToolbar
+          visible={showToolbar}
+          position={toolbarPosition}
+          activeStates={getActiveStates()}
+          onCommand={handleToolbarCommand}
+          usePortal={true}
+        />
+      )}
+
       {/* Table with Notion-like options menu */}
       <div className="flex items-start w-full" style={{ paddingLeft: '14px', paddingRight: '14px' }}>
         <div className="tiptap-table-wrapper flex-1 relative">
@@ -579,28 +715,38 @@ const TipTapTableBlock = forwardRef(({
                 
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>Hintergrundfarbe</DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuItem onClick={() => clearCellBackgroundColor()}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border border-gray-300 rounded bg-white"></div>
-                        <span>Keine</span>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    {CATEGORIES.map((cat) => (
-                      <DropdownMenuItem
-                        key={cat.id}
-                        onClick={() => setCellBackgroundColor(cat.bgColor)}
+                  <DropdownMenuSubContent className="p-2">
+                    <div className="grid grid-cols-4 gap-2">
+                      {/* Keine Farbe / Zurücksetzen */}
+                      <div 
+                        className="w-7 h-7 border-2 border-gray-300 rounded bg-white cursor-pointer hover:border-gray-400 transition-colors flex items-center justify-center"
+                        title="Farbe zurücksetzen"
+                        onClick={() => clearCellBackgroundColor()}
                       >
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-4 h-4 rounded border border-gray-200" 
-                            style={{ backgroundColor: cat.bgColor }}
-                          ></div>
-                          <span>{cat.label}</span>
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
+                        <X className="h-4 w-4 text-gray-500" strokeWidth={2} />
+                      </div>
+                      
+                      {/* Dunkelblau (#036) - mit weißer Schrift */}
+                      <div
+                        className="w-7 h-7 rounded border border-gray-200 cursor-pointer hover:scale-110 transition-transform" 
+                        style={{ backgroundColor: '#003366' }}
+                        title="Dunkelblau"
+                        onClick={() => setCellBackgroundColor('#003366')}
+                      ></div>
+                      
+                      {/* Farbfelder - nur eine blaue und eine gelbe/orange Farbe */}
+                      {CATEGORIES.filter(cat => 
+                        !['ursachen', 'symptome', 'disposition'].includes(cat.id)
+                      ).map((cat) => (
+                        <div
+                          key={cat.id}
+                          className="w-7 h-7 rounded border border-gray-200 cursor-pointer hover:scale-110 transition-transform" 
+                          style={{ backgroundColor: cat.bgColor }}
+                          title={cat.label}
+                          onClick={() => setCellBackgroundColor(cat.bgColor)}
+                        ></div>
+                      ))}
+                    </div>
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
                 
