@@ -892,10 +892,13 @@ body.export-ready .a4-page {
 /* Default hover state - slide out to the right */
 .content-box-block:focus-within .notion-box-controls,
 .content-box-block:hover .notion-box-controls,
+.tiptap-table-block-wrapper:focus-within .notion-box-controls,
+.tiptap-table-block-wrapper:hover .notion-box-controls,
 .notion-box-controls:hover,
 /* Keep visible when dropdown is open (based on radix state attribute or class) */
 .notion-box-controls:has([data-state="open"]),
 .content-box-block:has([data-state="open"]) .notion-box-controls,
+.tiptap-table-block-wrapper:has([data-state="open"]) .notion-box-controls,
 .notion-box-controls.dropdown-open {
   opacity: 1 !important;
   transform: translateX(50px) translateY(-50%);
@@ -908,10 +911,13 @@ body.export-ready .a4-page {
 /* Left column specific overrides */
 .content-box-block:hover .notion-box-controls-left,
 .content-box-block:focus-within .notion-box-controls-left,
+.tiptap-table-block-wrapper:hover .notion-box-controls-left,
+.tiptap-table-block-wrapper:focus-within .notion-box-controls-left,
 .notion-box-controls-left:hover,
 .notion-box-controls-left:focus-within,
 .notion-box-controls-left:has([data-state="open"]),
 .content-box-block:has([data-state="open"]) .notion-box-controls-left,
+.tiptap-table-block-wrapper:has([data-state="open"]) .notion-box-controls-left,
 .notion-box-controls-left.dropdown-open {
   opacity: 1 !important;
   transform: translateX(-50px) translateY(-50%);
@@ -959,6 +965,8 @@ body.export-ready .a4-page {
 /* BUT only if we're not hovering over the icon */
 .content-box-block:hover .notion-box-controls::before,
 .content-box-block:focus-within .notion-box-controls::before,
+.tiptap-table-block-wrapper:hover .notion-box-controls::before,
+.tiptap-table-block-wrapper:focus-within .notion-box-controls::before,
 .notion-box-controls:hover::before,
 .notion-box-controls.dropdown-open::before {
   pointer-events: auto;
@@ -995,6 +1003,8 @@ body.export-ready .a4-page {
 /* BUT only if we're not hovering over the icon */
 .content-box-block:hover .notion-box-controls-left::before,
 .content-box-block:focus-within .notion-box-controls-left::before,
+.tiptap-table-block-wrapper:hover .notion-box-controls-left::before,
+.tiptap-table-block-wrapper:focus-within .notion-box-controls-left::before,
 .notion-box-controls-left:hover::before,
 .notion-box-controls-left.dropdown-open::before {
   pointer-events: auto;
@@ -1040,6 +1050,8 @@ body.export-ready .a4-page {
 /* First button (Drag) - appears first */
 .content-box-block:hover .notion-box-controls > .notion-control-button:nth-child(1),
 .content-box-block:focus-within .notion-box-controls > .notion-control-button:nth-child(1),
+.tiptap-table-block-wrapper:hover .notion-box-controls > .notion-control-button:nth-child(1),
+.tiptap-table-block-wrapper:focus-within .notion-box-controls > .notion-control-button:nth-child(1),
 .notion-box-controls:hover > .notion-control-button:nth-child(1) {
   opacity: 1;
   transform: translateX(0);
@@ -1054,9 +1066,13 @@ body.export-ready .a4-page {
 /* Second button (Add) - appears second */
 .content-box-block:hover .notion-box-controls > .notion-control-button:nth-child(2),
 .content-box-block:focus-within .notion-box-controls > .notion-control-button:nth-child(2),
+.tiptap-table-block-wrapper:hover .notion-box-controls > .notion-control-button:nth-child(2),
+.tiptap-table-block-wrapper:focus-within .notion-box-controls > .notion-control-button:nth-child(2),
 .notion-box-controls:hover > .notion-control-button:nth-child(2),
 .content-box-block:hover .notion-box-controls > div:nth-child(2) > button,
 .content-box-block:focus-within .notion-box-controls > div:nth-child(2) > button,
+.tiptap-table-block-wrapper:hover .notion-box-controls > div:nth-child(2) > button,
+.tiptap-table-block-wrapper:focus-within .notion-box-controls > div:nth-child(2) > button,
 .notion-box-controls:hover > div:nth-child(2) > button {
   opacity: 1;
   transform: translateX(0);
@@ -1072,6 +1088,8 @@ body.export-ready .a4-page {
 /* Third button (Delete) - appears third/last */
 .content-box-block:hover .notion-box-controls > .notion-control-button:nth-child(3),
 .content-box-block:focus-within .notion-box-controls > .notion-control-button:nth-child(3),
+.tiptap-table-block-wrapper:hover .notion-box-controls > .notion-control-button:nth-child(3),
+.tiptap-table-block-wrapper:focus-within .notion-box-controls > .notion-control-button:nth-child(3),
 .notion-box-controls:hover > .notion-control-button:nth-child(3) {
   opacity: 1;
   transform: translateX(0);
@@ -1099,6 +1117,8 @@ body.export-ready .a4-page {
 /* First button (Drag) - left column - appears first */
 .content-box-block:hover .notion-box-controls-left > .notion-control-button:nth-child(1),
 .content-box-block:focus-within .notion-box-controls-left > .notion-control-button:nth-child(1),
+.tiptap-table-block-wrapper:hover .notion-box-controls-left > .notion-control-button:nth-child(1),
+.tiptap-table-block-wrapper:focus-within .notion-box-controls-left > .notion-control-button:nth-child(1),
 .notion-box-controls-left:hover > .notion-control-button:nth-child(1) {
   opacity: 1;
   transform: translateX(0);
@@ -1113,9 +1133,13 @@ body.export-ready .a4-page {
 /* Second button (Add) - left column - appears second */
 .content-box-block:hover .notion-box-controls-left > .notion-control-button:nth-child(2),
 .content-box-block:focus-within .notion-box-controls-left > .notion-control-button:nth-child(2),
+.tiptap-table-block-wrapper:hover .notion-box-controls-left > .notion-control-button:nth-child(2),
+.tiptap-table-block-wrapper:focus-within .notion-box-controls-left > .notion-control-button:nth-child(2),
 .notion-box-controls-left:hover > .notion-control-button:nth-child(2),
 .content-box-block:hover .notion-box-controls-left > div:nth-child(2) > button,
 .content-box-block:focus-within .notion-box-controls-left > div:nth-child(2) > button,
+.tiptap-table-block-wrapper:hover .notion-box-controls-left > div:nth-child(2) > button,
+.tiptap-table-block-wrapper:focus-within .notion-box-controls-left > div:nth-child(2) > button,
 .notion-box-controls-left:hover > div:nth-child(2) > button {
   opacity: 1;
   transform: translateX(0);
@@ -1131,6 +1155,8 @@ body.export-ready .a4-page {
 /* Third button (Delete) - left column - appears third/last */
 .content-box-block:hover .notion-box-controls-left > .notion-control-button:nth-child(3),
 .content-box-block:focus-within .notion-box-controls-left > .notion-control-button:nth-child(3),
+.tiptap-table-block-wrapper:hover .notion-box-controls-left > .notion-control-button:nth-child(3),
+.tiptap-table-block-wrapper:focus-within .notion-box-controls-left > .notion-control-button:nth-child(3),
 .notion-box-controls-left:hover > .notion-control-button:nth-child(3) {
   opacity: 1;
   transform: translateX(0);
@@ -1170,7 +1196,9 @@ body.export-ready .a4-page {
 }
 
 .content-box-block:hover .notion-box-shell,
-.content-box-block:focus-within .notion-box-shell {
+.content-box-block:focus-within .notion-box-shell,
+.tiptap-table-block-wrapper:hover .tiptap-table-wrapper,
+.tiptap-table-block-wrapper:focus-within .tiptap-table-wrapper {
   box-shadow: 0 8px 24px rgba(0, 51, 102, 0.08), 0 2px 8px rgba(0, 51, 102, 0.04);
 }
 
@@ -1186,6 +1214,8 @@ body.export-ready .a4-page {
 /* Stagger for the wrapper itself */
 .content-box-block:hover .notion-control-with-menu,
 .content-box-block:focus-within .notion-control-with-menu,
+.tiptap-table-block-wrapper:hover .notion-control-with-menu,
+.tiptap-table-block-wrapper:focus-within .notion-control-with-menu,
 .notion-box-controls:hover .notion-control-with-menu {
   opacity: 1;
   transform: translateX(0);
@@ -1201,6 +1231,8 @@ body.export-ready .a4-page {
 
 .content-box-block:hover .notion-box-controls-left .notion-control-with-menu,
 .content-box-block:focus-within .notion-box-controls-left .notion-control-with-menu,
+.tiptap-table-block-wrapper:hover .notion-box-controls-left .notion-control-with-menu,
+.tiptap-table-block-wrapper:focus-within .notion-box-controls-left .notion-control-with-menu,
 .notion-box-controls-left:hover .notion-control-with-menu {
   opacity: 1;
   transform: translateX(0);

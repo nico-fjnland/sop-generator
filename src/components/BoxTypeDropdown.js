@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, ChevronDown, Check } from 'lucide-react';
+import { Plus, ChevronDown, Check, Table } from 'lucide-react';
 import { Button } from './ui/button';
 import { CATEGORIES } from './blocks/ContentBoxBlock';
 import {
@@ -11,7 +11,18 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 
-const BoxTypeDropdown = ({ onSelect, usedCategories = [] }) => {
+// Additional elements that can be added (not content box categories)
+const ADDITIONAL_ELEMENTS = [
+  {
+    id: 'tiptaptable',
+    label: 'Tabelle',
+    icon: Table,
+    color: '#6366F1', // Indigo color for tables
+    isBlockType: true, // Flag to indicate this is a block type, not a category
+  },
+];
+
+const BoxTypeDropdown = ({ onSelect, onAddBlock, usedCategories = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSelect = (categoryId) => {
@@ -20,6 +31,13 @@ const BoxTypeDropdown = ({ onSelect, usedCategories = [] }) => {
       return;
     }
     onSelect(categoryId);
+    setIsOpen(false);
+  };
+
+  const handleAddElement = (elementId) => {
+    if (onAddBlock) {
+      onAddBlock(elementId);
+    }
     setIsOpen(false);
   };
 
@@ -45,7 +63,7 @@ const BoxTypeDropdown = ({ onSelect, usedCategories = [] }) => {
         sideOffset={4}
       >
         <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          Box hinzufügen
+          Content Boxen
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
           {CATEGORIES.map((cat) => {
@@ -70,6 +88,31 @@ const BoxTypeDropdown = ({ onSelect, usedCategories = [] }) => {
             </DropdownMenuItem>
             );
           })}
+        
+        {/* Additional Elements Section */}
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          Weitere Elemente
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {ADDITIONAL_ELEMENTS.map((element) => {
+          const Icon = element.icon;
+          return (
+            <DropdownMenuItem
+              key={element.id}
+              onClick={() => handleAddElement(element.id)}
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              <span
+                className="flex items-center justify-center w-4 h-4"
+                style={{ color: element.color }}
+              >
+                <Icon className="h-4 w-4" />
+              </span>
+              <span className="flex-1">{element.label}</span>
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );

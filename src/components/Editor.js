@@ -34,7 +34,7 @@ const BlockWrapper = memo(({ block, pageBreak, onUpdate, onDelete, onAddAfter, o
   const [dragOver, setDragOver] = useState(false);
 
   const handleDragStart = useCallback((e) => {
-    if (block.type !== 'contentbox') return;
+    if (block.type !== 'contentbox' && block.type !== 'tiptaptable') return;
     setIsDragging(true);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', block.id);
@@ -73,7 +73,7 @@ const BlockWrapper = memo(({ block, pageBreak, onUpdate, onDelete, onAddAfter, o
   }, []);
 
   const handleDragOver = (e) => {
-    if (block.type !== 'contentbox') return;
+    if (block.type !== 'contentbox' && block.type !== 'tiptaptable') return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     

@@ -4,6 +4,7 @@ import TitleBlock from './blocks/TitleBlock';
 import HeadingBlock from './blocks/HeadingBlock';
 import TextBlock from './blocks/TextBlock';
 import TableBlock from './blocks/TableBlock';
+import TipTapTableBlock from './blocks/TipTapTableBlock';
 import ListBlock from './blocks/ListBlock';
 import ImageBlock from './blocks/ImageBlock';
 import DividerBlock from './blocks/DividerBlock';
@@ -82,6 +83,30 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             onChange={(content) => onUpdate(block.id, content)}
           />
         );
+      case 'tiptaptable':
+        return (
+          <TipTapTableBlock
+            content={block.content}
+            onChange={(content) => onUpdate(block.id, content)}
+            onDelete={onDelete}
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            isDragging={isDragging}
+            blockId={block.id}
+            usedCategories={isInsideContentBox ? [] : usedCategories}
+            isRightColumn={isRightColumn}
+            onAddBoxAfter={
+              !isInsideContentBox && onAddAfter
+                ? (categoryId) => onAddAfter('contentbox', block.id, categoryId)
+                : undefined
+            }
+            onAddBlockAfter={
+              !isInsideContentBox && onAddAfter
+                ? (blockType) => onAddAfter(blockType, block.id)
+                : undefined
+            }
+          />
+        );
       case 'list':
         return (
           <ListBlock
@@ -123,6 +148,11 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
                 ? (categoryId) => onAddAfter('contentbox', block.id, categoryId)
                 : undefined
             }
+            onAddBlockAfter={
+              !isInsideContentBox && onAddAfter
+                ? (blockType) => onAddAfter(blockType, block.id)
+                : undefined
+            }
           />
         );
       default:
@@ -150,7 +180,7 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
       {renderBlock()}
       
       {/* Delete Button - appears on hover, but not inside content boxes */}
-      {showDeleteButton && !isInsideContentBox && block.type !== 'title' && block.type !== 'contentbox' && (
+      {showDeleteButton && !isInsideContentBox && block.type !== 'title' && block.type !== 'contentbox' && block.type !== 'tiptaptable' && (
         <IconButton
           variant="destructive"
           size="icon"
