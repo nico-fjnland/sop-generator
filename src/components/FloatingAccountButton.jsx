@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
-import { User, Globe, SignOut, ChatCircleDots, FileText, Layout } from '@phosphor-icons/react';
+import { User, Globe, SignOut, ChatCircleDots, FileText, Layout, Sun, Moon } from '@phosphor-icons/react';
 import { Button } from './ui/button';
+import { Switch } from './ui/switch';
 import { getDocuments } from '../services/documentService';
 import {
   DropdownMenu,
@@ -17,6 +19,7 @@ import {
 
 const FloatingAccountButton = () => {
   const { user, signOut } = useAuth();
+  const { timeOfDay, toggleTime } = useTheme();
   const navigate = useNavigate();
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [profileData, setProfileData] = useState({ firstName: '', lastName: '' });
@@ -179,6 +182,17 @@ const FloatingAccountButton = () => {
               <span>Webseite</span>
             </DropdownMenuItem>
           </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <div className="flex items-center justify-between px-2 py-2 text-sm select-none outline-none">
+            <div className="flex items-center">
+              {timeOfDay === 'night' ? <Moon className="mr-2 h-4 w-4" /> : <Sun className="mr-2 h-4 w-4" />}
+              <span>Nachtmodus</span>
+            </div>
+            <Switch 
+              checked={timeOfDay === 'night'} 
+              onCheckedChange={toggleTime} 
+            />
+          </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive cursor-pointer">
             <SignOut className="mr-2 h-4 w-4" />

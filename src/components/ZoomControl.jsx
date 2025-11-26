@@ -103,4 +103,3 @@ const ZoomControl = () => {
 };
 
 export default ZoomControl;
-
