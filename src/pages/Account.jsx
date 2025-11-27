@@ -40,67 +40,51 @@ const SopsView = React.memo(({
   documents, loadingDocs, selectedDocs, toggleSelectAll, handleBulkExport,
   triggerImport, navigate, handleOpenDocument, handleDeleteDocument, toggleDocSelection
 }) => (
-  <div className="page-container bg-white shadow-lg rounded-lg">
-    <div className="space-y-6 p-8">
+  <div className="page-container bg-white shadow-lg rounded-lg overflow-hidden">
+    <div className="p-8">
       {/* Header */}
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">Meine Leitfäden</h1>
-        <p className="text-muted-foreground">
-          Verwalte deine gespeicherten SOP-Dokumente
-        </p>
-      </div>
-
-    {/* Action Bar */}
-    <div className="flex items-center justify-between flex-wrap gap-4 py-4 border-b">
-      <div className="flex items-center gap-3">
-        {documents.length > 0 && (
-          <>
-            <Checkbox
-              checked={selectedDocs.size === documents.length}
-              onCheckedChange={toggleSelectAll}
-            />
-            <span className="text-sm font-medium cursor-pointer" onClick={toggleSelectAll}>
-              {selectedDocs.size === documents.length ? 'Alle abwählen' : 'Alle auswählen'}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              ({documents.length} {documents.length === 1 ? 'Dokument' : 'Dokumente'})
-            </span>
-          </>
-        )}
-      </div>
-      
-      <div className="flex items-center gap-2">
-        {selectedDocs.size > 0 && (
-          <Button 
-            onClick={handleBulkExport} 
-            variant="outline" 
-            size="sm" 
-            className="gap-2"
-          >
-            <Export size={16} />
-            Exportieren ({selectedDocs.size})
+      <div className="flex items-start justify-between mb-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight text-[#003366]">Meine Leitfäden</h1>
+          <p className="text-muted-foreground">
+            Verwalte deine gespeicherten SOP-Dokumente
+          </p>
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2">
+          {selectedDocs.size > 0 && (
+            <Button 
+              onClick={handleBulkExport} 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 h-9"
+            >
+              <Export size={16} />
+              Exportieren ({selectedDocs.size})
+            </Button>
+          )}
+          <Button onClick={triggerImport} size="sm" variant="outline" className="gap-2 h-9">
+            <Upload size={16} />
+            Importieren
           </Button>
-        )}
-        <Button onClick={triggerImport} size="sm" variant="outline" className="gap-2">
-          <Upload size={16} />
-          Importieren
-        </Button>
-        <Button onClick={() => navigate('/?new=true')} size="sm" className="gap-2">
-          <Plus size={16} weight="bold" />
-          Neu
-        </Button>
+          <Button onClick={() => navigate('/?new=true')} size="sm" className="gap-2 h-9">
+            <Plus size={16} weight="bold" />
+            Neu
+          </Button>
+        </div>
       </div>
     </div>
 
-    {/* Documents List */}
+    {/* Documents Table */}
     {loadingDocs ? (
-      <div className="space-y-3">
+      <div className="px-8 pb-8 space-y-2">
         {[1, 2, 3].map(i => (
-          <div key={i} className="h-20 bg-muted/30 rounded-lg animate-pulse"></div>
+          <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse"></div>
         ))}
       </div>
     ) : documents.length === 0 ? (
-      <div className="py-16">
+      <div className="px-8 pb-8 pt-4">
         <EmptyState 
           icon={FileText}
           title="Noch keine Dokumente vorhanden"
@@ -118,20 +102,47 @@ const SopsView = React.memo(({
         />
       </div>
     ) : (
-      <div className="space-y-2">
-        {documents.map((doc) => (
-          <DocumentCard
-            key={doc.id} 
-            doc={doc}
-            onOpen={handleOpenDocument}
-            onDelete={handleDeleteDocument}
-            isSelected={selectedDocs.has(doc.id)}
-            onSelectToggle={toggleDocSelection}
-          />
-        ))}
+      <div className="bg-gray-50/50">
+        {/* Table Header */}
+        <div 
+          className="grid grid-cols-[auto_1fr_170px_72px] items-center gap-4 px-8 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
+          style={{ borderBottom: '1px solid #e5e5e5' }}
+        >
+          <div className="flex items-center justify-center w-6">
+            <Checkbox
+              checked={selectedDocs.size === documents.length && documents.length > 0}
+              onCheckedChange={toggleSelectAll}
+              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            />
+          </div>
+          <div>Name</div>
+          <div>Bearbeitet</div>
+          <div></div>
+        </div>
+
+        {/* Document Rows */}
+        <div className="divide-y divide-gray-100">
+          {documents.map((doc) => (
+            <DocumentCard
+              key={doc.id} 
+              doc={doc}
+              onOpen={handleOpenDocument}
+              onDelete={handleDeleteDocument}
+              isSelected={selectedDocs.has(doc.id)}
+              onSelectToggle={toggleDocSelection}
+            />
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div 
+          className="px-8 py-3 text-xs text-gray-400"
+          style={{ borderTop: '1px solid #e5e5e5' }}
+        >
+          {documents.length} {documents.length === 1 ? 'Dokument' : 'Dokumente'}
+        </div>
       </div>
     )}
-    </div>
   </div>
 ));
 
