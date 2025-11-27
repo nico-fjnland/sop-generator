@@ -1,5 +1,29 @@
 /* Custom styles for the SOP Editor */
 
+/* Help Scout Beacon positioning - offset to avoid overlap with custom Help button */
+.BeaconContainer,
+#BeaconContainer-root,
+[class*="BeaconContainer"],
+.hsds-beacon,
+[data-beacon],
+iframe[title*="Help Scout"] {
+  bottom: 75px !important;
+  left: 24px !important;
+}
+
+/* Target the Beacon frame specifically */
+.BeaconFabButtonFrame + div,
+.hsds-beacon iframe[src*="beacon"] {
+  bottom: 75px !important;
+}
+
+/* Hide the default Beacon FAB button (backup to JS config) */
+.BeaconFabButtonFrame,
+[class*="BeaconFabButton"],
+.hsds-beacon button[class*="Fab"] {
+  display: none !important;
+}
+
 @media print {
   body {
     margin: 0;

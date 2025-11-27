@@ -11,6 +11,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ZoomProvider } from './contexts/ZoomContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { Toaster } from './components/ui/sonner';
+import HelpButton from './components/HelpButton';
 import './App.css';
 
 const AppContent = () => {
@@ -21,6 +22,7 @@ const AppContent = () => {
     <div className={`min-h-screen flex flex-col transition-colors duration-200 animated-gradient-bg ${getGradientClass()}`}>
       <div className="grain-overlay" />
       <Toaster position="bottom-left" />
+      <HelpButton />
       <ZoomControl />
       
       <Routes>

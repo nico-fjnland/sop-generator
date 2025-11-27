@@ -19,7 +19,15 @@
     
     <!-- HelpScout Beacon -->
     <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
-    <script type="text/javascript">window.Beacon('init', '105b6ab4-b9e8-4da7-bdf0-88b219207d63')</script>
+    <script type="text/javascript">
+      window.Beacon('init', '105b6ab4-b9e8-4da7-bdf0-88b219207d63');
+      // Hide default Beacon button - custom button in React app triggers it
+      window.Beacon('config', {
+        display: {
+          style: 'manual'
+        }
+      });
+    </script>
   </body>
 </html>
 
