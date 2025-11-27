@@ -65,7 +65,15 @@ const AccountDropdown = ({
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64" align="end" forceMount>
+      <DropdownMenuContent 
+        className="w-64" 
+        side="right" 
+        align="start" 
+        sideOffset={16}
+        alignOffset={-8}
+        collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }} 
+        avoidCollisions={true}
+      >
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{displayName}</p>
@@ -109,13 +117,18 @@ const AccountDropdown = ({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => window.open('mailto:feedback@example.com', '_blank')} className="cursor-pointer">
+          <DropdownMenuItem onClick={() => {
+            if (window.Beacon) {
+              window.Beacon('open');
+              window.Beacon('navigate', '/ask/');
+            }
+          }} className="cursor-pointer">
             <ChatCircleDots className="mr-2 h-4 w-4" />
             <span>Feedback geben</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => window.open('https://example.com', '_blank')} className="cursor-pointer">
+          <DropdownMenuItem onClick={() => window.open('https://sop-notaufnahme.de', '_blank')} className="cursor-pointer">
             <Globe className="mr-2 h-4 w-4" />
-            <span>Webseite</span>
+            <span>Zur SOP Webseite</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
