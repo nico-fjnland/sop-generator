@@ -12,6 +12,7 @@ import { ZoomProvider } from './contexts/ZoomContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { Toaster } from './components/ui/sonner';
 import HelpButton from './components/HelpButton';
+import AnimatedBackgroundGradient from './components/AnimatedBackgroundGradient';
 import './App.css';
 
 const AppContent = () => {
@@ -19,7 +20,8 @@ const AppContent = () => {
   const { getGradientClass } = useTheme();
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-200 animated-gradient-bg ${getGradientClass()}`}>
+    <div className={`min-h-screen flex flex-col transition-colors duration-200 ${getGradientClass()}`}>
+      <AnimatedBackgroundGradient />
       <div className="grain-overlay" />
       <Toaster position="bottom-left" />
       <HelpButton />

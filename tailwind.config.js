@@ -71,10 +71,29 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "background-gradient": {
+          "0%, 100%": {
+            transform: "translate(0%, 0%)",
+            animationTimingFunction: "ease-in-out",
+          },
+          "25%": {
+            transform: "translate(calc(var(--tx-1) * 60%), calc(var(--ty-1) * 70%))",
+            animationTimingFunction: "ease-in-out",
+          },
+          "50%": {
+            transform: "translate(calc(var(--tx-2) * 50%), calc(var(--ty-2) * 60%))",
+            animationTimingFunction: "ease-in-out",
+          },
+          "75%": {
+            transform: "translate(calc(var(--tx-3) * 70%), calc(var(--ty-3) * 50%))",
+            animationTimingFunction: "ease-in-out",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "background-gradient": "background-gradient var(--duration, 15s) ease infinite",
       },
     },
   },
