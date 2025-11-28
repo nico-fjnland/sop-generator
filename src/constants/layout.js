@@ -7,7 +7,7 @@ export const PAGE = {
   HEIGHT_MM: 297, // A4 height in millimeters
   HEIGHT_PX: 1123, // Printable height in pixels (at 96 DPI)
   TOP_PADDING: 32, // Top padding in pixels
-  BOTTOM_PADDING: 32, // Bottom padding in pixels
+  // Note: No BOTTOM_PADDING - footer height is measured dynamically and includes its own padding
 };
 
 // Content box styling
@@ -60,13 +60,9 @@ export const FOOTER = {
     BOTTOM: 46,
     LEFT: 46,
   },
-  // Content heights for each variant (without padding)
-  CONTENT_HEIGHTS: {
-    tiny: 69,
-    small: 122,
-    large: 204,
-    'x-large': 249,
-  },
+  // Note: Footer height is measured dynamically from DOM in usePageBreaks.js
+  // These are available variants (content height is determined by actual content)
+  VARIANTS: ['tiny', 'small'],
 };
 
 // Header configuration

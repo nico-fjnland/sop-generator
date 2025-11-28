@@ -985,11 +985,12 @@ const Editor = () => {
                 />
               )}
               
-              {/* Content area for this page - with padding for footer */}
+              {/* Content area for this page */}
               <div style={{ 
                 flex: 1, 
                 position: 'relative',
-                paddingBottom: '120px', // Space for footer (adjust based on footer variant)
+                // No paddingBottom needed - footer is absolutely positioned and 
+                // page break calculation already accounts for footer height
                 minHeight: 0,
                 overflow: 'visible', // Allow hover buttons to extend outside
               }}>

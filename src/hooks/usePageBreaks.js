@@ -17,7 +17,7 @@ import { PAGE, FOOTER, HEADER } from '../constants/layout';
  * 
  * @param {Array} rows - Array of row objects containing blocks
  * @param {React.RefObject} containerRef - Reference to the main container
- * @param {string} footerVariant - Footer variant ('tiny', 'small', 'large', 'x-large')
+ * @param {string} footerVariant - Footer variant ('tiny', 'small') - used for dependency tracking
  * @returns {Object} - { pageBreaks: Set<rowId>, setRowRef: Function }
  */
 export const usePageBreaks = (rows, containerRef, footerVariant = 'tiny') => {
@@ -53,26 +53,27 @@ export const usePageBreaks = (rows, containerRef, footerVariant = 'tiny') => {
       headerHeight = HEADER.PADDING.TOP + HEADER.PADDING.BOTTOM + 60;
     }
 
-    // Measure footer height
+    // Measure footer height dynamically from DOM
     let footerHeight = 0;
     const footerElement = containerRef.current.querySelector('.sop-footer');
     if (footerElement) {
       footerHeight = footerElement.offsetHeight;
     } else {
-      // Fallback calculation
-      const footerContentHeight = FOOTER.CONTENT_HEIGHTS[footerVariant] || FOOTER.CONTENT_HEIGHTS.tiny;
-      footerHeight = FOOTER.PADDING.TOP + footerContentHeight + FOOTER.PADDING.BOTTOM;
+      // Fallback: use padding only (footer content height will be 0 until DOM is ready)
+      // This is a conservative estimate that will be corrected on next calculation
+      footerHeight = FOOTER.PADDING.TOP + FOOTER.PADDING.BOTTOM;
     }
 
     const totalPageHeight = PAGE.HEIGHT_PX;
     
     // First page: includes header
+    // Footer height already includes its own padding, so no additional BOTTOM_PADDING needed
     const firstPageAvailableHeight = 
-      totalPageHeight - headerHeight - PAGE.TOP_PADDING - PAGE.BOTTOM_PADDING - footerHeight;
+      totalPageHeight - headerHeight - PAGE.TOP_PADDING - footerHeight;
     
     // Subsequent pages: no header, but double top padding
     const subsequentPageAvailableHeight = 
-      totalPageHeight - (PAGE.TOP_PADDING * 2) - PAGE.BOTTOM_PADDING - footerHeight;
+      totalPageHeight - (PAGE.TOP_PADDING * 2) - footerHeight;
 
     return {
       totalPageHeight,

@@ -140,6 +140,25 @@ const ContentBoxBlock = ({
         blocks: [{ id: Date.now().toString(), type: 'text', content: '' }]
       };
     }
+    // For algorithmus category, ensure it has a flowchart block
+    if (contentToInit.category === 'algorithmus' && contentToInit.blocks) {
+      const hasFlowchart = contentToInit.blocks.some(b => b.type === 'flowchart');
+      if (!hasFlowchart) {
+        return {
+          ...contentToInit,
+          blocks: [{ 
+            id: Date.now().toString(), 
+            type: 'flowchart', 
+            content: { 
+              nodes: [{ id: '1', type: 'start', position: { x: 250, y: 50 }, data: { label: 'Start' } }], 
+              edges: [], 
+              nodeIdCounter: 2,
+              height: 300 // Smallest size
+            } 
+          }]
+        };
+      }
+    }
     return contentToInit;
   };
 
@@ -200,6 +219,27 @@ const ContentBoxBlock = ({
 
   const handleCategoryChange = useCallback((categoryId) => {
     setSelectedCategory(categoryId);
+    
+    // If switching to algorithmus, replace blocks with a flowchart
+    if (categoryId === 'algorithmus') {
+      const hasFlowchart = innerBlocks.some(b => b.type === 'flowchart');
+      if (!hasFlowchart) {
+        const flowchartBlocks = [{ 
+          id: Date.now().toString(), 
+          type: 'flowchart', 
+          content: { 
+            nodes: [{ id: '1', type: 'start', position: { x: 250, y: 50 }, data: { label: 'Start' } }], 
+            edges: [], 
+            nodeIdCounter: 2,
+            height: 300 // Smallest size
+          } 
+        }];
+        setInnerBlocks(flowchartBlocks);
+        updateContent(categoryId, flowchartBlocks);
+        return;
+      }
+    }
+    
     updateContent(categoryId, innerBlocks);
   }, [innerBlocks, updateContent]);
 
@@ -587,7 +627,11 @@ const ContentBoxBlock = ({
 
             {/* Content area */}
             <div 
-              className="content-box-content flex flex-col gap-[8px] pt-[24px] px-[26px]"
+              className={`content-box-content flex flex-col gap-[8px] ${
+                selectedCategory === 'algorithmus' && innerBlocks.length === 1 && innerBlocks[0].type === 'flowchart'
+                  ? 'pt-0 px-0'
+                  : 'pt-[24px] px-[26px]'
+              }`}
               style={{
                 fontFamily: "'Roboto', sans-serif",
                 fontSize: '12px',

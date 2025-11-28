@@ -1,13 +1,10 @@
-/* Flowchart Block Container */
+/* Flowchart Block Container - used inside Algorithmus box without padding */
 .flowchart-block-container {
-  width: calc(100% + 52px); /* Add back the horizontal padding (26px left + 26px right) */
+  width: 100%;
   min-height: 300px;
-  margin-left: -26px; /* Negative margin to align with ContentBox edges */
-  margin-right: -26px;
-  margin-top: -24px; /* Negative margin for top padding */
-  margin-bottom: 8px; /* Add spacing at bottom instead of overlapping */
+  margin: 0;
   border: none;
-  border-radius: 0;
+  border-radius: 4px 4px 0 0; /* Rounded corners at top to match box */
   overflow: hidden; /* Prevent canvas from extending beyond container */
   position: relative;
   background: white;

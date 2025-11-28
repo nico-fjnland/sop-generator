@@ -1,5 +1,5 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { ListBullets, TextT, Image as ImageIcon, FlowArrow } from '@phosphor-icons/react';
+import { ListBullets, TextT, Image as ImageIcon } from '@phosphor-icons/react';
 
 const SLASH_COMMANDS = [
   {
@@ -54,24 +54,6 @@ const SLASH_COMMANDS = [
         }
       };
       input.click();
-    },
-  },
-  {
-    id: 'flowchart',
-    title: 'Flussdiagramm',
-    icon: FlowArrow,
-    command: ({ editor, range, onAddFlowchart }) => {
-      // Delete the slash command text
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .run();
-      
-      // Call the callback to add flowchart block
-      if (onAddFlowchart) {
-        onAddFlowchart();
-      }
     },
   },
 ];
