@@ -37,7 +37,7 @@ const AnimatedBackgroundGradient = () => {
     >
       <AnimatedGradient 
         colors={colors}
-        speed={30}
+        speed={120}
         blur="heavy"
       />
     </div>

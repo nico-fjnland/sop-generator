@@ -8,7 +8,7 @@ import { Label } from '../components/ui/label';
 import { Checkbox } from '../components/ui/checkbox';
 import { Spinner } from '../components/ui/spinner';
 import EmptyState from '../components/EmptyState';
-import DocumentCard from '../components/DocumentCard';
+import DocumentCard, { MEDICAL_CATEGORIES } from '../components/DocumentCard';
 import BulkExportDialog from '../components/BulkExportDialog';
 import { 
   User, 
@@ -28,123 +28,327 @@ import {
   MapPin,
   UsersThree,
   Link as LinkIcon,
-  LockKey as LockKeyIcon
+  LockKey as LockKeyIcon,
+  CaretUp,
+  CaretDown,
+  Funnel,
+  X
 } from '@phosphor-icons/react';
-import { getDocuments, deleteDocument, saveDocument } from '../services/documentService';
+import { getDocuments, deleteDocument, saveDocument, updateDocumentCategory } from '../services/documentService';
 import { exportMultipleDocuments } from '../utils/exportUtils';
 import { toast } from 'sonner';
 import AccountDropdown from '../components/AccountDropdown';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu';
+import { Check } from 'lucide-react';
+
+// SortButton Component
+const SortButton = ({ column, sortConfig, onSort, children }) => {
+  const isActive = sortConfig.column === column;
+  const isAsc = isActive && sortConfig.direction === 'asc';
+  
+  return (
+    <button
+      onClick={() => onSort(column)}
+      className="flex items-center gap-1.5 hover:text-gray-700 transition-colors group"
+    >
+      <span>{children}</span>
+      {isActive ? (
+        isAsc ? (
+          <CaretUp size={16} weight="fill" className="text-primary" />
+        ) : (
+          <CaretDown size={16} weight="fill" className="text-primary" />
+        )
+      ) : (
+        <CaretDown size={16} weight="fill" className="text-gray-300 group-hover:text-gray-400" />
+      )}
+    </button>
+  );
+};
+
+// CategoryFilter Component
+const CategoryFilter = ({ categoryFilter, setCategoryFilter }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const filterRef = React.useRef(null);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleOpen = () => {
+    if (filterRef.current) {
+      const rect = filterRef.current.getBoundingClientRect();
+      setPosition({ top: rect.bottom + 4, left: rect.left });
+    }
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <div className="relative" ref={filterRef}>
+      <button
+        onClick={handleOpen}
+        className={`flex items-center gap-1.5 hover:text-gray-700 transition-colors ${categoryFilter ? 'text-primary' : ''}`}
+      >
+        <span>Fachgebiet</span>
+        <Funnel size={16} weight={categoryFilter ? 'fill' : 'regular'} />
+      </button>
+      
+      {isOpen && (
+        <div 
+          className="fixed w-52 bg-popover text-popover-foreground rounded-md shadow-md border py-1 z-[9999]"
+          style={{ top: position.top, left: position.left }}
+        >
+          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+            Nach Fachgebiet filtern
+          </div>
+          <div className="h-px bg-border my-1" />
+          <button
+            onClick={() => { setCategoryFilter(null); setIsOpen(false); }}
+            className="w-full px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2 cursor-pointer rounded-sm mx-1"
+            style={{ width: 'calc(100% - 8px)' }}
+          >
+            <span className="flex-1 text-left">Alle Fachgebiete</span>
+            {!categoryFilter && <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />}
+          </button>
+          <button
+            onClick={() => { setCategoryFilter('none'); setIsOpen(false); }}
+            className="w-full px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2 cursor-pointer rounded-sm mx-1"
+            style={{ width: 'calc(100% - 8px)' }}
+          >
+            <span className="flex-1 text-left">Ohne Fachgebiet</span>
+            {categoryFilter === 'none' && <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />}
+          </button>
+          <div className="h-px bg-border my-1" />
+          {MEDICAL_CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => { setCategoryFilter(cat.id); setIsOpen(false); }}
+              className="w-full px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2 cursor-pointer rounded-sm mx-1"
+              style={{ width: 'calc(100% - 8px)' }}
+            >
+              <span className="w-4 h-4 flex-shrink-0" style={{ color: cat.color }}>{cat.iconComponent}</span>
+              <span className="flex-1 text-left">{cat.label}</span>
+              {categoryFilter === cat.id && <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 // SopsView Component
 const SopsView = React.memo(({ 
   documents, loadingDocs, selectedDocs, toggleSelectAll, handleBulkExport,
-  triggerImport, navigate, handleOpenDocument, handleDeleteDocument, toggleDocSelection
-}) => (
-  <div className="page-container bg-white shadow-lg rounded-lg overflow-hidden">
-    <div className="p-8">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-[#003366]">Meine Leitfäden</h1>
-          <p className="text-muted-foreground">
-            Verwalte deine gespeicherten SOP-Dokumente
-          </p>
-        </div>
-        
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2">
-          {selectedDocs.size > 0 && (
-            <Button 
-              onClick={handleBulkExport} 
-              variant="outline" 
-              size="sm" 
-              className="gap-2 h-9"
-            >
-              <Export size={16} />
-              Exportieren ({selectedDocs.size})
-            </Button>
-          )}
-          <Button onClick={triggerImport} size="sm" variant="outline" className="gap-2 h-9">
-            <Upload size={16} />
-            Importieren
-          </Button>
-          <Button onClick={() => navigate('/?new=true')} size="sm" className="gap-2 h-9">
-            <Plus size={16} weight="bold" />
-            Neu
-          </Button>
-        </div>
-      </div>
-    </div>
+  triggerImport, navigate, handleOpenDocument, handleDeleteDocument, toggleDocSelection,
+  handleCategoryChange
+}) => {
+  const [sortConfig, setSortConfig] = useState({ column: 'updated_at', direction: 'desc' });
+  const [categoryFilter, setCategoryFilter] = useState(null);
 
-    {/* Documents Table */}
-    {loadingDocs ? (
-      <div className="px-8 pb-8 space-y-2">
-        {[1, 2, 3].map(i => (
-          <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse"></div>
-        ))}
-      </div>
-    ) : documents.length === 0 ? (
-      <div className="px-8 pb-8 pt-4">
-        <EmptyState 
-          icon={FileText}
-          title="Noch keine Dokumente vorhanden"
-          description="Erstelle dein erstes SOP-Dokument oder importiere ein bestehendes."
-          action={
-            <div className="flex gap-2 justify-center">
-              <Button onClick={() => navigate('/?new=true')} variant="default" size="sm">
-                Erstes Dokument erstellen
-              </Button>
-              <Button onClick={triggerImport} variant="outline" size="sm">
-                Dokument importieren
-              </Button>
-            </div>
-          }
-        />
-      </div>
-    ) : (
-      <div className="bg-gray-50/50">
-        {/* Table Header */}
-        <div 
-          className="grid grid-cols-[auto_1fr_170px_72px] items-center gap-4 px-8 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
-          style={{ borderBottom: '1px solid #e5e5e5' }}
-        >
-          <div className="flex items-center justify-center w-6">
-            <Checkbox
-              checked={selectedDocs.size === documents.length && documents.length > 0}
-              onCheckedChange={toggleSelectAll}
-              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-            />
+  // Sort handler
+  const handleSort = (column) => {
+    setSortConfig(prev => ({
+      column,
+      direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  // Filter and sort documents
+  const filteredAndSortedDocs = React.useMemo(() => {
+    let result = [...documents];
+    
+    // Filter by category
+    if (categoryFilter) {
+      if (categoryFilter === 'none') {
+        result = result.filter(doc => !doc.category);
+      } else {
+        result = result.filter(doc => doc.category === categoryFilter);
+      }
+    }
+    
+    // Sort
+    result.sort((a, b) => {
+      let aVal, bVal;
+      
+      switch (sortConfig.column) {
+        case 'title':
+          aVal = (a.title || '').toLowerCase();
+          bVal = (b.title || '').toLowerCase();
+          break;
+        case 'category':
+          aVal = a.category || '';
+          bVal = b.category || '';
+          break;
+        case 'updated_at':
+        default:
+          aVal = new Date(a.updated_at).getTime();
+          bVal = new Date(b.updated_at).getTime();
+          break;
+      }
+      
+      if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+    
+    return result;
+  }, [documents, sortConfig, categoryFilter]);
+
+  const activeFilterLabel = categoryFilter 
+    ? categoryFilter === 'none' 
+      ? 'Ohne Fachgebiet' 
+      : MEDICAL_CATEGORIES.find(c => c.id === categoryFilter)?.label
+    : null;
+
+  return (
+    <div className="page-container bg-white shadow-lg rounded-lg overflow-hidden">
+      <div className="p-8">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-6">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold tracking-tight text-[#003366]">Meine Leitfäden</h1>
+            <p className="text-muted-foreground">
+              Verwalte deine gespeicherten SOP-Dokumente
+            </p>
           </div>
-          <div>Name</div>
-          <div>Bearbeitet</div>
-          <div></div>
+          
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            {selectedDocs.size > 0 && (
+              <Button 
+                onClick={handleBulkExport} 
+                variant="outline" 
+                size="sm" 
+                className="gap-2 h-9"
+              >
+                <Export size={16} />
+                Exportieren ({selectedDocs.size})
+              </Button>
+            )}
+            <Button onClick={triggerImport} size="sm" variant="outline" className="gap-2 h-9">
+              <Upload size={16} />
+              Importieren
+            </Button>
+            <Button onClick={() => navigate('/?new=true')} size="sm" className="gap-2 h-9">
+              <Plus size={16} weight="bold" />
+              Neu
+            </Button>
+          </div>
         </div>
 
-        {/* Document Rows */}
-        <div className="divide-y divide-gray-100">
-          {documents.map((doc) => (
-            <DocumentCard
-              key={doc.id} 
-              doc={doc}
-              onOpen={handleOpenDocument}
-              onDelete={handleDeleteDocument}
-              isSelected={selectedDocs.has(doc.id)}
-              onSelectToggle={toggleDocSelection}
-            />
+        {/* Active Filter Badge */}
+        {activeFilterLabel && (
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-xs text-gray-500">Filter:</span>
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
+              {activeFilterLabel}
+              <button 
+                onClick={() => setCategoryFilter(null)}
+                className="hover:bg-primary/20 rounded-full p-0.5"
+              >
+                <X size={12} />
+              </button>
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Documents Table */}
+      {loadingDocs ? (
+        <div className="px-8 pb-8 space-y-2">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse"></div>
           ))}
         </div>
-
-        {/* Footer */}
-        <div 
-          className="px-8 py-3 text-xs text-gray-400"
-          style={{ borderTop: '1px solid #e5e5e5' }}
-        >
-          {documents.length} {documents.length === 1 ? 'Dokument' : 'Dokumente'}
+      ) : documents.length === 0 ? (
+        <div className="px-8 pb-8 pt-4">
+          <EmptyState 
+            icon={FileText}
+            title="Noch keine Dokumente vorhanden"
+            description="Erstelle dein erstes SOP-Dokument oder importiere ein bestehendes."
+            action={
+              <div className="flex gap-2 justify-center">
+                <Button onClick={() => navigate('/?new=true')} variant="default" size="sm">
+                  Erstes Dokument erstellen
+                </Button>
+                <Button onClick={triggerImport} variant="outline" size="sm">
+                  Dokument importieren
+                </Button>
+              </div>
+            }
+          />
         </div>
-      </div>
-    )}
-  </div>
-));
+      ) : (
+        <div className="bg-gray-50/50">
+          {/* Table Header */}
+          <div 
+            className="grid grid-cols-[auto_1fr_170px_150px_72px] items-center gap-4 px-8 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
+            style={{ borderBottom: '1px solid #e5e5e5' }}
+          >
+            <div className="flex items-center justify-center w-6">
+              <Checkbox
+                checked={selectedDocs.size === filteredAndSortedDocs.length && filteredAndSortedDocs.length > 0}
+                onCheckedChange={toggleSelectAll}
+                className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+              />
+            </div>
+            <SortButton column="title" sortConfig={sortConfig} onSort={handleSort}>
+              Name
+            </SortButton>
+            <CategoryFilter categoryFilter={categoryFilter} setCategoryFilter={setCategoryFilter} />
+            <SortButton column="updated_at" sortConfig={sortConfig} onSort={handleSort}>
+              Bearbeitet
+            </SortButton>
+            <div></div>
+          </div>
+
+          {/* Document Rows */}
+          <div className="divide-y divide-gray-100">
+            {filteredAndSortedDocs.length === 0 ? (
+              <div className="px-8 py-8 text-center text-gray-500 text-sm">
+                Keine Dokumente für diesen Filter gefunden
+              </div>
+            ) : (
+              filteredAndSortedDocs.map((doc) => (
+                <DocumentCard
+                  key={doc.id} 
+                  doc={doc}
+                  onOpen={handleOpenDocument}
+                  onDelete={handleDeleteDocument}
+                  isSelected={selectedDocs.has(doc.id)}
+                  onSelectToggle={toggleDocSelection}
+                  onCategoryChange={handleCategoryChange}
+                />
+              ))
+            )}
+          </div>
+
+          {/* Footer */}
+          <div 
+            className="px-8 py-3 text-xs text-gray-400"
+            style={{ borderTop: '1px solid #e5e5e5' }}
+          >
+            {filteredAndSortedDocs.length} von {documents.length} {documents.length === 1 ? 'Dokument' : 'Dokumenten'}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
 
 // TemplatesView Component
 const TemplatesView = React.memo(() => (
@@ -975,6 +1179,23 @@ export default function Account() {
     }
   };
 
+  const handleCategoryChange = async (docId, category) => {
+    try {
+      const { error } = await updateDocumentCategory(docId, category);
+      if (error) throw error;
+      
+      // Update local state
+      setDocuments(prev => prev.map(doc => 
+        doc.id === docId ? { ...doc, category } : doc
+      ));
+      
+      toast.success(category ? 'Fachgebiet aktualisiert' : 'Fachgebiet entfernt');
+    } catch (error) {
+      console.error('Error updating category:', error);
+      toast.error('Fehler beim Aktualisieren des Fachgebiets');
+    }
+  };
+
   const toggleDocSelection = (id) => {
     setSelectedDocs(prev => {
       const newSet = new Set(prev);
@@ -1139,6 +1360,7 @@ export default function Account() {
             handleOpenDocument={handleOpenDocument}
             handleDeleteDocument={handleDeleteDocument}
             toggleDocSelection={toggleDocSelection}
+            handleCategoryChange={handleCategoryChange}
           />}
             {currentTab === 'templates' && <TemplatesView />}
           {currentTab === 'profile' && <ProfileView 

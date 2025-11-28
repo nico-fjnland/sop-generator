@@ -68,7 +68,7 @@ export const getDocuments = async (userId) => {
   try {
     const { data, error } = await supabase
       .from('documents')
-      .select('id, title, version, updated_at, created_at')
+      .select('id, title, version, updated_at, created_at, category')
       .eq('user_id', userId)
       .order('updated_at', { ascending: false });
 
@@ -118,6 +118,32 @@ export const deleteDocument = async (id) => {
   } catch (error) {
     console.error('Error deleting document:', error);
     return { success: false, error };
+  }
+};
+
+/**
+ * Updates the category of a document
+ * @param {string} id - Document ID
+ * @param {string|null} category - Category name or null to remove
+ * @returns {Promise<object>} Result with success status
+ */
+export const updateDocumentCategory = async (id, category) => {
+  try {
+    const { data, error } = await supabase
+      .from('documents')
+      .update({ 
+        category,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error updating document category:', error);
+    return { data: null, error };
   }
 };
 

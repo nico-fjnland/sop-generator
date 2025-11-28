@@ -2,13 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { QuestionMark } from '@phosphor-icons/react';
 import { Button } from './ui/button';
+import { useTheme } from '../contexts/ThemeContext';
+
+// App Version
+const APP_VERSION = 'v.0.01';
 
 /**
  * Custom Help Button that triggers the Help Scout Beacon
  * Styled to match the ZoomControl bar visual language
+ * Also displays current time (UTC+1) and app version
  */
 const HelpButton = () => {
   const [isBeaconOpen, setIsBeaconOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState('');
+  const { timeOfDay } = useTheme();
+
+  // Update time every second
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      // Get UTC+1 time
+      const utcPlus1 = new Date(now.getTime() + (1 * 60 * 60 * 1000));
+      const hours = utcPlus1.getUTCHours().toString().padStart(2, '0');
+      const minutes = utcPlus1.getUTCMinutes().toString().padStart(2, '0');
+      setCurrentTime(`${hours}:${minutes}`);
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     // Configure Beacon to hide the default button when component mounts
@@ -39,10 +63,13 @@ const HelpButton = () => {
     }
   };
 
+  // Text color based on theme
+  const textColor = timeOfDay === 'night' ? '#ffffff' : '#003366';
+
   const helpButton = (
     <div 
       id="help-button-bar"
-      className="fixed bottom-6 left-6 z-50 no-print"
+      className="fixed bottom-6 left-6 z-50 no-print flex items-center gap-3"
     >
       {/* Help Button - matches ZoomControl styling */}
       <div className="bg-popover rounded-lg border border-border p-1">
@@ -58,6 +85,15 @@ const HelpButton = () => {
         >
           <QuestionMark size={16} weight="bold" />
         </Button>
+      </div>
+
+      {/* Time and Version Display */}
+      <div 
+        className="flex flex-col text-[10px] font-medium select-none leading-tight"
+        style={{ color: textColor }}
+      >
+        <span>{currentTime} Uhr (MEZ)</span>
+        <span className="opacity-70">SOP Editor {APP_VERSION}</span>
       </div>
     </div>
   );
