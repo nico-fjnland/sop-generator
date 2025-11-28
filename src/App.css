@@ -973,11 +973,14 @@ body.export-ready .a4-page {
 .content-box-block:hover .notion-box-controls,
 .tiptap-table-block-wrapper:focus-within .notion-box-controls,
 .tiptap-table-block-wrapper:hover .notion-box-controls,
+.source-block:focus-within .notion-box-controls,
+.source-block:hover .notion-box-controls,
 .notion-box-controls:hover,
 /* Keep visible when dropdown is open (based on radix state attribute or class) */
 .notion-box-controls:has([data-state="open"]),
 .content-box-block:has([data-state="open"]) .notion-box-controls,
 .tiptap-table-block-wrapper:has([data-state="open"]) .notion-box-controls,
+.source-block:has([data-state="open"]) .notion-box-controls,
 .notion-box-controls.dropdown-open {
   opacity: 1 !important;
   transform: translateX(50px) translateY(-50%);
@@ -1046,6 +1049,8 @@ body.export-ready .a4-page {
 .content-box-block:focus-within .notion-box-controls::before,
 .tiptap-table-block-wrapper:hover .notion-box-controls::before,
 .tiptap-table-block-wrapper:focus-within .notion-box-controls::before,
+.source-block:hover .notion-box-controls::before,
+.source-block:focus-within .notion-box-controls::before,
 .notion-box-controls:hover::before,
 .notion-box-controls.dropdown-open::before {
   pointer-events: auto;
@@ -1131,6 +1136,8 @@ body.export-ready .a4-page {
 .content-box-block:focus-within .notion-box-controls > .notion-control-button:nth-child(1),
 .tiptap-table-block-wrapper:hover .notion-box-controls > .notion-control-button:nth-child(1),
 .tiptap-table-block-wrapper:focus-within .notion-box-controls > .notion-control-button:nth-child(1),
+.source-block:hover .notion-box-controls > .notion-control-button:nth-child(1),
+.source-block:focus-within .notion-box-controls > .notion-control-button:nth-child(1),
 .notion-box-controls:hover > .notion-control-button:nth-child(1) {
   opacity: 1;
   transform: translateX(0);
@@ -1147,11 +1154,15 @@ body.export-ready .a4-page {
 .content-box-block:focus-within .notion-box-controls > .notion-control-button:nth-child(2),
 .tiptap-table-block-wrapper:hover .notion-box-controls > .notion-control-button:nth-child(2),
 .tiptap-table-block-wrapper:focus-within .notion-box-controls > .notion-control-button:nth-child(2),
+.source-block:hover .notion-box-controls > .notion-control-button:nth-child(2),
+.source-block:focus-within .notion-box-controls > .notion-control-button:nth-child(2),
 .notion-box-controls:hover > .notion-control-button:nth-child(2),
 .content-box-block:hover .notion-box-controls > div:nth-child(2) > button,
 .content-box-block:focus-within .notion-box-controls > div:nth-child(2) > button,
 .tiptap-table-block-wrapper:hover .notion-box-controls > div:nth-child(2) > button,
 .tiptap-table-block-wrapper:focus-within .notion-box-controls > div:nth-child(2) > button,
+.source-block:hover .notion-box-controls > div:nth-child(2) > button,
+.source-block:focus-within .notion-box-controls > div:nth-child(2) > button,
 .notion-box-controls:hover > div:nth-child(2) > button {
   opacity: 1;
   transform: translateX(0);
@@ -1169,6 +1180,8 @@ body.export-ready .a4-page {
 .content-box-block:focus-within .notion-box-controls > .notion-control-button:nth-child(3),
 .tiptap-table-block-wrapper:hover .notion-box-controls > .notion-control-button:nth-child(3),
 .tiptap-table-block-wrapper:focus-within .notion-box-controls > .notion-control-button:nth-child(3),
+.source-block:hover .notion-box-controls > .notion-control-button:nth-child(3),
+.source-block:focus-within .notion-box-controls > .notion-control-button:nth-child(3),
 .notion-box-controls:hover > .notion-control-button:nth-child(3) {
   opacity: 1;
   transform: translateX(0);
@@ -1423,3 +1436,4 @@ body.export-ready .a4-page {
 .dark .notion-add-box-menu__check {
   color: #3399FF !important;
 }
+

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Plus, ChevronDown, Check, Table } from 'lucide-react';
+import { Plus, ChevronDown, Check } from 'lucide-react';
 import { Button } from './ui/button';
-import { CATEGORIES } from './blocks/ContentBoxBlock';
+import { CATEGORIES, ADDITIONAL_ELEMENTS } from './blocks/ContentBoxBlock';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,17 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-
-// Additional elements that can be added (not content box categories)
-const ADDITIONAL_ELEMENTS = [
-  {
-    id: 'tiptaptable',
-    label: 'Tabelle',
-    icon: Table,
-    color: '#6366F1', // Indigo color for tables
-    isBlockType: true, // Flag to indicate this is a block type, not a category
-  },
-];
 
 const BoxTypeDropdown = ({ onSelect, onAddBlock, usedCategories = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -107,7 +96,7 @@ const BoxTypeDropdown = ({ onSelect, onAddBlock, usedCategories = [] }) => {
                 className="flex items-center justify-center w-4 h-4"
                 style={{ color: element.color }}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4" weight="regular" />
               </span>
               <span className="flex-1">{element.label}</span>
             </DropdownMenuItem>

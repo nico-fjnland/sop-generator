@@ -10,6 +10,7 @@ import ImageBlock from './blocks/ImageBlock';
 import DividerBlock from './blocks/DividerBlock';
 import ContentBoxBlock from './blocks/ContentBoxBlock';
 import FlowchartBlock from './blocks/FlowchartBlock';
+import SourceBlock from './blocks/SourceBlock';
 import { X } from 'lucide-react';
 
 const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideContentBox = false, onDragStart, onDragEnd, isDragging, usedCategories = [], isRightColumn = false, iconOnRight = false }) => {
@@ -155,6 +156,30 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             }
           />
         );
+      case 'source':
+        return (
+          <SourceBlock
+            content={block.content || { blocks: [{ id: '1', type: 'text', content: '' }] }}
+            onChange={(content) => onUpdate(block.id, content)}
+            onDelete={onDelete}
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            isDragging={isDragging}
+            blockId={block.id}
+            usedCategories={isInsideContentBox ? [] : usedCategories}
+            isRightColumn={isRightColumn}
+            onAddBoxAfter={
+              !isInsideContentBox && onAddAfter
+                ? (categoryId) => onAddAfter('contentbox', block.id, categoryId)
+                : undefined
+            }
+            onAddBlockAfter={
+              !isInsideContentBox && onAddAfter
+                ? (blockType) => onAddAfter(blockType, block.id)
+                : undefined
+            }
+          />
+        );
       default:
         return null;
     }
@@ -180,7 +205,7 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
       {renderBlock()}
       
       {/* Delete Button - appears on hover, but not inside content boxes */}
-      {showDeleteButton && !isInsideContentBox && block.type !== 'title' && block.type !== 'contentbox' && block.type !== 'tiptaptable' && (
+      {showDeleteButton && !isInsideContentBox && block.type !== 'title' && block.type !== 'contentbox' && block.type !== 'tiptaptable' && block.type !== 'source' && (
         <IconButton
           variant="destructive"
           size="icon"

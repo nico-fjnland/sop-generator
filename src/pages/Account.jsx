@@ -32,7 +32,9 @@ import {
   CaretUp,
   CaretDown,
   Funnel,
-  X
+  X,
+  Eye,
+  EyeSlash
 } from '@phosphor-icons/react';
 import { getDocuments, deleteDocument, saveDocument, updateDocumentCategory } from '../services/documentService';
 import { exportMultipleDocuments } from '../utils/exportUtils';
@@ -108,41 +110,38 @@ const CategoryFilter = ({ categoryFilter, setCategoryFilter }) => {
       
       {isOpen && (
         <div 
-          className="fixed w-52 bg-popover text-popover-foreground rounded-md shadow-md border py-1 z-[9999]"
-          style={{ top: position.top, left: position.left }}
+          className="fixed w-52 bg-popover text-popover-foreground rounded-md shadow-md border p-1 z-[9999]"
+          style={{ top: position.top, left: position.left, textTransform: 'none', letterSpacing: 'normal', fontWeight: 'normal' }}
         >
-          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-            Nach Fachgebiet filtern
+          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Fachgebiet
           </div>
-          <div className="h-px bg-border my-1" />
-          <button
+          <div className="-mx-1 my-1 h-px bg-muted" />
+          <div
             onClick={() => { setCategoryFilter(null); setIsOpen(false); }}
-            className="w-full px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2 cursor-pointer rounded-sm mx-1"
-            style={{ width: 'calc(100% - 8px)' }}
+            className="relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
           >
-            <span className="flex-1 text-left">Alle Fachgebiete</span>
+            <span className="flex-1">Alle Fachgebiete</span>
             {!categoryFilter && <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />}
-          </button>
-          <button
+          </div>
+          <div
             onClick={() => { setCategoryFilter('none'); setIsOpen(false); }}
-            className="w-full px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2 cursor-pointer rounded-sm mx-1"
-            style={{ width: 'calc(100% - 8px)' }}
+            className="relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
           >
-            <span className="flex-1 text-left">Ohne Fachgebiet</span>
+            <span className="flex-1">Ohne Fachgebiet</span>
             {categoryFilter === 'none' && <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />}
-          </button>
-          <div className="h-px bg-border my-1" />
+          </div>
+          <div className="-mx-1 my-1 h-px bg-muted" />
           {MEDICAL_CATEGORIES.map((cat) => (
-            <button
+            <div
               key={cat.id}
               onClick={() => { setCategoryFilter(cat.id); setIsOpen(false); }}
-              className="w-full px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2 cursor-pointer rounded-sm mx-1"
-              style={{ width: 'calc(100% - 8px)' }}
+              className="relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
             >
-              <span className="w-4 h-4 flex-shrink-0" style={{ color: cat.color }}>{cat.iconComponent}</span>
-              <span className="flex-1 text-left">{cat.label}</span>
+              <span className="flex items-center justify-center w-4 h-4 flex-shrink-0" style={{ color: cat.color }}>{cat.iconComponent}</span>
+              <span className="flex-1">{cat.label}</span>
               {categoryFilter === cat.id && <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />}
-            </button>
+            </div>
           ))}
         </div>
       )}
@@ -382,27 +381,37 @@ const ProfileView = React.memo(({
   updateProfile, newPassword, setNewPassword,
   confirmPassword, setConfirmPassword, updatingPassword, updatePassword, isDeletingAccount,
   handleDeleteAccount
-}) => (
-  <div className="page-container bg-white shadow-lg rounded-lg">
-    <div className="space-y-8 p-8">
-      {/* Header */}
-      <div className="space-y-1">
+}) => {
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  return (
+  <div className="page-container space-y-4">
+    {/* 1. Persönliche Informationen */}
+    <form onSubmit={updateProfile} className="bg-white shadow-lg rounded-lg p-8 space-y-6">
+      {/* Page Header */}
+      <div className="space-y-1 pb-6 border-b">
         <h1 className="text-3xl font-bold tracking-tight">Profil & Einstellungen</h1>
         <p className="text-muted-foreground">
           Verwalte deine persönlichen Informationen und Kontoeinstellungen
         </p>
       </div>
 
-    {/* 1. Persönliche Informationen */}
-    <form onSubmit={updateProfile} className="space-y-8 pb-8 border-b">
-      <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <User size={20} className="text-primary" weight="duotone" />
-          <h2 className="text-xl font-semibold">Persönliche Informationen</h2>
-        </div>
+      {/* Section Header - Full Width */}
+      <div className="flex items-center gap-2">
+        <User size={20} className="text-primary" weight="duotone" />
+        <h2 className="text-xl font-semibold">Persönliche Informationen</h2>
+      </div>
 
-        {/* Avatar */}
-        <div className="flex items-start gap-6">
+      {/* Avatar Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+        <div className="space-y-1">
+          <Label className="text-sm font-medium">Profilbild</Label>
+          <p className="text-xs text-muted-foreground">
+            JPG, PNG oder GIF, max. 2MB
+          </p>
+        </div>
+        <div className="flex items-start gap-4">
           <div className="relative">
             <div className="h-24 w-24 rounded-full overflow-hidden bg-muted border-2 border-border">
               {avatarUrl ? (
@@ -433,20 +442,20 @@ const ProfileView = React.memo(({
               />
             </label>
           </div>
-          <div className="flex-1 pt-2">
-            <p className="text-sm font-medium mb-1">
-              {avatarUrl ? 'Profilbild hochgeladen' : 'Kein Profilbild'}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              JPG, PNG oder GIF, max. 2MB
-            </p>
-          </div>
         </div>
+      </div>
 
-        {/* Name Fields */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Name Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+        <div className="space-y-1">
+          <Label className="text-sm font-medium">Name</Label>
+          <p className="text-xs text-muted-foreground">
+            Dein vollständiger Name
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="firstName">Vorname</Label>
+            <Label htmlFor="firstName" className="text-xs text-muted-foreground">Vorname</Label>
             <Input
               id="firstName"
               type="text"
@@ -456,7 +465,7 @@ const ProfileView = React.memo(({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="lastName">Nachname</Label>
+            <Label htmlFor="lastName" className="text-xs text-muted-foreground">Nachname</Label>
             <Input
               id="lastName"
               type="text"
@@ -466,31 +475,49 @@ const ProfileView = React.memo(({
             />
           </div>
         </div>
+      </div>
 
-        {/* Job Position & Email */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="jobPosition">Position</Label>
-            <Input
-              id="jobPosition"
-              type="text"
-              value={jobPosition}
-              onChange={(e) => setJobPosition(e.target.value)}
-              placeholder="Arzt, Pfleger, etc."
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">E-Mail-Adresse</Label>
-            <Input
-              id="email"
-              type="email"
-              value={user?.email || ''}
-              disabled
-              className="bg-muted cursor-not-allowed"
-            />
-          </div>
+      {/* Position Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+        <div className="space-y-1">
+          <Label htmlFor="jobPosition" className="text-sm font-medium">Position</Label>
+          <p className="text-xs text-muted-foreground">
+            Deine Rolle im Unternehmen
+          </p>
         </div>
+        <div>
+          <Input
+            id="jobPosition"
+            type="text"
+            value={jobPosition}
+            onChange={(e) => setJobPosition(e.target.value)}
+            placeholder="Arzt, Pfleger, etc."
+          />
+        </div>
+      </div>
 
+      {/* Email Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+        <div className="space-y-1">
+          <Label htmlFor="email" className="text-sm font-medium">E-Mail-Adresse</Label>
+          <p className="text-xs text-muted-foreground">
+            Deine Anmelde-E-Mail
+          </p>
+        </div>
+        <div>
+          <Input
+            id="email"
+            type="email"
+            value={user?.email || ''}
+            disabled
+            className="bg-muted cursor-not-allowed"
+          />
+        </div>
+      </div>
+
+      {/* Save Button Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8">
+        <div></div>
         <div className="flex justify-end">
           <Button type="submit" disabled={updating}>
             {updating ? 'Wird gespeichert...' : 'Änderungen speichern'}
@@ -500,18 +527,24 @@ const ProfileView = React.memo(({
     </form>
 
     {/* 2. Organisation / Krankenhaus */}
-    <div className="space-y-6 pb-8 border-b">
+    <div className="bg-white shadow-lg rounded-lg p-8 space-y-6">
+      {/* Section Header - Full Width */}
       <div className="flex items-center gap-2">
         <Buildings size={20} className="text-primary" weight="duotone" />
         <h2 className="text-xl font-semibold">Organisation</h2>
       </div>
 
-      {/* Firmenlogo */}
-      <div className="space-y-4">
-        <Label>Firmenlogo</Label>
-        <div className="flex items-start gap-6">
+      {/* Company Logo Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+        <div className="space-y-1">
+          <Label className="text-sm font-medium">Firmenlogo</Label>
+          <p className="text-xs text-muted-foreground">
+            Wird in deinen SOPs angezeigt. Empfohlen: Quadratisch, PNG mit transparentem Hintergrund
+          </p>
+        </div>
+        <div className="flex items-start gap-4">
           <div className="relative">
-            <div className="w-32 h-32 rounded-lg overflow-hidden bg-muted border-2 border-border flex items-center justify-center">
+            <div className="h-24 w-48 rounded-lg overflow-hidden bg-muted border-2 border-border flex items-center justify-center">
               {companyLogo ? (
                 <img
                   src={companyLogo}
@@ -521,7 +554,6 @@ const ProfileView = React.memo(({
               ) : (
                 <div className="flex flex-col items-center justify-center text-muted-foreground">
                   <Buildings size={40} weight="duotone" />
-                  <span className="text-xs mt-2">Kein Logo</span>
                 </div>
               )}
             </div>
@@ -529,32 +561,18 @@ const ProfileView = React.memo(({
               <button
                 type="button"
                 onClick={removeCompanyLogo}
-                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground p-1.5 rounded-full hover:bg-destructive/90 transition-colors shadow-md"
+                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground p-2 rounded-full hover:bg-destructive/90 transition-colors shadow-md"
                 title="Logo entfernen"
               >
-                <Trash size={12} weight="bold" />
+                <Trash size={14} weight="bold" />
               </button>
             )}
-          </div>
-          <div className="flex-1 pt-2">
-            <p className="text-sm font-medium mb-2">
-              {companyLogo ? 'Logo hochgeladen' : 'Kein Logo hochgeladen'}
-            </p>
-            <p className="text-xs text-muted-foreground mb-4">
-              Dieses Logo wird automatisch in allen deinen SOPs am oberen rechten Rand des Headers angezeigt.
-            </p>
-            <label htmlFor="logo-upload">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="gap-2 cursor-pointer"
-                onClick={() => document.getElementById('logo-upload').click()}
-                disabled={uploadingLogo}
-              >
-                <Upload size={16} />
-                {uploadingLogo ? 'Wird hochgeladen...' : 'Logo hochladen'}
-              </Button>
+            <label 
+              htmlFor="logo-upload" 
+              className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-md"
+              title="Logo ändern"
+            >
+              <Upload size={14} weight="bold" />
               <input
                 id="logo-upload"
                 type="file"
@@ -564,16 +582,19 @@ const ProfileView = React.memo(({
                 className="hidden"
               />
             </label>
-            <p className="text-xs text-muted-foreground mt-2">
-              Empfohlen: Quadratisches Format, PNG mit transparentem Hintergrund
-            </p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="hospitalName">Name des Krankenhauses</Label>
+      {/* Hospital Name Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+        <div className="space-y-1">
+          <Label htmlFor="hospitalName" className="text-sm font-medium">Name des Krankenhauses</Label>
+          <p className="text-xs text-muted-foreground">
+            Vollständiger Name der Einrichtung
+          </p>
+        </div>
+        <div>
           <Input
             id="hospitalName"
             type="text"
@@ -582,140 +603,191 @@ const ProfileView = React.memo(({
             placeholder="Klinikum Berlin"
           />
         </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="hospitalEmployees">Anzahl Mitarbeitende</Label>
-          <div className="relative">
-            <UsersThree size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              id="hospitalEmployees"
-              type="text"
-              value={hospitalEmployees}
-              onChange={(e) => setHospitalEmployees(e.target.value)}
-              placeholder="500"
-              className="pl-10"
-            />
-          </div>
-        </div>
+      </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="hospitalWebsite">Webseite (optional)</Label>
-          <div className="relative">
-            <LinkIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              id="hospitalWebsite"
-              type="url"
-              value={hospitalWebsite}
-              onChange={(e) => setHospitalWebsite(e.target.value)}
-              placeholder="https://example.com"
-              className="pl-10"
-            />
-          </div>
+      {/* Employees & Website Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+        <div className="space-y-1">
+          <Label className="text-sm font-medium">Weitere Informationen</Label>
+          <p className="text-xs text-muted-foreground">
+            Optional: Mitarbeiterzahl und Webseite
+          </p>
         </div>
-
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="hospitalAddress">Adresse</Label>
-          <div className="relative">
-            <MapPin size={18} className="absolute left-3 top-3 text-muted-foreground" />
-            <textarea
-              id="hospitalAddress"
-              value={hospitalAddress}
-              onChange={(e) => setHospitalAddress(e.target.value)}
-              placeholder="Musterstraße 123&#10;12345 Berlin&#10;Deutschland"
-              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              rows={3}
-            />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="hospitalEmployees" className="text-xs text-muted-foreground">Anzahl Mitarbeitende</Label>
+            <div className="relative">
+              <UsersThree size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="hospitalEmployees"
+                type="text"
+                value={hospitalEmployees}
+                onChange={(e) => setHospitalEmployees(e.target.value)}
+                placeholder="500"
+                className="pl-10"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="hospitalWebsite" className="text-xs text-muted-foreground">Webseite (optional)</Label>
+            <div className="relative">
+              <LinkIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="hospitalWebsite"
+                type="url"
+                value={hospitalWebsite}
+                onChange={(e) => setHospitalWebsite(e.target.value)}
+                placeholder="https://example.com"
+                className="pl-10"
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <Button onClick={updateProfile} disabled={updating}>
-          {updating ? 'Wird gespeichert...' : 'Änderungen speichern'}
-        </Button>
+      {/* Address Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+        <div className="space-y-1">
+          <Label htmlFor="hospitalAddress" className="text-sm font-medium">Adresse</Label>
+          <p className="text-xs text-muted-foreground">
+            Standort der Einrichtung
+          </p>
+        </div>
+        <div className="relative">
+          <MapPin size={18} className="absolute left-3 top-3 text-muted-foreground" />
+          <textarea
+            id="hospitalAddress"
+            value={hospitalAddress}
+            onChange={(e) => setHospitalAddress(e.target.value)}
+            placeholder="Musterstraße 123&#10;12345 Berlin&#10;Deutschland"
+            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            rows={3}
+          />
+        </div>
+      </div>
+
+      {/* Save Button Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8">
+        <div></div>
+        <div className="flex justify-end">
+          <Button onClick={updateProfile} disabled={updating}>
+            {updating ? 'Wird gespeichert...' : 'Änderungen speichern'}
+          </Button>
+        </div>
       </div>
     </div>
 
     {/* 3. Sicherheit */}
-    <div className="space-y-6 pb-8 border-b">
+    <div className="bg-white shadow-lg rounded-lg p-8 space-y-6">
+      {/* Section Header - Full Width */}
       <div className="flex items-center gap-2">
         <LockKeyIcon size={20} className="text-primary" weight="duotone" />
         <h2 className="text-xl font-semibold">Sicherheit</h2>
       </div>
 
-      <div className="space-y-4">
-        <div>
-          <Label className="text-base">Passwort ändern</Label>
-          <p className="text-xs text-muted-foreground mt-1">
+      {/* Password Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+        <div className="space-y-1">
+          <Label className="text-sm font-medium">Passwort ändern</Label>
+          <p className="text-xs text-muted-foreground">
             Aktualisiere dein Passwort regelmäßig für erhöhte Sicherheit
           </p>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="newPassword">Neues Passwort</Label>
-            <Input
-              id="newPassword"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="••••••••"
-            />
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword" className="text-xs text-muted-foreground">Neues Passwort</Label>
+              <div className="relative">
+                <Input
+                  id="newPassword"
+                  type={showNewPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                >
+                  {showNewPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-xs text-muted-foreground">Passwort bestätigen</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Passwort bestätigen</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-            />
+          <div className="flex justify-end">
+            <Button 
+              onClick={updatePassword} 
+              disabled={updatingPassword || !newPassword || !confirmPassword}
+              variant="secondary"
+            >
+              {updatingPassword ? 'Wird aktualisiert...' : 'Passwort ändern'}
+            </Button>
           </div>
-        </div>
-
-        <div className="flex justify-end">
-          <Button 
-            onClick={updatePassword} 
-            disabled={updatingPassword || !newPassword || !confirmPassword}
-            variant="secondary"
-          >
-            {updatingPassword ? 'Wird aktualisiert...' : 'Passwort ändern'}
-          </Button>
         </div>
       </div>
     </div>
 
     {/* 4. Gefährlicher Bereich */}
-    <div className="space-y-6">
+    <div className="bg-white shadow-lg rounded-lg p-8 space-y-6">
+      {/* Section Header - Full Width */}
       <div className="flex items-center gap-2">
         <Warning size={20} className="text-destructive" weight="duotone" />
         <h2 className="text-xl font-semibold text-destructive">Gefährlicher Bereich</h2>
       </div>
 
-      <div className="p-4 border-2 border-destructive/20 rounded-lg bg-destructive/5">
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-base font-semibold text-destructive mb-1">Account löschen</h3>
+      {/* Delete Account Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+        <div className="space-y-1">
+          <Label className="text-sm font-medium text-destructive">Account löschen</Label>
+          <p className="text-xs text-muted-foreground">
+            Diese Aktion kann nicht rückgängig gemacht werden
+          </p>
+        </div>
+        <div className="p-4 border-2 border-destructive/20 rounded-lg bg-destructive/5">
+          <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Lösche deinen Account und alle damit verbundenen Daten permanent. Diese Aktion kann nicht rückgängig gemacht werden.
+              Lösche deinen Account und alle damit verbundenen Daten permanent.
             </p>
+            <Button 
+              onClick={handleDeleteAccount} 
+              variant="destructive"
+              disabled={isDeletingAccount}
+              className="gap-2"
+            >
+              <Trash size={16} weight="bold" />
+              {isDeletingAccount ? 'Wird gelöscht...' : 'Account dauerhaft löschen'}
+            </Button>
           </div>
-          <Button 
-            onClick={handleDeleteAccount} 
-            variant="destructive"
-            disabled={isDeletingAccount}
-            className="gap-2"
-          >
-            <Trash size={16} weight="bold" />
-            {isDeletingAccount ? 'Wird gelöscht...' : 'Account dauerhaft löschen'}
-          </Button>
         </div>
       </div>
     </div>
   </div>
-</div>
-));
+);
+});
 
 export default function Account() {
   const { user, signOut } = useAuth();

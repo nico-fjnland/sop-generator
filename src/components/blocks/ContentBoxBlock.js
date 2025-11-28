@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GripVertical, X, Plus, Check } from 'lucide-react';
-import { Table } from '@phosphor-icons/react';
+import { Table, Quotes } from '@phosphor-icons/react';
 import Block from '../Block';
 import { CategoryIcons } from '../icons/CategoryIcons';
 import {
@@ -19,6 +19,13 @@ export const ADDITIONAL_ELEMENTS = [
     label: 'Tabelle',
     icon: Table,
     color: '#003366', // Dark blue color for tables
+    isBlockType: true,
+  },
+  {
+    id: 'source',
+    label: 'Quellen',
+    icon: Quotes,
+    color: '#808080', // Gray color for sources
     isBlockType: true,
   },
 ];
