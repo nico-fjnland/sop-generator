@@ -151,7 +151,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
       paddingBottom: '14px',
       paddingLeft: '14px',
       paddingRight: '14px',
-      gap: '112px'
+      gap: '64px'
     }}>
       {/* Left side: Version and Title */}
       <div className="flex flex-col gap-0" style={{ flex: '1', minWidth: 0 }}>

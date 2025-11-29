@@ -65,7 +65,7 @@
   border: 1.5px solid;
   background: white;
   font-family: 'Roboto', sans-serif;
-  font-size: 14px;
+  font-size: 12px;
   min-width: auto;
   width: auto;
   display: inline-block;
@@ -89,14 +89,14 @@
   outline: none;
   background: transparent;
   font-family: 'Roboto', sans-serif;
-  font-size: 14px;
+  font-size: 12px;
   text-align: center;
   font-weight: 400;
   padding: 0;
   box-sizing: content-box;
   resize: none;
   overflow: hidden;
-  line-height: 1.4;
+  line-height: 1.5;
   white-space: pre-wrap;
   word-wrap: break-word;
 }
@@ -114,7 +114,7 @@
 
 .flowchart-node-start .flowchart-node-input {
   color: #47D1C6;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 /* Phase Node - Dark Blue */
@@ -125,7 +125,7 @@
 
 .flowchart-node-phase .flowchart-node-input {
   color: #003366;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 /* Label Node - No border, just text */
@@ -140,7 +140,7 @@
 .flowchart-node-label .flowchart-node-input {
   color: #6b7280;
   font-weight: 400;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 /* Comment Node - Blue dashed border */
@@ -152,7 +152,7 @@
 
 .flowchart-node-comment .flowchart-node-input {
   color: #3399FF;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 /* Positive Node - Green */
@@ -163,7 +163,7 @@
 
 .flowchart-node-positive .flowchart-node-input {
   color: #52C41A;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 /* Negative Node - Red */
@@ -174,7 +174,7 @@
 
 .flowchart-node-negative .flowchart-node-input {
   color: #EB5547;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 /* Neutral Node - Yellow/Orange */
@@ -185,7 +185,7 @@
 
 .flowchart-node-neutral .flowchart-node-input {
   color: #B27700;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 /* ReactFlow Controls Styling - similar to inline text editor */

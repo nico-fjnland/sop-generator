@@ -139,7 +139,7 @@ const CategoryDropdown = ({ value, onChange, docId }) => {
               <span className="flex items-center justify-center w-4 h-4" style={{ color: selectedCategory.color }}>
                 {selectedCategory.iconComponent}
               </span>
-              <span className="max-w-[90px] truncate">{selectedCategory.label}</span>
+              <span className="max-w-[124px] truncate">{selectedCategory.label}</span>
             </>
           ) : (
             <span className="text-gray-400">Fachgebiet</span>
@@ -220,7 +220,7 @@ const DocumentCard = ({
 
   return (
     <div 
-      className={`group relative grid grid-cols-[auto_1fr_170px_150px_72px] items-center gap-4 px-8 py-3 transition-all hover:bg-gray-50/80 ${
+      className={`group relative grid grid-cols-[auto_1fr_176px_124px_72px] items-center gap-4 px-8 py-3 transition-all hover:bg-gray-50/80 ${
         isSelected ? 'bg-primary/5' : ''
       }`}
       style={{ borderBottom: '1px solid #f0f0f0' }}
@@ -242,7 +242,7 @@ const DocumentCard = ({
         className="min-w-0 cursor-pointer"
         onClick={() => onOpen(doc.id)}
       >
-        <h3 className="font-medium text-[#003366] truncate text-sm hover:text-primary transition-colors">
+        <h3 className="font-medium text-[#003366] text-sm hover:text-primary transition-colors line-clamp-2 text-balance">
           {doc.title || 'Unbenanntes Dokument'}
         </h3>
       </div>

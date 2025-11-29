@@ -295,7 +295,7 @@ const SopsView = React.memo(({
         <div className="bg-gray-50/50">
           {/* Table Header */}
           <div 
-            className="grid grid-cols-[auto_1fr_170px_150px_72px] items-center gap-4 px-8 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
+            className="grid grid-cols-[auto_1fr_176px_124px_72px] items-center gap-4 px-8 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
             style={{ borderBottom: '1px solid #e5e5e5' }}
           >
             <div className="flex items-center justify-center w-6">
