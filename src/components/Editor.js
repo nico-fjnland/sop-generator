@@ -10,6 +10,7 @@ import { Button } from './ui/button';
 import { Spinner } from './ui/spinner';
 import { UndoRedoButton } from './ui/undo-redo-button';
 import { Trash, Upload, FileDoc, FileCode, FilePdf, Check, CloudArrowUp, User } from '@phosphor-icons/react';
+import { CATEGORIES } from './blocks/ContentBoxBlock';
 import { exportAsJson, importFromJson, exportAsWord, exportAsPdf } from '../utils/exportUtils';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -63,7 +64,8 @@ const SortableBlockWrapper = memo(({
   onUpdate, 
   onDelete, 
   onAddAfter, 
-  onMove, 
+  onMove,
+  onSortBlocks, 
   allBlocks, 
   usedCategories = [], 
   isRightColumn = false, 
@@ -139,6 +141,7 @@ const SortableBlockWrapper = memo(({
             onUpdate={onUpdate}
             onDelete={onDelete}
             onAddAfter={onAddAfter}
+            onSortBlocks={onSortBlocks}
             isLast={false}
             isDragging={isDragging}
             usedCategories={usedCategories}
@@ -554,6 +557,71 @@ const Editor = () => {
       .map(block => block.content.category);
   }, [rows]);
 
+  // Sort content boxes according to CATEGORIES default order
+  const sortBlocksByCategory = useCallback(() => {
+    // Get the order map from CATEGORIES
+    const categoryOrder = CATEGORIES.reduce((acc, cat, index) => {
+      acc[cat.id] = index;
+      return acc;
+    }, {});
+
+    setRows(prevRows => {
+      // Flatten all blocks while keeping track of their row info
+      const allBlocksWithRowInfo = prevRows.flatMap((row, rowIndex) => 
+        row.blocks.map((block, blockIndex) => ({
+          block,
+          rowId: row.id,
+          columnRatio: row.columnRatio,
+          originalRowIndex: rowIndex,
+          originalBlockIndex: blockIndex,
+          // For two-column rows, mark position
+          isTwoColumn: row.blocks.length === 2,
+          columnPosition: blockIndex // 0 = left, 1 = right
+        }))
+      );
+
+      // Separate content boxes from non-content boxes
+      const contentBoxes = allBlocksWithRowInfo.filter(
+        item => item.block.type === 'contentbox'
+      );
+      const nonContentBoxes = allBlocksWithRowInfo.filter(
+        item => item.block.type !== 'contentbox'
+      );
+
+      // Sort content boxes by category order
+      contentBoxes.sort((a, b) => {
+        const categoryA = a.block.content?.category || 'sonstiges';
+        const categoryB = b.block.content?.category || 'sonstiges';
+        const orderA = categoryOrder[categoryA] ?? 999;
+        const orderB = categoryOrder[categoryB] ?? 999;
+        return orderA - orderB;
+      });
+
+      // Rebuild rows - each content box gets its own row (single column)
+      // Non-content boxes (tables, sources) stay at their relative positions
+      const newRows = [];
+      
+      // First, add sorted content boxes as single-column rows
+      contentBoxes.forEach((item) => {
+        newRows.push({
+          id: `row-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          columnRatio: 0.5,
+          blocks: [item.block]
+        });
+      });
+
+      // Then add non-content boxes at the end
+      nonContentBoxes.forEach((item) => {
+        newRows.push({
+          id: `row-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          columnRatio: 0.5,
+          blocks: [item.block]
+        });
+      });
+
+      return newRows;
+    });
+  }, [setRows]);
 
   const updateBlock = useCallback((id, content) => {
     setRows(prevRows =>
@@ -1161,6 +1229,7 @@ const Editor = () => {
                               onDelete={deleteBlock}
                               onAddAfter={addBlock}
                               onMove={moveBlock}
+                              onSortBlocks={sortBlocksByCategory}
                               allBlocks={rows.flatMap(r => r.blocks)}
                               usedCategories={usedCategories}
                               isRightColumn={isRightColumn}

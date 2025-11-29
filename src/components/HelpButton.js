@@ -5,7 +5,7 @@ import { Button } from './ui/button';
 import { useTheme } from '../contexts/ThemeContext';
 
 // App Version
-const APP_VERSION = 'v.0.01';
+const APP_VERSION = 'v.0.02';
 
 /**
  * Custom Help Button that triggers the Help Scout Beacon

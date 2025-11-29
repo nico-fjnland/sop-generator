@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, ChevronDown, Check } from 'lucide-react';
+import { SortAscending } from '@phosphor-icons/react';
 import { Button } from './ui/button';
 import { CATEGORIES, ADDITIONAL_ELEMENTS } from './blocks/ContentBoxBlock';
 import {
@@ -11,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 
-const BoxTypeDropdown = ({ onSelect, onAddBlock, usedCategories = [] }) => {
+const BoxTypeDropdown = ({ onSelect, onAddBlock, onSortBlocks, usedCategories = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSelect = (categoryId) => {
@@ -51,8 +52,21 @@ const BoxTypeDropdown = ({ onSelect, onAddBlock, usedCategories = [] }) => {
         avoidCollisions={true}
         sideOffset={4}
       >
-        <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          Content Boxen
+        <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
+          <span>Inhalt hinzufügen</span>
+          {onSortBlocks && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSortBlocks();
+              }}
+              className="p-1 rounded hover:bg-muted transition-colors"
+              title="Content-Boxen nach Standard-Reihenfolge sortieren"
+            >
+              <SortAscending className="h-4 w-4" weight="regular" />
+            </button>
+          )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
           {CATEGORIES.map((cat) => {

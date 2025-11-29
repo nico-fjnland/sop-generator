@@ -10,7 +10,7 @@ import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
 import { GripVertical, X, Plus, Check, MoreHorizontal } from 'lucide-react';
-import { Table as TableIcon } from '@phosphor-icons/react';
+import { Table as TableIcon, SortAscending } from '@phosphor-icons/react';
 import InlineTextToolbar from '../InlineTextToolbar';
 import {
   DropdownMenu,
@@ -133,6 +133,7 @@ const TipTapTableBlock = forwardRef(({
   blockId,
   onAddBoxAfter,
   onAddBlockAfter,
+  onSortBlocks,
   usedCategories = [],
   isRightColumn = false,
   dragHandleProps = {}, // dnd-kit drag handle props
@@ -495,8 +496,21 @@ const TipTapTableBlock = forwardRef(({
               collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }}
               avoidCollisions={true}
             >
-              <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Content Boxen
+              <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
+                <span>Inhalt hinzufügen</span>
+                {onSortBlocks && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSortBlocks();
+                    }}
+                    className="p-1 rounded hover:bg-muted transition-colors"
+                    title="Content-Boxen nach Standard-Reihenfolge sortieren"
+                  >
+                    <SortAscending className="h-4 w-4" weight="regular" />
+                  </button>
+                )}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {CATEGORIES.map((cat) => {

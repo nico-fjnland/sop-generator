@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { GripVertical, X, Plus } from 'lucide-react';
+import { SortAscending } from '@phosphor-icons/react';
 import Block from '../Block';
 import { CATEGORIES, ADDITIONAL_ELEMENTS } from './ContentBoxBlock';
 import {
@@ -20,6 +21,7 @@ const SourceBlock = ({
   usedCategories = [],
   onAddBoxAfter,
   onAddBlockAfter,
+  onSortBlocks,
   isRightColumn = false,
   dragHandleProps = {}, // dnd-kit drag handle props
 }) => {
@@ -185,8 +187,21 @@ const SourceBlock = ({
               collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }}
               avoidCollisions={true}
             >
-              <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Content Boxen
+              <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
+                <span>Inhalt hinzufügen</span>
+                {onSortBlocks && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSortBlocks();
+                    }}
+                    className="p-1 rounded hover:bg-muted transition-colors"
+                    title="Content-Boxen nach Standard-Reihenfolge sortieren"
+                  >
+                    <SortAscending className="h-4 w-4" weight="regular" />
+                  </button>
+                )}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {CATEGORIES.map((cat) => {

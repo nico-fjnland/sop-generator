@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GripVertical, X, Plus, Check } from 'lucide-react';
-import { Table, Quotes } from '@phosphor-icons/react';
+import { Table, Quotes, SortAscending } from '@phosphor-icons/react';
 import Block from '../Block';
 import { CategoryIcons } from '../icons/CategoryIcons';
 import {
@@ -127,6 +127,7 @@ const ContentBoxBlock = ({
   usedCategories = [],
   onAddBoxAfter,
   onAddBlockAfter, // For adding block types (like tables)
+  onSortBlocks, // For sorting content boxes to default order
   isRightColumn = false,
   iconOnRight = false,
   dragHandleProps = {}, // dnd-kit drag handle props
@@ -371,8 +372,21 @@ const ContentBoxBlock = ({
                 }
               }}
             >
-              <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Content Boxen
+              <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
+                <span>Inhalt hinzufügen</span>
+                {onSortBlocks && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSortBlocks();
+                    }}
+                    className="p-1 rounded hover:bg-muted transition-colors"
+                    title="Content-Boxen nach Standard-Reihenfolge sortieren"
+                  >
+                    <SortAscending className="h-4 w-4" weight="regular" />
+                  </button>
+                )}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {CATEGORIES.map((cat) => {
@@ -530,8 +544,21 @@ const ContentBoxBlock = ({
                     </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="start" sideOffset={4} collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }} avoidCollisions={true}>
-                    <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Kategorie ändern
+                    <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
+                      <span>Kategorie ändern</span>
+                      {onSortBlocks && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSortBlocks();
+                          }}
+                          className="p-1 rounded hover:bg-muted transition-colors"
+                          title="Content-Boxen nach Standard-Reihenfolge sortieren"
+                        >
+                          <SortAscending className="h-4 w-4" weight="regular" />
+                        </button>
+                      )}
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {CATEGORIES.map((cat) => {
@@ -593,7 +620,8 @@ const ContentBoxBlock = ({
                 fontFamily: "'Roboto', sans-serif",
                 fontSize: '12px',
                 lineHeight: 1.5,
-                fontWeight: 400
+                fontWeight: 400,
+                '--content-box-color': category.color,
               }}
             >
               {innerBlocks.map((block, index) => (

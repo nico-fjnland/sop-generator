@@ -12,6 +12,7 @@ import tippy from 'tippy.js';
 import InlineTextToolbar from '../InlineTextToolbar';
 import SlashMenu from '../SlashMenu';
 import { SlashCommand } from '../extensions/SlashCommand';
+import { HighlightItem } from '../extensions/HighlightItem';
 import './TextBlock.css';
 
 // Custom extension for smaller font size (10px)
@@ -101,6 +102,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
         inline: true,
         allowBase64: true,
       }),
+      HighlightItem,
       SlashCommand.configure({
         suggestion: {
           items: () => {

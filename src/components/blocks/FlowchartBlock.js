@@ -12,11 +12,150 @@ import ReactFlow, {
   useReactFlow,
   ReactFlowProvider,
   useViewport,
+  getConnectedEdges,
+  getIncomers,
+  getOutgoers,
+  getSmoothStepPath,
+  useStore,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './FlowchartBlock.css';
 import { Square, Circle, FileText, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
 import { ArrowCounterClockwise, ArrowClockwise, FrameCorners, ArrowsOut } from '@phosphor-icons/react';
+
+// Helper function to get the position on the node edge for a given side
+function getHandleCoordsByPosition(node, handlePosition) {
+  // Get node dimensions - check multiple possible locations for width/height
+  const width = node.width ?? node.measured?.width ?? 150;
+  const height = node.height ?? node.measured?.height ?? 40;
+  
+  let x, y;
+  
+  switch (handlePosition) {
+    case Position.Top:
+      x = width / 2;
+      y = 0;
+      break;
+    case Position.Bottom:
+      x = width / 2;
+      y = height;
+      break;
+    case Position.Left:
+      x = 0;
+      y = height / 2;
+      break;
+    case Position.Right:
+      x = width;
+      y = height / 2;
+      break;
+    default:
+      x = width / 2;
+      y = height;
+  }
+  
+  return { x, y };
+}
+
+// Helper function to determine the closest sides between two nodes
+function getClosestSides(sourceNode, targetNode) {
+  const sourceWidth = sourceNode.width ?? sourceNode.measured?.width ?? 150;
+  const sourceHeight = sourceNode.height ?? sourceNode.measured?.height ?? 40;
+  const targetWidth = targetNode.width ?? targetNode.measured?.width ?? 150;
+  const targetHeight = targetNode.height ?? targetNode.measured?.height ?? 40;
+  
+  // Get absolute position - try positionAbsolute first, then position
+  const sourcePos = sourceNode.positionAbsolute ?? sourceNode.position;
+  const targetPos = targetNode.positionAbsolute ?? targetNode.position;
+  
+  const sourceCenter = {
+    x: sourcePos.x + sourceWidth / 2,
+    y: sourcePos.y + sourceHeight / 2,
+  };
+  const targetCenter = {
+    x: targetPos.x + targetWidth / 2,
+    y: targetPos.y + targetHeight / 2,
+  };
+  
+  const dx = targetCenter.x - sourceCenter.x;
+  const dy = targetCenter.y - sourceCenter.y;
+  
+  // Determine which axis has the larger difference
+  if (Math.abs(dx) > Math.abs(dy)) {
+    // Horizontal connection preferred
+    return dx > 0 
+      ? { sourcePos: Position.Right, targetPos: Position.Left }
+      : { sourcePos: Position.Left, targetPos: Position.Right };
+  } else {
+    // Vertical connection preferred
+    return dy > 0
+      ? { sourcePos: Position.Bottom, targetPos: Position.Top }
+      : { sourcePos: Position.Top, targetPos: Position.Bottom };
+  }
+}
+
+// Custom Floating Edge Component
+function FloatingEdge({ id, source, target, markerEnd, style }) {
+  // Use useStore to get nodes from the ReactFlow store
+  const sourceNode = useStore(useCallback((store) => store.nodeInternals.get(source), [source]));
+  const targetNode = useStore(useCallback((store) => store.nodeInternals.get(target), [target]));
+
+  if (!sourceNode || !targetNode) {
+    return null;
+  }
+
+  const { sourcePos, targetPos } = getClosestSides(sourceNode, targetNode);
+  
+  const sourceHandleCoords = getHandleCoordsByPosition(sourceNode, sourcePos);
+  const targetHandleCoords = getHandleCoordsByPosition(targetNode, targetPos);
+  
+  // Get absolute position
+  const sourceAbsPos = sourceNode.positionAbsolute ?? sourceNode.position;
+  const targetAbsPos = targetNode.positionAbsolute ?? targetNode.position;
+  
+  const [edgePath] = getSmoothStepPath({
+    sourceX: sourceAbsPos.x + sourceHandleCoords.x,
+    sourceY: sourceAbsPos.y + sourceHandleCoords.y,
+    sourcePosition: sourcePos,
+    targetX: targetAbsPos.x + targetHandleCoords.x,
+    targetY: targetAbsPos.y + targetHandleCoords.y,
+    targetPosition: targetPos,
+    borderRadius: 8,
+  });
+
+  return (
+    <path
+      id={id}
+      className="react-flow__edge-path"
+      d={edgePath}
+      markerEnd={markerEnd}
+      style={style}
+    />
+  );
+}
+
+const edgeTypes = {
+  floating: FloatingEdge,
+};
+
+// Reusable Handles component for all 4 sides
+const NodeHandles = ({ selected }) => {
+  const handleStyle = { visibility: selected ? 'visible' : 'hidden' };
+  
+  return (
+    <>
+      {/* Target handles (can receive connections) */}
+      <Handle type="target" position={Position.Top} id="top" style={handleStyle} className="flowchart-custom-handle" />
+      <Handle type="target" position={Position.Bottom} id="bottom" style={handleStyle} className="flowchart-custom-handle" />
+      <Handle type="target" position={Position.Left} id="left" style={handleStyle} className="flowchart-custom-handle" />
+      <Handle type="target" position={Position.Right} id="right" style={handleStyle} className="flowchart-custom-handle" />
+      {/* Source handles (can start connections) */}
+      <Handle type="source" position={Position.Top} id="top-source" style={handleStyle} className="flowchart-custom-handle" />
+      <Handle type="source" position={Position.Bottom} id="bottom-source" style={handleStyle} className="flowchart-custom-handle" />
+      <Handle type="source" position={Position.Left} id="left-source" style={handleStyle} className="flowchart-custom-handle" />
+      <Handle type="source" position={Position.Right} id="right-source" style={handleStyle} className="flowchart-custom-handle" />
+    </>
+  );
+};
 
 // Custom Node Components
 const StartNode = ({ data, selected }) => {
@@ -33,12 +172,7 @@ const StartNode = ({ data, selected }) => {
   
   return (
     <div className={`flowchart-node flowchart-node-start ${selected ? 'selected' : ''}`}>
-      <Handle 
-        type="target" 
-        position={Position.Top} 
-        style={{ visibility: selected ? 'visible' : 'hidden' }}
-        className="flowchart-custom-handle"
-      />
+      <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
         <textarea
           value={data.label}
@@ -50,12 +184,6 @@ const StartNode = ({ data, selected }) => {
           rows={rows}
         />
       </div>
-      <Handle 
-        type="source" 
-        position={Position.Bottom} 
-        style={{ visibility: selected ? 'visible' : 'hidden' }}
-        className="flowchart-custom-handle"
-      />
     </div>
   );
 };
@@ -74,7 +202,7 @@ const PhaseNode = ({ data, selected }) => {
   
   return (
     <div className={`flowchart-node flowchart-node-phase ${selected ? 'selected' : ''}`}>
-      <Handle type="target" position={Position.Top} style={{ visibility: selected ? 'visible' : 'hidden' }} className="flowchart-custom-handle" />
+      <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
         <textarea
           value={data.label}
@@ -86,7 +214,6 @@ const PhaseNode = ({ data, selected }) => {
           rows={rows}
         />
       </div>
-      <Handle type="source" position={Position.Bottom} style={{ visibility: selected ? 'visible' : 'hidden' }} className="flowchart-custom-handle" />
     </div>
   );
 };
@@ -105,7 +232,7 @@ const LabelNode = ({ data, selected }) => {
   
   return (
     <div className={`flowchart-node flowchart-node-label ${selected ? 'selected' : ''}`}>
-      <Handle type="target" position={Position.Top} style={{ visibility: selected ? 'visible' : 'hidden' }} className="flowchart-custom-handle" />
+      <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
         <textarea
           value={data.label}
@@ -117,7 +244,6 @@ const LabelNode = ({ data, selected }) => {
           rows={rows}
         />
       </div>
-      <Handle type="source" position={Position.Bottom} style={{ visibility: selected ? 'visible' : 'hidden' }} className="flowchart-custom-handle" />
     </div>
   );
 };
@@ -136,7 +262,7 @@ const CommentNode = ({ data, selected }) => {
   
   return (
     <div className={`flowchart-node flowchart-node-comment ${selected ? 'selected' : ''}`}>
-      <Handle type="target" position={Position.Top} style={{ visibility: selected ? 'visible' : 'hidden' }} className="flowchart-custom-handle" />
+      <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
         <textarea
           value={data.label}
@@ -148,7 +274,6 @@ const CommentNode = ({ data, selected }) => {
           rows={rows}
         />
       </div>
-      <Handle type="source" position={Position.Bottom} style={{ visibility: selected ? 'visible' : 'hidden' }} className="flowchart-custom-handle" />
     </div>
   );
 };
@@ -167,7 +292,7 @@ const PositiveNode = ({ data, selected }) => {
   
   return (
     <div className={`flowchart-node flowchart-node-positive ${selected ? 'selected' : ''}`}>
-      <Handle type="target" position={Position.Top} style={{ visibility: selected ? 'visible' : 'hidden' }} className="flowchart-custom-handle" />
+      <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
         <textarea
           value={data.label}
@@ -179,7 +304,6 @@ const PositiveNode = ({ data, selected }) => {
           rows={rows}
         />
       </div>
-      <Handle type="source" position={Position.Bottom} style={{ visibility: selected ? 'visible' : 'hidden' }} className="flowchart-custom-handle" />
     </div>
   );
 };
@@ -198,7 +322,7 @@ const NegativeNode = ({ data, selected }) => {
   
   return (
     <div className={`flowchart-node flowchart-node-negative ${selected ? 'selected' : ''}`}>
-      <Handle type="target" position={Position.Top} style={{ visibility: selected ? 'visible' : 'hidden' }} className="flowchart-custom-handle" />
+      <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
         <textarea
           value={data.label}
@@ -210,7 +334,6 @@ const NegativeNode = ({ data, selected }) => {
           rows={rows}
         />
       </div>
-      <Handle type="source" position={Position.Bottom} style={{ visibility: selected ? 'visible' : 'hidden' }} className="flowchart-custom-handle" />
     </div>
   );
 };
@@ -229,7 +352,7 @@ const NeutralNode = ({ data, selected }) => {
   
   return (
     <div className={`flowchart-node flowchart-node-neutral ${selected ? 'selected' : ''}`}>
-      <Handle type="target" position={Position.Top} style={{ visibility: selected ? 'visible' : 'hidden' }} className="flowchart-custom-handle" />
+      <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
         <textarea
           value={data.label}
@@ -241,7 +364,6 @@ const NeutralNode = ({ data, selected }) => {
           rows={rows}
         />
       </div>
-      <Handle type="source" position={Position.Bottom} style={{ visibility: selected ? 'visible' : 'hidden' }} className="flowchart-custom-handle" />
     </div>
   );
 };
@@ -606,7 +728,7 @@ const FlowchartBlockInner = ({ content, onChange }) => {
     (params) => {
       const newEdge = {
         ...params,
-        type: 'smoothstep',
+        type: 'floating',
         markerEnd: {
           type: MarkerType.Arrow,
           width: 20,
@@ -622,6 +744,49 @@ const FlowchartBlockInner = ({ content, onChange }) => {
       setTimeout(() => saveToHistory(), 100);
     },
     [setEdges, saveToHistory]
+  );
+
+  // Delete Middle Node: Reconnect incomers to outgoers when a node is deleted
+  const onNodesDelete = useCallback(
+    (deletedNodes) => {
+      // Use edges from state directly (not from callback) because ReactFlow
+      // may have already removed the connected edges before this callback fires
+      setEdges(
+        deletedNodes.reduce((acc, deletedNode) => {
+          const incomers = getIncomers(deletedNode, nodes, edges);
+          const outgoers = getOutgoers(deletedNode, nodes, edges);
+          const connectedEdges = getConnectedEdges([deletedNode], edges);
+
+          // Remove all edges connected to the deleted node
+          const remainingEdges = acc.filter((edge) => !connectedEdges.includes(edge));
+
+          // Create new edges from each incomer to each outgoer
+          const createdEdges = incomers.flatMap(({ id: sourceId }) =>
+            outgoers.map(({ id: targetId }) => ({
+              id: `${sourceId}->${targetId}`,
+              source: sourceId,
+              target: targetId,
+              type: 'floating',
+              markerEnd: {
+                type: MarkerType.Arrow,
+                width: 20,
+                height: 20,
+                color: '#003366',
+              },
+              style: {
+                strokeWidth: 1.5,
+                stroke: '#003366',
+              },
+            }))
+          );
+
+          return [...remainingEdges, ...createdEdges];
+        }, edges)
+      );
+
+      setTimeout(() => saveToHistory(), 100);
+    },
+    [nodes, edges, setEdges, saveToHistory]
   );
 
   const addNode = useCallback((type) => {
@@ -744,9 +909,11 @@ const FlowchartBlockInner = ({ content, onChange }) => {
           onNodesChange={onNodesChangeWithHelperLines}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onNodesDelete={onNodesDelete}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           defaultEdgeOptions={{
-            type: 'smoothstep',
+            type: 'floating',
             animated: false,
             style: { 
               strokeWidth: 1.5,

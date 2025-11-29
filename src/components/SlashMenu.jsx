@@ -1,5 +1,5 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { ListBullets, TextT, Image as ImageIcon } from '@phosphor-icons/react';
+import { ListBullets, TextT, Image as ImageIcon, ArrowCircleRight } from '@phosphor-icons/react';
 
 const SLASH_COMMANDS = [
   {
@@ -25,6 +25,20 @@ const SLASH_COMMANDS = [
         .focus()
         .deleteRange(range)
         .toggleBulletList()
+        .run();
+    },
+  },
+  {
+    id: 'highlightItem',
+    title: 'Auszeichnung',
+    icon: ArrowCircleRight,
+    iconWeight: 'fill',
+    command: ({ editor, range }) => {
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .setHighlightItem()
         .run();
     },
   },
@@ -114,7 +128,11 @@ const SlashMenu = forwardRef((props, ref) => {
             onClick={() => selectItem(index)}
             onMouseEnter={() => setSelectedIndex(index)}
           >
-            <Icon size={16} weight="regular" className="slash-menu-icon" />
+            <Icon 
+              size={16} 
+              weight={item.iconWeight || 'regular'} 
+              className={`slash-menu-icon ${item.id === 'highlightItem' ? 'highlight-icon' : ''}`}
+            />
             <span className="slash-menu-title">{item.title}</span>
           </button>
         );

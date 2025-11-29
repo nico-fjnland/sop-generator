@@ -13,7 +13,7 @@ import FlowchartBlock from './blocks/FlowchartBlock';
 import SourceBlock from './blocks/SourceBlock';
 import { X } from 'lucide-react';
 
-const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideContentBox = false, isDragging, usedCategories = [], isRightColumn = false, iconOnRight = false, dragHandleProps = {} }) => {
+const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideContentBox = false, isDragging, usedCategories = [], isRightColumn = false, iconOnRight = false, dragHandleProps = {}, onSortBlocks }) => {
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const blockRef = useRef(null);
   const inputRef = useRef(null);
@@ -95,6 +95,7 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             usedCategories={isInsideContentBox ? [] : usedCategories}
             isRightColumn={isRightColumn}
             dragHandleProps={dragHandleProps}
+            onSortBlocks={!isInsideContentBox ? onSortBlocks : undefined}
             onAddBoxAfter={
               !isInsideContentBox && onAddAfter
                 ? (categoryId) => onAddAfter('contentbox', block.id, categoryId)
@@ -142,6 +143,7 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             isRightColumn={isRightColumn}
             iconOnRight={iconOnRight}
             dragHandleProps={dragHandleProps}
+            onSortBlocks={!isInsideContentBox ? onSortBlocks : undefined}
             onAddBoxAfter={
               !isInsideContentBox && onAddAfter
                 ? (categoryId) => onAddAfter('contentbox', block.id, categoryId)
@@ -165,6 +167,7 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             usedCategories={isInsideContentBox ? [] : usedCategories}
             isRightColumn={isRightColumn}
             dragHandleProps={dragHandleProps}
+            onSortBlocks={!isInsideContentBox ? onSortBlocks : undefined}
             onAddBoxAfter={
               !isInsideContentBox && onAddAfter
                 ? (categoryId) => onAddAfter('contentbox', block.id, categoryId)
