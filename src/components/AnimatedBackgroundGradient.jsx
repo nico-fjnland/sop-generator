@@ -31,7 +31,7 @@ const AnimatedBackgroundGradient = () => {
 
   return (
     <div 
-      className={`fixed inset-0 -z-20 transition-colors duration-1000 ${
+      className={`fixed inset-0 -z-20 pointer-events-none transition-colors duration-1000 ${
         isNight ? 'bg-[#002244]' : 'bg-[#F0F7FF]'
       }`}
     >

@@ -122,8 +122,6 @@ const ContentBoxBlock = ({
   content, 
   onChange, 
   onDelete,
-  onDragStart,
-  onDragEnd,
   isDragging,
   blockId,
   usedCategories = [],
@@ -131,6 +129,7 @@ const ContentBoxBlock = ({
   onAddBlockAfter, // For adding block types (like tables)
   isRightColumn = false,
   iconOnRight = false,
+  dragHandleProps = {}, // dnd-kit drag handle props
 }) => {
   // Initialize content structure helper
   const getInitializedContent = (contentToInit) => {
@@ -324,7 +323,6 @@ const ContentBoxBlock = ({
         transition: isDragging ? 'none' : 'opacity 0.2s ease, transform 0.1s ease',
         cursor: isDragging ? 'grabbing' : 'default'
       }}
-      data-draggable="true"
     >
       {/* Hover controls similar to Notion */}
       <div 
@@ -332,23 +330,11 @@ const ContentBoxBlock = ({
       >
         <button
           type="button"
-          className="notion-control-button"
-          style={{ backgroundColor: category.color }}
-          draggable
+          className="notion-control-button touch-none"
+          style={{ backgroundColor: category.color, cursor: isDragging ? 'grabbing' : 'grab' }}
           aria-label="Box verschieben"
           title="Box verschieben"
-          onDragStart={(e) => {
-            e.stopPropagation();
-            if (onDragStart) {
-              onDragStart(e);
-            }
-          }}
-          onDragEnd={(e) => {
-            e.stopPropagation();
-            if (onDragEnd) {
-              onDragEnd(e);
-            }
-          }}
+          {...dragHandleProps}
         >
           <GripVertical className="h-4 w-4 text-white" strokeWidth={2} />
         </button>
@@ -460,47 +446,18 @@ const ContentBoxBlock = ({
       <div className={`flex items-center mb-[-7px] relative w-full ${iconOnRight ? 'flex-row-reverse' : ''}`} style={{ overflow: 'visible' }}>
         {/* Icon - Oval - Draggable (Editor only) */}
         <div 
-          className={`icon-container flex items-center justify-center ${iconOnRight ? 'ml-[-14px]' : 'mr-[-14px]'} relative shrink-0 z-10 no-print`} 
-          style={{ overflow: 'visible', cursor: 'grab' }}
-          draggable={true}
-          onDragStart={(e) => {
-            e.stopPropagation();
-            
-            // Set custom drag image to the whole box
-            if (containerRef.current) {
-              const rect = containerRef.current.getBoundingClientRect();
-              const x = e.clientX - rect.left;
-              const y = e.clientY - rect.top;
-              e.dataTransfer.setDragImage(containerRef.current, x, y);
-            }
-            
-            if (onDragStart) {
-              onDragStart(e);
-            }
-          }}
-          onDragEnd={(e) => {
-            e.stopPropagation();
-            setIsIconPressed(false);
-            if (onDragEnd) {
-              onDragEnd(e);
-            }
-          }}
+          className={`icon-container flex items-center justify-center ${iconOnRight ? 'ml-[-14px]' : 'mr-[-14px]'} relative shrink-0 z-10 no-print touch-none`} 
+          style={{ overflow: 'visible', cursor: isDragging ? 'grabbing' : 'grab' }}
+          {...dragHandleProps}
           onMouseDown={(e) => {
             setIsIconPressed(true);
-            e.currentTarget.style.cursor = 'grabbing';
-            // Also change cursor on parent box
-            const box = e.currentTarget.closest('.content-box-block');
-            if (box) {
-              box.style.cursor = 'grabbing';
+            // Call dnd-kit's onMouseDown if it exists
+            if (dragHandleProps.onMouseDown) {
+              dragHandleProps.onMouseDown(e);
             }
           }}
-          onMouseUp={(e) => {
+          onMouseUp={() => {
             setIsIconPressed(false);
-            e.currentTarget.style.cursor = 'grab';
-            const box = e.currentTarget.closest('.content-box-block');
-            if (box) {
-              box.style.cursor = '';
-            }
           }}
           onMouseLeave={() => setIsIconPressed(false)}
         >

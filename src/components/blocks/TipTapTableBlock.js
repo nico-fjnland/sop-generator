@@ -123,14 +123,13 @@ const TipTapTableBlock = forwardRef(({
   content, 
   onChange,
   onDelete,
-  onDragStart,
-  onDragEnd,
   isDragging,
   blockId,
   onAddBoxAfter,
   onAddBlockAfter,
   usedCategories = [],
   isRightColumn = false,
+  dragHandleProps = {}, // dnd-kit drag handle props
 }, ref) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
@@ -453,7 +452,6 @@ const TipTapTableBlock = forwardRef(({
         transition: isDragging ? 'none' : 'opacity 0.2s ease, transform 0.1s ease',
         cursor: isDragging ? 'grabbing' : 'default'
       }}
-      data-draggable="true"
     >
       {/* Hover controls similar to ContentBoxBlock */}
       <div 
@@ -461,23 +459,11 @@ const TipTapTableBlock = forwardRef(({
       >
         <button
           type="button"
-          className="notion-control-button"
-          style={{ backgroundColor: tableColor }}
-          draggable
+          className="notion-control-button touch-none"
+          style={{ backgroundColor: tableColor, cursor: isDragging ? 'grabbing' : 'grab' }}
           aria-label="Tabelle verschieben"
           title="Tabelle verschieben"
-          onDragStart={(e) => {
-            e.stopPropagation();
-            if (onDragStart) {
-              onDragStart(e);
-            }
-          }}
-          onDragEnd={(e) => {
-            e.stopPropagation();
-            if (onDragEnd) {
-              onDragEnd(e);
-            }
-          }}
+          {...dragHandleProps}
         >
           <GripVertical className="h-4 w-4 text-white" strokeWidth={2} />
         </button>

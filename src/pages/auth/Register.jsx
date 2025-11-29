@@ -4,6 +4,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
+import { UserPlus, ArrowLeft } from '@phosphor-icons/react';
+import { Spinner } from '../../components/ui/spinner';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -25,10 +27,9 @@ export default function Register() {
       setLoading(true);
       const { error } = await signUp(email, password);
       if (error) throw error;
-      // Success - usually Supabase requires email verification, so maybe tell user to check email?
-      // For now, navigate to login or account
-      navigate('/');
+      // Success - usually Supabase requires email verification
       alert('Registrierung erfolgreich! Bitte überprüfe deine Email für den Bestätigungslink.');
+      window.location.href = '/';
     } catch (error) {
       setError('Fehler beim Registrieren: ' + error.message);
     } finally {
@@ -98,21 +99,32 @@ export default function Register() {
             </div>
           </div>
 
-          <div>
+          <div className="space-y-3">
             <Button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-full shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              className="w-full h-11 gap-2 rounded-lg shadow-sm text-sm font-medium"
             >
-              {loading ? 'Lädt...' : 'Registrieren'}
+              {loading ? (
+                <>
+                  <Spinner size="sm" />
+                  <span>Registrieren...</span>
+                </>
+              ) : (
+                <>
+                  <UserPlus size={18} weight="bold" />
+                  <span>Konto erstellen</span>
+                </>
+              )}
             </Button>
             <Button
               type="button"
-              variant="secondary"
-              className="w-full mt-3 rounded-full"
-              onClick={() => navigate('/')}
+              variant="outline"
+              className="w-full h-11 gap-2 rounded-lg text-sm font-medium"
+              onClick={() => { window.location.href = '/'; }}
             >
-              Zurück zum Editor
+              <ArrowLeft size={18} />
+              <span>Zurück zum Editor</span>
             </Button>
           </div>
         </form>

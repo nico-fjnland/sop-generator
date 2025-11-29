@@ -22,26 +22,28 @@ const AccountDropdown = ({
   displayName, 
   avatarUrl, 
   documentsCount = 0,
-  onTabChange // Optional: (tab) => void. If not provided, uses navigate
+  onTabChange // Optional: (tab) => void. If not provided, uses window.location
 }) => {
   const navigate = useNavigate();
   const { timeOfDay, toggleTime } = useTheme();
 
+  // Navigation handler that works reliably with Radix UI Portals
   const handleNavigation = (tab) => {
     if (onTabChange) {
       onTabChange(tab);
     } else {
-      navigate(`/account?tab=${tab}`);
+      // Use window.location for reliable navigation from Portal
+      window.location.href = `/account?tab=${tab}`;
     }
   };
 
   const handleSignOut = async () => {
     try {
       await signOut();
-      navigate('/');
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
-      navigate('/');
+      window.location.href = '/';
     }
   };
 
@@ -82,7 +84,7 @@ const AccountDropdown = ({
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => handleNavigation('sops')} className="cursor-pointer">
+          <DropdownMenuItem onSelect={() => handleNavigation('sops')} className="cursor-pointer">
             <FileText className="mr-2 h-4 w-4" />
             <span>Meine Leitfäden</span>
             {documentsCount > 0 && (
@@ -91,11 +93,11 @@ const AccountDropdown = ({
               </span>
             )}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleNavigation('templates')} className="cursor-pointer">
+          <DropdownMenuItem onSelect={() => handleNavigation('templates')} className="cursor-pointer">
             <Layout className="mr-2 h-4 w-4" />
             <span>SOP Templates</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleNavigation('profile')} className="cursor-pointer">
+          <DropdownMenuItem onSelect={() => handleNavigation('profile')} className="cursor-pointer">
             <User className="mr-2 h-4 w-4" />
             <span>Profil & Einstellungen</span>
           </DropdownMenuItem>
@@ -117,7 +119,7 @@ const AccountDropdown = ({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => {
+          <DropdownMenuItem onSelect={() => {
             if (window.Beacon) {
               window.Beacon('open');
               window.Beacon('navigate', '/ask/');
@@ -126,13 +128,13 @@ const AccountDropdown = ({
             <ChatCircleDots className="mr-2 h-4 w-4" />
             <span>Feedback geben</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => window.open('https://sop-notaufnahme.de', '_blank')} className="cursor-pointer">
+          <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de', '_blank')} className="cursor-pointer">
             <Globe className="mr-2 h-4 w-4" />
             <span>Zur SOP Webseite</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive cursor-pointer">
+        <DropdownMenuItem onSelect={handleSignOut} className="text-destructive focus:text-destructive cursor-pointer">
           <SignOut className="mr-2 h-4 w-4" />
           <span>Logout</span>
         </DropdownMenuItem>

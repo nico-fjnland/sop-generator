@@ -13,7 +13,7 @@ import FlowchartBlock from './blocks/FlowchartBlock';
 import SourceBlock from './blocks/SourceBlock';
 import { X } from 'lucide-react';
 
-const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideContentBox = false, onDragStart, onDragEnd, isDragging, usedCategories = [], isRightColumn = false, iconOnRight = false }) => {
+const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideContentBox = false, isDragging, usedCategories = [], isRightColumn = false, iconOnRight = false, dragHandleProps = {} }) => {
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const blockRef = useRef(null);
   const inputRef = useRef(null);
@@ -90,12 +90,11 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             content={block.content}
             onChange={(content) => onUpdate(block.id, content)}
             onDelete={onDelete}
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
             isDragging={isDragging}
             blockId={block.id}
             usedCategories={isInsideContentBox ? [] : usedCategories}
             isRightColumn={isRightColumn}
+            dragHandleProps={dragHandleProps}
             onAddBoxAfter={
               !isInsideContentBox && onAddAfter
                 ? (categoryId) => onAddAfter('contentbox', block.id, categoryId)
@@ -137,13 +136,12 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             content={block.content || { category: 'definition', blocks: [{ id: '1', type: 'text', content: '' }] }}
             onChange={(content) => onUpdate(block.id, content)}
             onDelete={onDelete}
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
             isDragging={isDragging}
             blockId={block.id}
             usedCategories={isInsideContentBox ? [] : usedCategories}
             isRightColumn={isRightColumn}
             iconOnRight={iconOnRight}
+            dragHandleProps={dragHandleProps}
             onAddBoxAfter={
               !isInsideContentBox && onAddAfter
                 ? (categoryId) => onAddAfter('contentbox', block.id, categoryId)
@@ -162,12 +160,11 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             content={block.content || { blocks: [{ id: '1', type: 'text', content: '' }] }}
             onChange={(content) => onUpdate(block.id, content)}
             onDelete={onDelete}
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
             isDragging={isDragging}
             blockId={block.id}
             usedCategories={isInsideContentBox ? [] : usedCategories}
             isRightColumn={isRightColumn}
+            dragHandleProps={dragHandleProps}
             onAddBoxAfter={
               !isInsideContentBox && onAddAfter
                 ? (categoryId) => onAddAfter('contentbox', block.id, categoryId)

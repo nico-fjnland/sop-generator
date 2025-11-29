@@ -4,6 +4,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
+import { SignIn, ArrowLeft } from '@phosphor-icons/react';
+import { Spinner } from '../../components/ui/spinner';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -20,7 +22,7 @@ export default function Login() {
       setLoading(true);
       const { error } = await signIn(email, password);
       if (error) throw error;
-      navigate('/');
+      window.location.href = '/';
     } catch (error) {
       setError('Fehler beim Anmelden: ' + error.message);
     } finally {
@@ -77,21 +79,32 @@ export default function Login() {
             </div>
           </div>
 
-          <div>
+          <div className="space-y-3">
             <Button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-full shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              className="w-full h-11 gap-2 rounded-lg shadow-sm text-sm font-medium"
             >
-              {loading ? 'Lädt...' : 'Anmelden'}
+              {loading ? (
+                <>
+                  <Spinner size="sm" />
+                  <span>Anmelden...</span>
+                </>
+              ) : (
+                <>
+                  <SignIn size={18} weight="bold" />
+                  <span>Anmelden</span>
+                </>
+              )}
             </Button>
             <Button
               type="button"
-              variant="secondary"
-              className="w-full mt-3 rounded-full"
-              onClick={() => navigate('/')}
+              variant="outline"
+              className="w-full h-11 gap-2 rounded-lg text-sm font-medium"
+              onClick={() => { window.location.href = '/'; }}
             >
-              Zurück zum Editor
+              <ArrowLeft size={18} />
+              <span>Zurück zum Editor</span>
             </Button>
           </div>
         </form>

@@ -815,14 +815,6 @@ body.export-ready .a4-page {
     z-index: 50 !important;
   }
   
-  .content-box-block[draggable="true"] {
-    cursor: grab;
-  }
-  
-  .content-box-block[draggable="true"]:active {
-    cursor: grabbing;
-  }
-
   /* Page break styles for screen mode - now visible */
   .page-break {
     display: block;
@@ -1275,14 +1267,6 @@ body.export-ready .a4-page {
   transform: scale(0.97);
 }
 
-.notion-control-button[draggable="true"] {
-  cursor: grab;
-}
-
-.notion-control-button[draggable="true"]:active {
-  cursor: grabbing;
-}
-
 .notion-box-shell {
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -1435,5 +1419,175 @@ body.export-ready .a4-page {
 /* Editor menu check icons stay same color even in dark mode */
 .dark .notion-add-box-menu__check {
   color: #3399FF !important;
+}
+
+/* ========================================
+   dnd-kit Drag and Drop Styles
+   ======================================== */
+
+/* Global dragging state */
+body.is-dragging {
+  cursor: grabbing !important;
+}
+
+body.is-dragging * {
+  cursor: grabbing !important;
+}
+
+/* Block wrapper styling */
+.block-wrapper-dnd {
+  position: relative;
+  transition: transform 200ms cubic-bezier(0.25, 1, 0.5, 1),
+              opacity 150ms ease;
+}
+
+.block-wrapper-dnd.dragging {
+  opacity: 0.4;
+  z-index: 0;
+}
+
+.block-wrapper-dnd.is-being-dragged {
+  /* The original item being dragged - slightly faded */
+  opacity: 0.3;
+  transform: scale(0.98);
+}
+
+/* Content row for horizontal layout */
+.block-content-row {
+  display: flex;
+  align-items: stretch;
+}
+
+.block-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ===== DROPZONE SYSTEM ===== */
+/* Dropzones have hitbox but take NO space via negative margins */
+/* Only on hover they expand and push content */
+
+/* Base dropzone style */
+.dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: 8px;
+  border: 2px dashed transparent;
+  background: transparent;
+  z-index: 50;
+  position: relative;
+}
+
+/* Dropzone inner glow effect */
+.dropzone::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 4px;
+  background: transparent;
+  transition: background 200ms ease;
+}
+
+/* Horizontal dropzones (above/below) - hitbox but no space */
+.dropzone-above {
+  height: 24px;
+  margin: 0 14px -24px 14px; /* negative bottom margin = takes 0 space */
+}
+
+.dropzone-below {
+  height: 24px;
+  margin: -24px 14px 0 14px; /* negative top margin = takes 0 space */
+}
+
+/* Vertical dropzones (left/right) - hitbox but no space */
+.dropzone-left {
+  width: 24px;
+  margin-right: -24px; /* negative margin = takes 0 space */
+  flex-shrink: 0;
+}
+
+.dropzone-right {
+  width: 24px;
+  margin-left: -24px; /* negative margin = takes 0 space */
+  flex-shrink: 0;
+}
+
+/* ===== HOVER STATES - Expand and show visual feedback ===== */
+
+.dropzone-hover {
+  background: linear-gradient(135deg, rgba(51, 153, 255, 0.12), rgba(51, 153, 255, 0.2));
+  border: 2px dashed #3399FF;
+  box-shadow: 0 0 0 4px rgba(51, 153, 255, 0.08),
+              inset 0 0 12px rgba(51, 153, 255, 0.1);
+}
+
+.dropzone-hover::before {
+  background: linear-gradient(135deg, rgba(51, 153, 255, 0.05), transparent);
+}
+
+/* Horizontal zones: remove negative margin on hover = takes space */
+.dropzone-above.dropzone-hover {
+  height: 50px;
+  margin-bottom: 0; /* Now takes space! */
+}
+
+.dropzone-below.dropzone-hover {
+  height: 50px;
+  margin-top: 0; /* Now takes space! */
+}
+
+/* Vertical zones: remove negative margin on hover = takes space */
+.dropzone-left.dropzone-hover {
+  width: 80px;
+  margin-right: 0; /* Now takes space! */
+}
+
+.dropzone-right.dropzone-hover {
+  width: 80px;
+  margin-left: 0; /* Now takes space! */
+}
+
+
+/* Drag overlay styling - preserves original box shape */
+.drag-overlay-content {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  animation: dragOverlayAppear 150ms ease-out;
+}
+
+@keyframes dragOverlayAppear {
+  from {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+/* Hide control buttons in drag overlay */
+.drag-overlay-content .notion-box-controls,
+.drag-overlay-content .notion-box-controls-left {
+  display: none !important;
+}
+
+/* Hide dropzones in drag overlay */
+.drag-overlay-content .dropzone {
+  display: none !important;
+}
+
+/* Touch-none class for drag handles */
+.touch-none {
+  touch-action: none;
+}
+
+/* Sortable item animation when items shift */
+.block-wrapper-dnd[style*="transform"] {
+  will-change: transform;
 }
 

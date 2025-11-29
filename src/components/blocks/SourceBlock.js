@@ -15,14 +15,13 @@ const SourceBlock = ({
   content,
   onChange,
   onDelete,
-  onDragStart,
-  onDragEnd,
   isDragging,
   blockId,
   usedCategories = [],
   onAddBoxAfter,
   onAddBlockAfter,
   isRightColumn = false,
+  dragHandleProps = {}, // dnd-kit drag handle props
 }) => {
   // Initialize content structure helper
   const getInitializedContent = (contentToInit) => {
@@ -148,7 +147,6 @@ const SourceBlock = ({
         cursor: isDragging ? 'grabbing' : 'default',
         margin: '0 14px', // 14px indentation on each side
       }}
-      data-draggable="true"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -158,23 +156,11 @@ const SourceBlock = ({
       >
         <button
           type="button"
-          className="notion-control-button"
-          style={{ backgroundColor: buttonColor }}
-          draggable
+          className="notion-control-button touch-none"
+          style={{ backgroundColor: buttonColor, cursor: isDragging ? 'grabbing' : 'grab' }}
           aria-label="Box verschieben"
           title="Box verschieben"
-          onDragStart={(e) => {
-            e.stopPropagation();
-            if (onDragStart) {
-              onDragStart(e);
-            }
-          }}
-          onDragEnd={(e) => {
-            e.stopPropagation();
-            if (onDragEnd) {
-              onDragEnd(e);
-            }
-          }}
+          {...dragHandleProps}
         >
           <GripVertical className="h-4 w-4 text-white" strokeWidth={2} />
         </button>
