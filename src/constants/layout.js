@@ -4,9 +4,13 @@
 
 // Page dimensions
 export const PAGE = {
+  WIDTH_MM: 210, // A4 width in millimeters
+  WIDTH_PX: 794, // A4 width in pixels (at 96 DPI: 210mm * 96 / 25.4)
   HEIGHT_MM: 297, // A4 height in millimeters
   HEIGHT_PX: 1123, // Printable height in pixels (at 96 DPI)
   TOP_PADDING: 32, // Top padding in pixels
+  SIDE_PADDING: 32, // Left/right padding in pixels
+  CONTENT_WIDTH: 730, // Content area width: 794 - (32 * 2) = 730px
   // Note: No BOTTOM_PADDING - footer height is measured dynamically and includes its own padding
 };
 

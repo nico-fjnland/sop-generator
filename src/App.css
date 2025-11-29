@@ -1505,13 +1505,17 @@ body.is-dragging * {
 .dropzone-left {
   width: 24px;
   margin-right: -24px; /* negative margin = takes 0 space */
+  margin-bottom: 16px;
   flex-shrink: 0;
+  align-self: stretch;
 }
 
 .dropzone-right {
   width: 24px;
   margin-left: -24px; /* negative margin = takes 0 space */
+  margin-bottom: 16px;
   flex-shrink: 0;
+  align-self: stretch;
 }
 
 /* ===== HOVER STATES - Expand and show visual feedback ===== */

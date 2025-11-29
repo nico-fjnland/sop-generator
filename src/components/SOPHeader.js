@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { Trash } from '@phosphor-icons/react';
 
 const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialStand = 'STAND 12/22', logo: initialLogo = null, onTitleChange, onStandChange, onLogoChange }) => {
   const { user } = useAuth();
@@ -313,8 +314,8 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
           
           {/* Logo Display */}
           <div 
-            onClick={() => !companyLogo && logoInputRef.current?.click()}
-            className="no-print sop-header-logo-editable"
+            onClick={() => !companyLogo && !logo && logoInputRef.current?.click()}
+            className="no-print sop-header-logo-editable group/logo"
             style={{ 
               width: '100%', 
               height: '100%',
@@ -322,9 +323,9 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               alignItems: 'center',
               justifyContent: 'flex-end',
               border: '1.5px solid transparent',
-              cursor: companyLogo ? 'default' : 'pointer'
+              cursor: companyLogo || logo ? 'default' : 'pointer'
             }}
-            title={companyLogo ? 'Firmenlogo (im Profil festgelegt)' : 'Klicken Sie, um das Logo zu ändern'}
+            title={companyLogo ? 'Firmenlogo (im Profil festgelegt)' : logo ? 'Individuelles Logo' : 'Klicken Sie, um das Logo zu ändern'}
           >
             {companyLogo ? (
               <img 
@@ -339,17 +340,33 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                 }} 
               />
             ) : logo ? (
-              <img 
-                src={logo} 
-                alt="Logo" 
-                style={{ 
-                  maxWidth: '100%', 
-                  height: '54.12px', 
-                  width: 'auto',
-                  objectFit: 'contain',
-                  objectPosition: 'right center'
-                }} 
-              />
+              <div className="relative">
+                <img 
+                  src={logo} 
+                  alt="Logo" 
+                  style={{ 
+                    maxWidth: '100%', 
+                    height: '54.12px', 
+                    width: 'auto',
+                    objectFit: 'contain',
+                    objectPosition: 'right center'
+                  }} 
+                />
+                {/* Delete button - appears on hover */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onLogoChange) {
+                      onLogoChange(null);
+                    }
+                  }}
+                  className="absolute -top-4 -right-5 bg-destructive text-destructive-foreground p-1.5 rounded-full hover:bg-destructive/90 transition-all shadow-md opacity-0 group-hover/logo:opacity-100"
+                  title="Logo entfernen"
+                >
+                  <Trash size={12} weight="bold" />
+                </button>
+              </div>
             ) : (
               <svg width="87.6" height="49.2" viewBox="0 0 73 41" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M41.2725 3.93919C40.5137 2.83459 39.4482 1.97624 38.2073 1.46998C37.9705 1.37239 37.7132 1.33483 37.4583 1.36063C37.2035 1.38643 36.9589 1.47478 36.7464 1.61786C36.5313 1.76163 36.3549 1.95627 36.2329 2.18453C36.111 2.41279 36.0472 2.66762 36.0474 2.92641C36.0459 3.24975 36.1452 3.5655 36.3315 3.82975C36.5178 4.094 36.7819 4.29361 37.087 4.40076C37.7958 4.63523 38.4073 5.09692 38.827 5.71429C39.2467 6.33166 39.451 7.07023 39.4083 7.81552V14.7167C39.4271 15.2064 39.3439 15.6947 39.1642 16.1505C38.9845 16.6064 38.712 17.02 38.3642 17.3652C37.9492 17.729 37.4649 18.005 36.9404 18.1768C36.416 18.3485 35.8622 18.4124 35.3124 18.3645C34.3782 18.2875 33.5065 17.8643 32.8682 17.1778C32.2298 16.4914 31.8709 15.5913 31.8618 14.654V10.4147C31.8603 10.201 31.8146 9.98987 31.7274 9.79472C31.6403 9.59958 31.5136 9.42462 31.3554 9.28091C31.1964 9.13704 31.0089 9.02835 30.805 8.96194C30.6011 8.89553 30.3855 8.8729 30.1723 8.89552C29.7868 8.95014 29.4346 9.14386 29.182 9.44019C28.9294 9.73652 28.7939 10.115 28.801 10.5043V14.7257C28.801 16.5382 29.5211 18.2764 30.8027 19.5581C32.0843 20.8397 33.8226 21.5597 35.6351 21.5597C37.4475 21.5597 39.1858 20.8397 40.4674 19.5581C41.749 18.2764 42.4691 16.5382 42.4691 14.7257V7.78415C42.4685 6.41094 42.0513 5.07023 41.2725 3.93919Z" fill="#004D99"/>

@@ -510,7 +510,7 @@ const ContentBoxBlock = ({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <div
-                      className="border-2 border-solid border-white box-border flex items-center relative shrink-0 no-print cursor-pointer hover:opacity-90 transition-opacity"
+                      className="border-2 border-solid border-white box-border flex items-center relative shrink-0 no-print cursor-pointer"
                       style={{
                         backgroundColor: category.color,
                         borderRadius: '6px',

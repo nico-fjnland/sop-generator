@@ -94,6 +94,12 @@ const CustomTableHeader = TableHeader.extend({
   },
 });
 
+// Helper function - keep original table content, CSS will handle width constraints
+// TipTap needs the inline styles for resize calculations
+const processTableContent = (html) => {
+  return html;
+};
+
 // Custom mark for smaller font size
 const SmallFont = Mark.create({
   name: 'smallFont',
@@ -160,11 +166,11 @@ const TipTapTableBlock = forwardRef(({
   const getInitialContent = () => {
     // Handle object format with table property
     if (typeof content === 'object' && content !== null && content.table) {
-      return content.table;
+      return processTableContent(content.table);
     }
     // Handle string format (old format or direct HTML)
     if (typeof content === 'string' && content.trim().length > 0) {
-      return content;
+      return processTableContent(content);
     }
     // Default empty 5x4 table (1 header row + 4 data rows) for new tables
     return `

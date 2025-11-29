@@ -23,11 +23,13 @@
 
 /* Table Wrapper - Notion-like border */
 .tiptap-table-wrapper {
-  overflow-x: auto;
+  overflow: hidden; /* Clip any overflow */
   border-radius: 6px;
   border: 1.8px solid #003366; /* Dark blue border to match the table color */
   position: relative;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  width: 100%; /* Fill available space from parent */
+  box-sizing: border-box;
 }
 
 /* Table Editor */
@@ -58,29 +60,35 @@
   display: none;
 }
 
-/* TipTap Table Styles */
+/* TipTap Table Styles 
+ * Table uses 100% of available width - container handles constraints
+ */
 .tiptap-table {
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
-  width: 100%;
+  width: 100% !important; /* Fill available container width */
+  max-width: 100% !important;
   margin: 0;
-  overflow: hidden;
 }
 
 .tiptap-table-editor table {
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
-  width: 100%;
+  width: 100% !important; /* Fill available container width */
+  max-width: 100% !important;
   margin: 0;
-  overflow: hidden;
 }
+
+/* Column widths are managed by TipTap for resizing - 
+   table-layout: fixed distributes space proportionally based on col widths */
 
 /* Table Cells - Clean Notion-like styling */
 .tiptap-table-editor td,
 .tiptap-table-editor th {
-  min-width: 80px;
+  min-width: 30px; /* Minimum width for usability */
+  max-width: 0; /* Force cells to respect column width from table-layout: fixed */
   border-right: 1px solid hsl(var(--border));
   border-bottom: 1px solid hsl(var(--border));
   vertical-align: top;
@@ -91,6 +99,12 @@
   line-height: 1.5;
   font-weight: 400;
   transition: background-color 0.15s ease;
+  /* Ensure text wraps and doesn't force column expansion */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word; /* Additional word breaking for long words */
+  hyphens: auto;
+  overflow: hidden; /* Clip any remaining overflow */
 }
 
 /* Header cells keep larger padding */

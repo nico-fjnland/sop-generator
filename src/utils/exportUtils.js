@@ -1,5 +1,5 @@
 import { saveAs } from 'file-saver';
-import { Document, Packer, Paragraph, ImageRun, SectionType } from 'docx';
+import { Document, Packer, Paragraph, ImageRun } from 'docx';
 import jsPDF from 'jspdf';
 import { toPng, toJpeg } from 'html-to-image';
 import { getDocument } from '../services/documentService';
@@ -526,17 +526,23 @@ export const exportAsWord = async (containerRef, title = 'SOP Überschrift', sta
         },
       });
 
-      docChildren.push(new Paragraph({ children: [imageRun] }));
+      // Jedes Bild in einem Paragraph mit entfernten Abständen
+      // Ab dem 2. Bild: Seitenumbruch vor dem Paragraph
+      docChildren.push(new Paragraph({ 
+        children: [imageRun],
+        spacing: { before: 0, after: 0, line: 240 },
+        pageBreakBefore: i > 0, // Seitenumbruch nur vor Bildern ab dem zweiten
+      }));
     }
 
+    // Alle Seiten in einer einzigen Section ohne zusätzliche Seitenumbrüche
     const doc = new Document({
-      sections: docChildren.map((child) => ({
+      sections: [{
         properties: {
-          type: SectionType.NEXT_PAGE,
           page: { margin: { top: 0, right: 0, bottom: 0, left: 0 } },
         },
-        children: [child],
-      })),
+        children: docChildren,
+      }],
     });
 
     const blob = await Packer.toBlob(doc);
