@@ -3,15 +3,12 @@ import { IconButton } from './ui/icon-button';
 import TitleBlock from './blocks/TitleBlock';
 import HeadingBlock from './blocks/HeadingBlock';
 import TextBlock from './blocks/TextBlock';
-import TableBlock from './blocks/TableBlock';
 import TipTapTableBlock from './blocks/TipTapTableBlock';
-import ListBlock from './blocks/ListBlock';
 import ImageBlock from './blocks/ImageBlock';
-import DividerBlock from './blocks/DividerBlock';
 import ContentBoxBlock from './blocks/ContentBoxBlock';
 import FlowchartBlock from './blocks/FlowchartBlock';
 import SourceBlock from './blocks/SourceBlock';
-import { X } from 'lucide-react';
+import { X } from '@phosphor-icons/react';
 
 const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideContentBox = false, isDragging, usedCategories = [], isRightColumn = false, iconOnRight = false, dragHandleProps = {}, onSortBlocks }) => {
   const [showDeleteButton, setShowDeleteButton] = useState(false);
@@ -77,13 +74,6 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             blockId={block.id}
           />
         );
-      case 'table':
-        return (
-          <TableBlock
-            content={block.content}
-            onChange={(content) => onUpdate(block.id, content)}
-          />
-        );
       case 'tiptaptable':
         return (
           <TipTapTableBlock
@@ -108,13 +98,6 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             }
           />
         );
-      case 'list':
-        return (
-          <ListBlock
-            content={block.content}
-            onChange={(content) => onUpdate(block.id, content)}
-          />
-        );
       case 'image':
         return (
           <ImageBlock
@@ -122,8 +105,6 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             onChange={(content) => onUpdate(block.id, content)}
           />
         );
-      case 'divider':
-        return <DividerBlock />;
       case 'flowchart':
         return (
           <FlowchartBlock

@@ -20,8 +20,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './FlowchartBlock.css';
-import { Square, Circle, FileText, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
-import { ArrowCounterClockwise, ArrowClockwise, FrameCorners, ArrowsOut } from '@phosphor-icons/react';
+import { Square, Circle, FileText, CheckCircle, XCircle, MinusCircle, ArrowCounterClockwise, ArrowClockwise, FrameCorners, ArrowsOut } from '@phosphor-icons/react';
 
 // Helper function to get the position on the node edge for a given side
 function getHandleCoordsByPosition(node, handlePosition) {

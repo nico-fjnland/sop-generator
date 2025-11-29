@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GripVertical, X, Plus, Check } from 'lucide-react';
-import { Table, Quotes, SortAscending } from '@phosphor-icons/react';
+import { DotsSixVertical, X, Plus, Check, Table, Quotes, SortAscending } from '@phosphor-icons/react';
 import Block from '../Block';
 import { CategoryIcons } from '../icons/CategoryIcons';
 import {
@@ -337,7 +336,7 @@ const ContentBoxBlock = ({
           title="Box verschieben"
           {...dragHandleProps}
         >
-          <GripVertical className="h-4 w-4 text-white" strokeWidth={2} />
+          <DotsSixVertical className="h-4 w-4 text-white" weight="bold" />
         </button>
         {onAddBoxAfter && (
           <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
@@ -349,7 +348,7 @@ const ContentBoxBlock = ({
                 aria-label="Box hinzufügen"
                 title="Box hinzufügen"
               >
-                <Plus className="h-4 w-4 text-white" strokeWidth={2} />
+                <Plus className="h-4 w-4 text-white" weight="bold" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent 
@@ -406,7 +405,7 @@ const ContentBoxBlock = ({
                     </span>
                     <span className="flex-1">{cat.label}</span>
                     {isUsed && (
-                      <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />
+                      <Check className="h-3.5 w-3.5 text-primary" weight="bold" />
                     )}
                   </DropdownMenuItem>
                 );
@@ -452,7 +451,7 @@ const ContentBoxBlock = ({
             }
           }}
         >
-          <X className="h-4 w-4 text-white" strokeWidth={2} />
+          <X className="h-4 w-4 text-white" weight="bold" />
         </button>
       </div>
 
@@ -578,7 +577,7 @@ const ContentBoxBlock = ({
                           </span>
                           <span className="flex-1">{cat.label}</span>
                           {isUsed && (
-                            <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />
+                            <Check className="h-3.5 w-3.5 text-primary" weight="bold" />
                           )}
                         </DropdownMenuItem>
                       );

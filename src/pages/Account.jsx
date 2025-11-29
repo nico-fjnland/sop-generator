@@ -34,7 +34,8 @@ import {
   Funnel,
   X,
   Eye,
-  EyeSlash
+  EyeSlash,
+  Check
 } from '@phosphor-icons/react';
 import { getDocuments, deleteDocument, saveDocument, updateDocumentCategory } from '../services/documentService';
 import { exportMultipleDocuments } from '../utils/exportUtils';
@@ -48,7 +49,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
-import { Check } from 'lucide-react';
 
 // SortButton Component
 const SortButton = ({ column, sortConfig, onSort, children }) => {
@@ -122,14 +122,14 @@ const CategoryFilter = ({ categoryFilter, setCategoryFilter }) => {
             className="relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
           >
             <span className="flex-1">Alle Fachgebiete</span>
-            {!categoryFilter && <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />}
+            {!categoryFilter && <Check className="h-3.5 w-3.5 text-primary" weight="bold" />}
           </div>
           <div
             onClick={() => { setCategoryFilter('none'); setIsOpen(false); }}
             className="relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
           >
             <span className="flex-1">Ohne Fachgebiet</span>
-            {categoryFilter === 'none' && <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />}
+            {categoryFilter === 'none' && <Check className="h-3.5 w-3.5 text-primary" weight="bold" />}
           </div>
           <div className="-mx-1 my-1 h-px bg-muted" />
           {MEDICAL_CATEGORIES.map((cat) => (
@@ -140,7 +140,7 @@ const CategoryFilter = ({ categoryFilter, setCategoryFilter }) => {
             >
               <span className="flex items-center justify-center w-4 h-4 flex-shrink-0" style={{ color: cat.color }}>{cat.iconComponent}</span>
               <span className="flex-1">{cat.label}</span>
-              {categoryFilter === cat.id && <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />}
+              {categoryFilter === cat.id && <Check className="h-3.5 w-3.5 text-primary" weight="bold" />}
             </div>
           ))}
         </div>

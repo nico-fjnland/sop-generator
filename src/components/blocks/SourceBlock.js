@@ -1,6 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { GripVertical, X, Plus } from 'lucide-react';
-import { SortAscending } from '@phosphor-icons/react';
+import { DotsSixVertical, X, Plus, SortAscending } from '@phosphor-icons/react';
 import Block from '../Block';
 import { CATEGORIES, ADDITIONAL_ELEMENTS } from './ContentBoxBlock';
 import {
@@ -164,7 +163,7 @@ const SourceBlock = ({
           title="Box verschieben"
           {...dragHandleProps}
         >
-          <GripVertical className="h-4 w-4 text-white" strokeWidth={2} />
+          <DotsSixVertical className="h-4 w-4 text-white" weight="bold" />
         </button>
         {onAddBoxAfter && (
           <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
@@ -176,7 +175,7 @@ const SourceBlock = ({
                 aria-label="Box hinzufügen"
                 title="Box hinzufügen"
               >
-                <Plus className="h-4 w-4 text-white" strokeWidth={2} />
+                <Plus className="h-4 w-4 text-white" weight="bold" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -264,7 +263,7 @@ const SourceBlock = ({
             }
           }}
         >
-          <X className="h-4 w-4 text-white" strokeWidth={2} />
+          <X className="h-4 w-4 text-white" weight="bold" />
         </button>
       </div>
 

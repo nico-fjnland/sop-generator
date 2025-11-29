@@ -1,6 +1,5 @@
 import React from 'react';
-import { PencilSimple, Trash } from '@phosphor-icons/react';
-import { Check } from 'lucide-react';
+import { PencilSimple, Trash, Check } from '@phosphor-icons/react';
 import { Checkbox } from './ui/checkbox';
 import {
   DropdownMenu,
@@ -190,7 +189,7 @@ const CategoryDropdown = ({ value, onChange, docId }) => {
               </span>
               <span className="flex-1">{category.label}</span>
               {isSelected && (
-                <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />
+                <Check className="h-3.5 w-3.5 text-primary" weight="bold" />
               )}
             </DropdownMenuItem>
           );

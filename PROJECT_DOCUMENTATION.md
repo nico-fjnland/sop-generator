@@ -1,0 +1,807 @@
+# SOP Editor - Vollständige Projektdokumentation
+
+> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.2.0)  
+> **Stack:** React 18 + Supabase + TailwindCSS  
+> **Zielgruppe:** Medizinisches Personal zur Erstellung von Standard Operating Procedures (SOPs)  
+> **Changelog:** [`CHANGELOG.md`](./CHANGELOG.md)
+
+---
+
+## 📋 Inhaltsverzeichnis
+
+1. [Projektübersicht](#projektübersicht)
+2. [Technologie-Stack](#technologie-stack)
+3. [Architektur](#architektur)
+4. [Komponenten-Übersicht](#komponenten-übersicht)
+5. [Block-System](#block-system)
+6. [Editor-Funktionen](#editor-funktionen)
+7. [Authentifizierung & Benutzerverwaltung](#authentifizierung--benutzerverwaltung)
+8. [Datenbankschema](#datenbankschema)
+9. [Export-Funktionen](#export-funktionen)
+10. [Kontexte & State Management](#kontexte--state-management)
+11. [UI-Komponenten](#ui-komponenten)
+12. [Routing](#routing)
+13. [Styling & Theming](#styling--theming)
+14. [Browserkompatibilität](#browserkompatibilität)
+
+---
+
+## Projektübersicht
+
+Der **SOP Editor** ist eine webbasierte Anwendung zur Erstellung von Standard Operating Procedures (SOPs) für den medizinischen Bereich. Die Anwendung bietet einen Notion-ähnlichen Block-Editor mit spezialisierten Komponenten für medizinische Dokumentation.
+
+### Hauptfunktionen
+
+- **Block-basierter Editor** mit "/" Slash-Kommandos
+- **12 vordefinierte Content-Box Kategorien** für medizinische Inhalte
+- **Drag & Drop** zum Verschieben und Anordnen von Blöcken
+- **Zweispalten-Layout** mit anpassbarem Spaltenverhältnis
+- **Flowchart-Editor** für Algorithmen (basierend auf ReactFlow)
+- **Tabellen** mit TipTap (Zellen verbinden, Spalten/Zeilen, Hintergrundfarben)
+- **Multi-Format Export:** PDF, Word (DOCX), JSON
+- **Cloud-Speicherung** via Supabase
+- **Undo/Redo** mit lokalem History-Tracking
+- **A4-Seitenumbruch-Vorschau** mit automatischer Paginierung
+- **Tag/Nacht Modus**
+
+---
+
+## Technologie-Stack
+
+### Frontend-Framework
+| Technologie | Version | Zweck |
+|-------------|---------|-------|
+| React | 18.2.0 | UI-Framework |
+| React Router | 7.9.6 | Client-Side Routing |
+| TailwindCSS | 3.4.1 | Utility-First CSS |
+
+### Rich-Text & Editor
+| Technologie | Version | Zweck |
+|-------------|---------|-------|
+| TipTap | 3.11.0 | Rich-Text Editor (StarterKit, Tabellen, Unterstr., Sub/Superscript) |
+| ReactFlow | 11.11.4 | Flowchart/Algorithmus-Editor |
+| tippy.js | 6.3.7 | Tooltips & Popovers (Slash-Menü) |
+
+### Drag & Drop
+| Technologie | Version | Zweck |
+|-------------|---------|-------|
+| @dnd-kit/core | 6.3.1 | Drag & Drop Framework |
+| @dnd-kit/sortable | 10.0.0 | Sortierbare Listen |
+
+### UI-Komponenten
+| Technologie | Version | Zweck |
+|-------------|---------|-------|
+| Radix UI | v1.x - v2.x | Accessible UI Primitives (9 Pakete, alle aktuell) |
+| @phosphor-icons/react | 2.1.10 | Icon-Bibliothek |
+| sonner | 2.0.7 | Toast-Benachrichtigungen |
+
+### Backend & Datenbank
+| Technologie | Version | Zweck |
+|-------------|---------|-------|
+| Supabase | 2.83.0 | Backend-as-a-Service (Auth, DB, Storage) |
+
+### Export
+| Technologie | Version | Zweck |
+|-------------|---------|-------|
+| jsPDF | 3.0.3 | PDF-Generierung |
+| docx | 9.5.1 | Word-Dokument-Generierung |
+| html-to-image | 1.11.13 | HTML zu Bild-Konvertierung |
+
+### Sonstige
+| Technologie | Version | Zweck |
+|-------------|---------|-------|
+| date-fns | 4.1.0 | Datumsformatierung |
+| @vercel/speed-insights | 1.2.0 | Performance-Monitoring |
+
+---
+
+## Architektur
+
+```
+src/
+├── App.js                    # Haupt-App mit Routing
+├── index.js                  # React Entry Point
+├── index.css                 # Globale Styles + TailwindCSS
+├── App.css                   # App-spezifische Styles
+│
+├── components/
+│   ├── Editor.js             # Haupt-Editor-Komponente
+│   ├── Block.js              # Block-Wrapper für alle Block-Typen
+│   ├── Page.js               # A4-Seiten-Container
+│   ├── SOPHeader.js          # Dokument-Header (Titel, Version, Logo)
+│   ├── SOPFooter.js          # Dokument-Footer (Lizenz, Disclaimer)
+│   ├── SlashMenu.jsx         # Slash-Kommando Menü
+│   ├── InlineTextToolbar.js  # Formatierungs-Toolbar
+│   ├── ZoomControl.jsx       # Zoom-Steuerung
+│   ├── ZoomWrapper.jsx       # Zoom-Container
+│   ├── HelpButton.js         # Support-Button
+│   ├── AccountDropdown.js    # Benutzer-Dropdown
+│   ├── PrivateRoute.jsx      # Auth-geschützte Route
+│   ├── DocumentCard.jsx      # Dokument-Karte für Account
+│   ├── EmptyState.jsx        # Leerzustand-Anzeige
+│   ├── BulkExportDialog.jsx  # Massen-Export Dialog
+│   │
+│   ├── blocks/               # Block-Typen
+│   │   ├── ContentBoxBlock.js    # Content-Box (12 Kategorien)
+│   │   ├── TextBlock.js          # Rich-Text Block (TipTap)
+│   │   ├── TipTapTableBlock.js   # Tabellen-Block
+│   │   ├── FlowchartBlock.js     # Algorithmus/Flowchart
+│   │   ├── SourceBlock.js        # Quellen-Block
+│   │   ├── TitleBlock.js         # Titel
+│   │   ├── HeadingBlock.js       # Überschrift
+│   │   └── ImageBlock.js         # Bild
+│   │
+│   ├── extensions/           # TipTap-Erweiterungen
+│   │   ├── SlashCommand.js       # Slash-Kommando Extension
+│   │   └── HighlightItem.js      # Hervorhebung
+│   │
+│   ├── icons/
+│   │   └── CategoryIcons.jsx # SVG-Icons für Kategorien
+│   │
+│   └── ui/                   # Basis UI-Komponenten (Shadcn/Radix)
+│       ├── button.jsx
+│       ├── input.jsx
+│       ├── dropdown-menu.jsx
+│       ├── alert-dialog.jsx
+│       ├── checkbox.jsx
+│       ├── spinner.jsx
+│       └── ...
+│
+├── contexts/
+│   ├── AuthContext.js        # Authentifizierung
+│   ├── ThemeContext.js       # Tag/Nacht Modus
+│   └── ZoomContext.js        # Zoom-Level
+│
+├── hooks/
+│   ├── useEditorHistory.js   # Undo/Redo + LocalStorage
+│   ├── usePageBreaks.js      # A4 Seitenumbruch-Berechnung
+│   └── use-debounced-dimensions.js
+│
+├── pages/
+│   ├── Account.jsx           # Account-Seite (Dokumente, Profil, Templates)
+│   └── auth/
+│       ├── Login.jsx         # Login-Seite
+│       └── Register.jsx      # Registrierung
+│
+├── services/
+│   └── documentService.js    # Dokument CRUD-Operationen
+│
+├── utils/
+│   ├── exportUtils.js        # PDF/Word/JSON Export
+│   └── performance.js        # Performance-Utilities
+│
+├── lib/
+│   ├── supabase.js           # Supabase Client
+│   └── utils.js              # Utility-Funktionen (cn, etc.)
+│
+└── constants/
+    └── layout.js             # Layout-Konstanten (Footer-Höhen, etc.)
+```
+
+---
+
+## Komponenten-Übersicht
+
+### Editor.js (Hauptkomponente)
+
+Die zentrale Editor-Komponente verwaltet:
+
+- **State:** `rows` (Block-Zeilen), `headerTitle`, `headerStand`, `headerLogo`, `footerVariant`
+- **DnD-Context:** Drag & Drop mit `@dnd-kit`
+- **History:** Undo/Redo via `useEditorHistory` Hook
+- **Toolbar:** Import/Export, Cloud-Save, Benutzer-Aktionen
+- **Seitenumbrüche:** Automatische A4-Paginierung via `usePageBreaks`
+
+```jsx
+// Struktur der Rows
+rows = [
+  {
+    id: 'row-1',
+    columnRatio: 0.5, // 0.333 - 0.666 für Zwei-Spalten
+    blocks: [
+      { id: '1', type: 'contentbox', content: { category: 'definition', blocks: [...] } }
+    ]
+  }
+]
+```
+
+### Block.js (Block-Wrapper)
+
+Rendert den passenden Block-Typ basierend auf `block.type`:
+- `title` → TitleBlock
+- `heading` → HeadingBlock
+- `text` → TextBlock
+- `contentbox` → ContentBoxBlock
+- `tiptaptable` → TipTapTableBlock
+- `flowchart` → FlowchartBlock
+- `source` → SourceBlock
+- `image` → ImageBlock
+
+---
+
+## Block-System
+
+### ContentBoxBlock (Kategorien)
+
+12 vordefinierte medizinische Kategorien mit Farben und Icons:
+
+| ID | Label | Farbe | Hintergrund |
+|----|-------|-------|-------------|
+| `definition` | Definition | #EB5547 | #FCEAE8 |
+| `ursachen` | Ursachen | #003366 | #E5F2FF |
+| `symptome` | Symptome | #004D99 | #E5F2FF |
+| `diagnostik` | Diagnostik | #3399FF | #E5F2FF |
+| `therapie` | Therapie | #52C41A | #ECF9EB |
+| `algorithmus` | Algorithmus | #47D1C6 | #E8FAF9 |
+| `merke` | Merke | #FAAD14 | #FFF7E6 |
+| `disposition` | Disposition | #B27700 | #FFF7E6 |
+| `ablaeufe` | Abläufe | #524714 | #FAF8EB |
+| `differenzial` | Differenzial | #9254DE | #F5ECFE |
+| `studie` | Studie | #DB70C1 | #FCF0F9 |
+| `sonstiges` | Sonstiges | #B3B3B3 | #F5F5F5 |
+
+**Besonderheit `algorithmus`:** Enthält automatisch einen Flowchart-Block.
+
+### Zusätzliche Elemente
+
+Neben Content-Boxen können hinzugefügt werden:
+- **Tabelle** (`tiptaptable`) - TipTap-basierte Tabelle
+- **Quellen** (`source`) - Quellenangaben-Block
+
+### TextBlock (TipTap)
+
+Rich-Text Editor innerhalb von Content-Boxen:
+- Fett, Kursiv, Unterstrichen
+- Hochgestellt, Tiefgestellt
+- Aufzählungslisten
+- Kleine Schriftgröße (10px)
+- Slash-Kommandos (`/`)
+- Inline-Bilder
+
+### FlowchartBlock (ReactFlow)
+
+Interaktiver Flowchart-Editor mit:
+- **Node-Typen:** Start, Phase, Positiv, Negativ, Neutral, Kommentar, Label
+- **Automatische Kantenverbindung** (Floating Edges)
+- **Helper Lines** beim Positionieren (Snap-to-Grid)
+- **Distanzanzeige** zwischen Nodes
+- **Undo/Redo** innerhalb des Flowcharts
+- **Anpassbare Höhe** (300px - 1200px)
+
+### TipTapTableBlock
+
+Vollständige Tabellen-Unterstützung:
+- Zeilen/Spalten hinzufügen/entfernen
+- Zellen verbinden/trennen
+- Kopfzeile/Kopfspalte umschalten
+- Hintergrundfarben (kategoriebasiert)
+- Titel für Tabellen
+- Inline-Formatierung
+
+---
+
+## Editor-Funktionen
+
+### Drag & Drop
+
+- **Verschieben von Blöcken** zwischen Zeilen
+- **Dropzones:** Oben, Unten, Links, Rechts eines Blocks
+- **Zwei-Spalten-Layout:** Drag auf Links/Rechts erstellt Spalten
+- **Spalten-Resize:** Horizontaler Ziehregler zwischen Spalten
+
+### Slash-Kommandos
+
+Tippe `/` in einem TextBlock für:
+- Aufzählungsliste
+- Nummerierte Liste
+- Bild einfügen
+- Flowchart hinzufügen
+- (Weitere nach Konfiguration)
+
+### Undo/Redo
+
+- Lokaler History-Stack (max. 50 Einträge)
+- Automatische Speicherung in LocalStorage (`sop-editor-state-v1`)
+- Debounced Speicherung (1 Sekunde)
+
+### A4-Seitenumbruch
+
+- Automatische Berechnung basierend auf Block-Höhen
+- Footer-Höhe wird berücksichtigt
+- Visuell im Editor dargestellt
+
+### Sortierung
+
+- Content-Boxen können nach Kategorie-Reihenfolge sortiert werden
+- Button in Dropdown-Menü der Content-Boxen
+
+---
+
+## Authentifizierung & Benutzerverwaltung
+
+### AuthContext
+
+```javascript
+// Bereitgestellte Funktionen
+const { user, signUp, signIn, signOut, loading } = useAuth();
+```
+
+### Supabase Auth
+
+- E-Mail/Passwort Authentifizierung
+- Session-Verwaltung via Supabase Auth
+- Automatisches Profil-Erstellen bei Registrierung (Trigger)
+
+### Account-Seite
+
+3 Tabs:
+1. **Meine Leitfäden** - Dokumente mit Sortierung, Filter nach Fachgebiet
+2. **SOP Templates** - (In Entwicklung)
+3. **Profil & Einstellungen** - Persönliche Daten, Organisation, Sicherheit
+
+#### Profil-Felder
+- Vorname, Nachname
+- Position
+- Profilbild (Avatar)
+
+#### Organisation
+- Krankenhaus-Name
+- Mitarbeiteranzahl
+- Adresse
+- Webseite
+- Firmenlogo (wird in SOPs angezeigt)
+
+#### Sicherheit
+- Passwort ändern
+- Account löschen
+
+---
+
+## Datenbankschema
+
+### profiles (Supabase)
+
+```sql
+CREATE TABLE profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id),
+  updated_at TIMESTAMP WITH TIME ZONE,
+  username TEXT UNIQUE,
+  full_name TEXT,
+  first_name TEXT,
+  last_name TEXT,
+  job_position TEXT,
+  avatar_url TEXT,
+  hospital_name TEXT,
+  hospital_employees TEXT,
+  hospital_address TEXT,
+  hospital_website TEXT,
+  company_logo TEXT,
+  website TEXT
+);
+```
+
+### documents (Supabase)
+
+```sql
+CREATE TABLE documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL DEFAULT 'Unbenanntes Dokument',
+  version TEXT,
+  content JSONB,
+  category TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+**content (JSONB):**
+```json
+{
+  "rows": [...],
+  "headerLogo": "data:image/...",
+  "footerVariant": "tiny"
+}
+```
+
+### Row Level Security (RLS)
+
+- Profile: Öffentlich lesbar, nur eigenes Profil bearbeitbar
+- Documents: Nur eigene Dokumente sichtbar/bearbeitbar
+
+### Storage (avatars Bucket)
+
+- Öffentlich zugängliche Bilder
+- Für Avatare und Firmenlogos
+
+---
+
+## Export-Funktionen
+
+### JSON Export
+
+```javascript
+exportAsJson(state)
+// Erstellt: sop-state-YYYY-MM-DD.json
+```
+
+Enthält Metadaten:
+```json
+{
+  "_exportMetadata": {
+    "version": "1.0",
+    "exportDate": "2024-...",
+    "editorVersion": "2.0"
+  },
+  "rows": [...],
+  "headerTitle": "...",
+  "headerStand": "...",
+  "headerLogo": "...",
+  "footerVariant": "..."
+}
+```
+
+### JSON Import
+
+```javascript
+const newState = await importFromJson(file)
+```
+
+- Validiert Dateistruktur
+- Sanitiert Block-Inhalte
+- Konvertiert Legacy-Formate
+
+### PDF Export
+
+```javascript
+await exportAsPdf(containerRef, title, stand)
+```
+
+- Hochauflösend (476 DPI, pixelRatio 6)
+- JPEG-Kompression
+- Pro Seite ein Bild
+
+### Word Export
+
+```javascript
+await exportAsWord(containerRef, title, stand)
+```
+
+- Hochauflösend (476 DPI)
+- PNG-Bilder eingebettet
+- Seitenumbrüche zwischen Seiten
+
+### Bulk Export
+
+```javascript
+await exportMultipleDocuments(documentIds, format, onProgress)
+await exportMultipleDocumentsAsJson(documentIds, onProgress)
+```
+
+Für mehrere Dokumente gleichzeitig.
+
+---
+
+## Kontexte & State Management
+
+### AuthContext
+
+```javascript
+// Provider in App.js
+<AuthProvider>
+  {children}
+</AuthProvider>
+
+// Hook
+const { user, signUp, signIn, signOut, loading } = useAuth();
+```
+
+### ThemeContext
+
+```javascript
+// Provider in App.js
+<ThemeProvider>
+  {children}
+</ThemeProvider>
+
+// Hook
+const { timeOfDay, toggleTime, getGradientClass } = useTheme();
+// timeOfDay: 'day' | 'night'
+```
+
+### ZoomContext
+
+```javascript
+// Provider in App.js
+<ZoomProvider>
+  {children}
+</ZoomProvider>
+
+// Hook
+const { zoom, setZoom } = useZoom();
+// zoom: 50-200 (Prozent)
+```
+
+### useEditorHistory (Custom Hook)
+
+```javascript
+const { 
+  state,           // Aktueller Editor-State
+  undo,            // Rückgängig
+  redo,            // Wiederherstellen
+  canUndo,         // Boolean
+  canRedo,         // Boolean
+  setEditorState,  // State setzen (mit History-Option)
+  reset,           // Zurücksetzen
+  isSaving         // Speicher-Indikator
+} = useEditorHistory();
+```
+
+**State-Update Optionen:**
+```javascript
+setEditorState(newState, { history: true })     // Standard: Zu History hinzufügen
+setEditorState(newState, { history: 'replace' }) // Nur Present ersetzen
+setEditorState(newState, { history: false })     // Kein History-Eintrag
+```
+
+---
+
+## UI-Komponenten
+
+Basierend auf **shadcn/ui** (Radix Primitives + TailwindCSS):
+
+| Komponente | Datei | Beschreibung |
+|------------|-------|--------------|
+| Button | `button.jsx` | Button mit Varianten |
+| Input | `input.jsx` | Text-Eingabefeld |
+| Label | `label.jsx` | Form Label |
+| Checkbox | `checkbox.jsx` | Checkbox |
+| Switch | `switch.jsx` | Toggle Switch |
+| Dropdown Menu | `dropdown-menu.jsx` | Kontextmenü |
+| Alert Dialog | `alert-dialog.jsx` | Bestätigungs-Dialog |
+| Separator | `separator.jsx` | Trennlinie |
+| Toggle | `toggle.jsx` | Toggle Button |
+| Spinner | `spinner.jsx` | Lade-Indikator |
+| Toaster | `sonner.jsx` | Toast-Benachrichtigungen |
+
+---
+
+## Routing
+
+```jsx
+// App.js
+<Routes>
+  {/* Öffentliche Routen */}
+  <Route path="/login" element={<Login />} />
+  <Route path="/register" element={<Register />} />
+  
+  {/* Geschützte Routen */}
+  <Route path="/account" element={
+    <PrivateRoute>
+      <Account />
+    </PrivateRoute>
+  } />
+  
+  {/* Editor (Haupt-Route) */}
+  <Route path="/" element={<Editor />} />
+</Routes>
+```
+
+### URL-Parameter
+
+| Route | Parameter | Beschreibung |
+|-------|-----------|--------------|
+| `/` | `?id=UUID` | Dokument laden |
+| `/` | `?new=true` | Neues Dokument |
+| `/account` | `?tab=sops\|templates\|profile` | Account-Tab |
+
+---
+
+## Styling & Theming
+
+### CSS-Variablen (TailwindCSS)
+
+```css
+:root {
+  --background: ...;
+  --foreground: ...;
+  --primary: #003366;
+  --primary-foreground: ...;
+  --muted: ...;
+  --accent: ...;
+  --destructive: ...;
+  --border: ...;
+  --ring: ...;
+}
+```
+
+### Tag/Nacht Modus
+
+```css
+.day-mode {
+  /* Heller Hintergrund-Gradient */
+}
+
+.night-mode {
+  /* Dunkler Hintergrund-Gradient */
+}
+
+.dark {
+  /* Tailwind Dark Mode Klasse */
+}
+```
+
+### Druck-Styles
+
+```css
+@media print {
+  .no-print { display: none !important; }
+  .print\:block { display: block !important; }
+  /* ... */
+}
+```
+
+### A4-Seiten-Styling
+
+```css
+.a4-page {
+  width: 210mm;
+  min-height: 297mm;
+  background: white;
+  box-shadow: ...;
+  margin: 12mm 0;
+}
+```
+
+---
+
+## Dateien im Projekt
+
+### Build & Config
+
+| Datei | Beschreibung |
+|-------|--------------|
+| `package.json` | Abhängigkeiten & Scripts |
+| `tailwind.config.js` | TailwindCSS Konfiguration |
+| `postcss.config.js` | PostCSS Konfiguration |
+| `jsconfig.json` | JS Pfad-Aliase |
+| `components.json` | shadcn/ui Konfiguration |
+
+### SQL-Schemas
+
+| Datei | Beschreibung |
+|-------|--------------|
+| `supabase_complete_schema.sql` | Vollständiges DB-Schema |
+| `supabase_documents.sql` | Documents-Tabelle |
+| `supabase_schema.sql` | Basis-Schema |
+| `supabase_add_category.sql` | Kategorie-Spalte |
+| `supabase_update_profiles.sql` | Profil-Updates |
+
+### Dokumentation
+
+| Datei | Beschreibung |
+|-------|--------------|
+| `README.md` | Projekt-Readme |
+| `CHANGELOG.md` | Versions-Historie und Änderungsprotokoll |
+| `AGENTS.md` | Regeln für KI-Agenten |
+| `PROJECT_DOCUMENTATION.md` | Diese Datei – vollständige Projektdokumentation |
+| `IMPLEMENTATION_SUMMARY.md` | Implementierungs-Details |
+| `TIPTAP_IMPLEMENTATION_SUMMARY.md` | TipTap-Migration |
+| `MARKDOWN_IMPROVEMENTS.md` | Markdown-Verbesserungen |
+| `OPTIMIZATION_SUMMARY.md` | Performance-Optimierungen |
+| `SUPABASE_TROUBLESHOOTING.md` | Supabase-Fehlerbehebung |
+
+---
+
+## Entwicklung
+
+### Installation
+
+```bash
+npm install
+```
+
+### Starten
+
+```bash
+npm start
+# Läuft auf http://localhost:3000
+```
+
+### Build
+
+```bash
+npm run build
+# Erstellt optimierten Build in /build
+```
+
+### Umgebungsvariablen
+
+```env
+REACT_APP_SUPABASE_URL=https://xxx.supabase.co
+REACT_APP_SUPABASE_ANON_KEY=eyJ...
+```
+
+---
+
+## Browserkompatibilität
+
+### Unterstützte Browser
+
+| Browser | Mindestversion | Status |
+|---------|----------------|--------|
+| Chrome | 65+ | ✅ Vollständig unterstützt |
+| Firefox | 60+ | ✅ Vollständig unterstützt |
+| Safari | 10.1+ | ✅ Vollständig unterstützt |
+| Edge | 79+ (Chromium) | ✅ Vollständig unterstützt |
+| Internet Explorer | - | ❌ Nicht unterstützt |
+
+### Technische Grundlage
+
+Die Browserkompatibilität basiert auf folgenden Faktoren:
+
+1. **React 18** - Unterstützt IE11 nicht mehr (seit React 18)
+2. **ES6+ JavaScript** - Moderne Syntax (Arrow Functions, Destructuring, etc.)
+3. **Native APIs** - `URL.createObjectURL`, `Blob`, `a.download` für Datei-Downloads
+4. **CSS Features** - Flexbox, Grid, CSS Variables, `backdrop-filter`
+
+### Browserslist-Konfiguration
+
+```json
+{
+  "production": [
+    ">0.2%",
+    "not dead",
+    "not op_mini all"
+  ],
+  "development": [
+    "last 1 chrome version",
+    "last 1 firefox version",
+    "last 1 safari version"
+  ]
+}
+```
+
+### Empfehlung
+
+Für die beste Nutzererfahrung empfehlen wir:
+- **Chrome** oder **Edge** (Chromium) für optimale Performance
+- **Firefox** als Alternative
+- **Safari** auf macOS/iOS
+
+> **Hinweis:** Die Export-Funktionen (PDF/Word) nutzen `html-to-image` für die Bildgenerierung. Die Qualität kann je nach Browser-Rendering leicht variieren.
+
+---
+
+## Bekannte Features & Einschränkungen
+
+### Features
+
+- ✅ Block-basierter Editor
+- ✅ 12 medizinische Kategorien
+- ✅ Drag & Drop (inkl. Zwei-Spalten)
+- ✅ Flowchart-Editor
+- ✅ TipTap-Tabellen
+- ✅ PDF/Word/JSON Export
+- ✅ Cloud-Speicherung
+- ✅ Undo/Redo
+- ✅ Tag/Nacht Modus
+- ✅ Zoom-Steuerung
+- ✅ Benutzer-Profile
+- ✅ Firmenlogo in SOPs
+
+### In Entwicklung
+
+- 🔄 SOP Templates
+
+### Einschränkungen
+
+- Export-Qualität abhängig von Browser-Rendering
+- Flowchart-Größe limitiert (300-1200px)
+- Nur eine Content-Box pro Kategorie erlaubt
+
+---
+
+*Dokumentation erstellt: November 2024*  
+*Letzte Aktualisierung: November 2025*
+

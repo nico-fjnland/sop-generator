@@ -1,8 +1,23 @@
-import { saveAs } from 'file-saver';
 import { Document, Packer, Paragraph, ImageRun } from 'docx';
 import jsPDF from 'jspdf';
 import { toPng, toJpeg } from 'html-to-image';
 import { getDocument } from '../services/documentService';
+
+/**
+ * Native file download function (replaces file-saver).
+ * @param {Blob} blob - The blob to download.
+ * @param {string} filename - The filename for the download.
+ */
+const downloadBlob = (blob, filename) => {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
 
 /**
  * Exports the current editor state as a JSON file.
@@ -25,7 +40,7 @@ export const exportAsJson = (state) => {
   
   const jsonString = JSON.stringify(stateToExport, null, 2);
   const blob = new Blob([jsonString], { type: 'application/json' });
-  saveAs(blob, fileName);
+  downloadBlob(blob, fileName);
 };
 
 /**
@@ -547,7 +562,7 @@ export const exportAsWord = async (containerRef, title = 'SOP Überschrift', sta
 
     const blob = await Packer.toBlob(doc);
     const filename = generateFilename(title, stand);
-    saveAs(blob, `${filename}.docx`);
+    downloadBlob(blob, `${filename}.docx`);
   } catch (err) {
     console.error('Error rendering page for Word:', err);
     alert('Fehler beim Word-Export.');
@@ -776,7 +791,7 @@ export const exportMultipleDocumentsAsJson = async (documentIds, onProgress = nu
       const fileName = `${doc.title || 'document'}-${doc.version || 'v1'}.json`;
       const jsonString = JSON.stringify(exportState, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
-      saveAs(blob, fileName);
+      downloadBlob(blob, fileName);
 
       // Update progress
       if (onProgress) onProgress(i + 1, total, false);

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, ChevronDown, Check } from 'lucide-react';
-import { SortAscending } from '@phosphor-icons/react';
+import { Plus, CaretDown, Check, SortAscending } from '@phosphor-icons/react';
 import { Button } from './ui/button';
 import { CATEGORIES, ADDITIONAL_ELEMENTS } from './blocks/ContentBoxBlock';
 import {
@@ -42,7 +41,7 @@ const BoxTypeDropdown = ({ onSelect, onAddBlock, onSortBlocks, usedCategories = 
       >
         <Plus className="h-3 w-3" />
         <span>Box hinzufügen</span>
-        <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <CaretDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} weight="bold" />
       </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
@@ -86,7 +85,7 @@ const BoxTypeDropdown = ({ onSelect, onAddBlock, onSortBlocks, usedCategories = 
                 </span>
               <span className="flex-1">{cat.label}</span>
                 {isUsed && (
-                <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />
+                <Check className="h-3.5 w-3.5 text-primary" weight="bold" />
                 )}
             </DropdownMenuItem>
             );

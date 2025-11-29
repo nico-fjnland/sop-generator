@@ -9,8 +9,7 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
-import { GripVertical, X, Plus, Check, MoreHorizontal } from 'lucide-react';
-import { Table as TableIcon, SortAscending } from '@phosphor-icons/react';
+import { DotsSixVertical, X, Plus, Check, DotsThree, Table as TableIcon, SortAscending } from '@phosphor-icons/react';
 import InlineTextToolbar from '../InlineTextToolbar';
 import {
   DropdownMenu,
@@ -472,7 +471,7 @@ const TipTapTableBlock = forwardRef(({
           title="Tabelle verschieben"
           {...dragHandleProps}
         >
-          <GripVertical className="h-4 w-4 text-white" strokeWidth={2} />
+          <DotsSixVertical className="h-4 w-4 text-white" weight="bold" />
         </button>
         
         {onAddBoxAfter && (
@@ -485,7 +484,7 @@ const TipTapTableBlock = forwardRef(({
                 aria-label="Box hinzufügen"
                 title="Box hinzufügen"
               >
-                <Plus className="h-4 w-4 text-white" strokeWidth={2} />
+                <Plus className="h-4 w-4 text-white" weight="bold" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent 
@@ -530,7 +529,7 @@ const TipTapTableBlock = forwardRef(({
                     </span>
                     <span className="flex-1">{cat.label}</span>
                     {isUsed && (
-                      <Check className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />
+                      <Check className="h-3.5 w-3.5 text-primary" weight="bold" />
                     )}
                   </DropdownMenuItem>
                 );
@@ -577,7 +576,7 @@ const TipTapTableBlock = forwardRef(({
             }
           }}
         >
-          <X className="h-4 w-4 text-white" strokeWidth={2} />
+          <X className="h-4 w-4 text-white" weight="bold" />
         </button>
       </div>
 
@@ -660,7 +659,7 @@ const TipTapTableBlock = forwardRef(({
                   className="h-6 px-2 rounded flex items-center justify-center bg-white/90 backdrop-blur-sm border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"
                   title="Tabellenoptionen"
                 >
-                  <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                  <DotsThree className="h-4 w-4 text-gray-500" weight="bold" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="start" sideOffset={4}>
@@ -729,7 +728,7 @@ const TipTapTableBlock = forwardRef(({
                         title="Farbe zurücksetzen"
                         onClick={() => clearCellBackgroundColor()}
                       >
-                        <X className="h-4 w-4 text-gray-500" strokeWidth={2} />
+                        <X className="h-4 w-4 text-gray-500" weight="bold" />
                       </div>
                       
                       {/* Dunkelblau (#036) - mit weißer Schrift */}
