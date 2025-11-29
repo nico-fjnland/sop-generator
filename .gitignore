@@ -18,6 +18,9 @@
 .env.test.local
 .env.production.local
 
+# agent rules (local only)
+AGENTS.md
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
