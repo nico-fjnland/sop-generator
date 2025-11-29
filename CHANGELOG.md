@@ -12,6 +12,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 ### 🔄 Changed
 - **Icon-Bibliothek:** Migration von Lucide React zu Phosphor Icons
 - **Datei-Downloads:** Native Browser-API ersetzt `file-saver` Paket
+- **Versionsanzeige:** HelpButton liest Version automatisch aus `package.json`
 
 ### 🗑️ Removed
 - **Ungenutzte Pakete entfernt:**

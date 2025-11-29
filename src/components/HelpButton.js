@@ -3,9 +3,10 @@ import { createPortal } from 'react-dom';
 import { QuestionMark } from '@phosphor-icons/react';
 import { Button } from './ui/button';
 import { useTheme } from '../contexts/ThemeContext';
+import packageJson from '../../package.json';
 
-// App Version
-const APP_VERSION = 'v.0.02';
+// App Version aus package.json
+const APP_VERSION = packageJson.version;
 
 /**
  * Custom Help Button that triggers the Help Scout Beacon
