@@ -49,6 +49,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../components/ui/alert-dialog';
 
 // SortButton Component
 const SortButton = ({ column, sortConfig, onSort, children }) => {
@@ -831,6 +841,8 @@ export default function Account() {
   const [updatingEmail, setUpdatingEmail] = useState(false);
   const [updatingPassword, setUpdatingPassword] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   // Documents State
   const [documents, setDocuments] = useState([]);
@@ -1191,54 +1203,59 @@ export default function Account() {
     return 'Benutzer';
   };
 
-  const handleDeleteAccount = async () => {
-    const confirmText = 'Account löschen';
-    const userInput = window.prompt(
-      `Diese Aktion kann nicht rückgängig gemacht werden!\n\nAlle Ihre Dokumente und Daten werden permanent gelöscht.\n\nGeben Sie "${confirmText}" ein, um fortzufahren:`
-    );
+  const handleDeleteAccount = () => {
+    setDeleteConfirmText('');
+    setShowDeleteDialog(true);
+  };
 
-    if (userInput !== confirmText) {
-      if (userInput !== null) {
-        toast.error('Bestätigung fehlgeschlagen');
-      }
+  const confirmDeleteAccount = async () => {
+    if (deleteConfirmText !== 'LÖSCHEN') {
+      toast.error('Bitte gib "LÖSCHEN" ein, um fortzufahren');
       return;
     }
 
     setIsDeletingAccount(true);
+    setShowDeleteDialog(false);
 
     try {
-      // Erst alle Dokumente des Users löschen
-      const { error: docsError } = await supabase
-        .from('documents')
-        .delete()
-        .eq('user_id', user.id);
-
-      if (docsError) throw docsError;
-
-      // Dann das Profil löschen
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', user.id);
-
-      if (profileError) throw profileError;
-
-      // Dann den Auth-User löschen (über die Admin API oder Self-Service)
-      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
+      // RPC-Funktion aufrufen, die den Account serverseitig löscht
+      const { error } = await supabase.rpc('delete_own_account');
       
-      if (authError) {
-        // Fallback: User ausloggen
-        await signOut();
-        toast.success('Account-Daten wurden gelöscht');
-        window.location.href = '/';
-        return;
+      if (error) {
+        // Falls die RPC-Funktion nicht existiert, Fallback auf manuelle Löschung
+        if (error.message.includes('function') || error.code === 'PGRST202') {
+          console.warn('RPC function not found, using fallback method');
+          
+          // Erst alle Dokumente des Users löschen
+          const { error: docsError } = await supabase
+            .from('documents')
+            .delete()
+            .eq('user_id', user.id);
+
+          if (docsError) throw docsError;
+
+          // Dann das Profil löschen
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .delete()
+            .eq('id', user.id);
+
+          if (profileError) throw profileError;
+
+          // User ausloggen (Auth-User kann nur serverseitig gelöscht werden)
+          await signOut();
+          toast.success('Deine Daten wurden gelöscht. Bitte kontaktiere den Support, um deinen Account vollständig zu entfernen.');
+          window.location.href = '/';
+          return;
+        }
+        throw error;
       }
 
       toast.success('Account wurde erfolgreich gelöscht');
       window.location.href = '/';
     } catch (error) {
       console.error('Error deleting account:', error);
-      toast.error('Fehler beim Löschen des Accounts');
+      toast.error('Fehler beim Löschen des Accounts: ' + error.message);
       setIsDeletingAccount(false);
     }
   };
@@ -1343,6 +1360,48 @@ export default function Account() {
         isExporting={isExporting}
         progress={exportProgress}
       />
+
+      {/* Delete Account Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive flex items-center gap-2">
+              <Warning size={20} weight="fill" />
+              Account dauerhaft löschen?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                Diese Aktion kann <strong>nicht rückgängig</strong> gemacht werden. 
+                Alle deine Dokumente und Daten werden permanent gelöscht.
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="delete-confirm" className="text-sm font-medium">
+                  Gib <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-destructive">LÖSCHEN</span> ein, um fortzufahren:
+                </Label>
+                <Input
+                  id="delete-confirm"
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder="LÖSCHEN"
+                  className="font-mono"
+                  autoComplete="off"
+                />
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteAccount}
+              disabled={deleteConfirmText !== 'LÖSCHEN' || isDeletingAccount}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingAccount ? 'Wird gelöscht...' : 'Account löschen'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       <div className="flex flex-col items-center w-full mb-12">
         {/* Toolbar - Aufgeteilt in zwei Teile (wie im Editor) */}

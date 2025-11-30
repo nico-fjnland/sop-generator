@@ -1,6 +1,6 @@
 # SOP Editor - Vollständige Projektdokumentation
 
-> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.2.0)  
+> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.2.1)  
 > **Stack:** React 18 + Supabase + TailwindCSS  
 > **Zielgruppe:** Medizinisches Personal zur Erstellung von Standard Operating Procedures (SOPs)  
 > **Changelog:** [`CHANGELOG.md`](./CHANGELOG.md)
@@ -332,6 +332,23 @@ const { user, signUp, signIn, signOut, loading } = useAuth();
 - Session-Verwaltung via Supabase Auth
 - Automatisches Profil-Erstellen bei Registrierung (Trigger)
 
+### Multistep-Registrierung
+
+Der Registrierungsflow erfolgt in 3 Schritten mit visuellem Step-Indicator:
+
+| Step | Titel | Felder |
+|------|-------|--------|
+| 1 | Account | E-Mail, Passwort, Passwort bestätigen |
+| 2 | Persönlich | Vorname, Nachname, Position |
+| 3 | Organisation | Einrichtungsname, Mitarbeiterzahl, Webseite, Adresse |
+
+**Features:**
+- Visueller Fortschritts-Indikator mit animierter Progress-Line
+- Validierung pro Schritt (E-Mail-Format, Passwort-Länge, Passwort-Match)
+- Animierte Übergänge zwischen Steps (`animate-in`, `fade-in`, `slide-in-from-right`)
+- Profildaten werden direkt nach der Registrierung gespeichert
+- Success-Screen mit Hinweis auf E-Mail-Bestätigung
+
 ### Account-Seite
 
 3 Tabs:
@@ -406,8 +423,12 @@ CREATE TABLE documents (
 
 ### Row Level Security (RLS)
 
-- Profile: Öffentlich lesbar, nur eigenes Profil bearbeitbar
-- Documents: Nur eigene Dokumente sichtbar/bearbeitbar
+- **Profile:** Öffentlich lesbar, nur eigenes Profil bearbeitbar
+- **Documents:** Strikt benutzer-isoliert (nur `authenticated` Rolle)
+  - `documents_select_own`: Nur eigene Dokumente lesbar
+  - `documents_insert_own`: Nur mit eigener `user_id` erstellbar
+  - `documents_update_own`: Nur eigene Dokumente bearbeitbar
+  - `documents_delete_own`: Nur eigene Dokumente löschbar
 
 ### Storage (avatars Bucket)
 
