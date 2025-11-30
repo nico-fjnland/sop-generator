@@ -7,6 +7,19 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.2.3] - 2025-11-30
+
+### ✨ Added
+- **Logo-Qualitätsprüfung:** Automatische Checkliste neben dem Firmenlogo-Upload
+  - Prüft Mindestauflösung (300×300px für Druck)
+  - Prüft Dateiformat (SVG/PNG empfohlen, JPEG akzeptabel)
+  - Prüft Seitenverhältnis (max. 3:1)
+  - Prüft Dateigröße (max. 2 MB)
+  - SVG-Dateien werden als optimal für Druck erkannt (verlustfrei skalierbar)
+  - Echtzeit-Feedback mit farbcodierten Checkmarks (grün/orange/rot)
+
+---
+
 ## [0.2.2] - 2025-11-30
 
 ### ✨ Added

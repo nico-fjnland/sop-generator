@@ -35,7 +35,11 @@ import {
   X,
   Eye,
   EyeSlash,
-  Check
+  Check,
+  Circle,
+  CheckCircle,
+  XCircle,
+  WarningCircle
 } from '@phosphor-icons/react';
 import { getDocuments, deleteDocument, saveDocument, updateDocumentCategory } from '../services/documentService';
 import { exportMultipleDocuments } from '../utils/exportUtils';
@@ -385,11 +389,56 @@ const TemplatesView = React.memo(() => (
   </div>
 ));
 
+// LogoQualityChecklist Component
+const LogoQualityChecklist = ({ quality, hasLogo }) => {
+  const MIN_RESOLUTION = 300;
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+
+  // Check conditions
+  const checks = {
+    resolution: quality.isSvg || (quality.width >= MIN_RESOLUTION && quality.height >= MIN_RESOLUTION),
+    format: ['SVG', 'PNG'].includes(quality.format),
+    formatAcceptable: ['JPEG', 'WebP', 'GIF'].includes(quality.format),
+    fileSize: quality.fileSize === null || quality.fileSize <= MAX_FILE_SIZE,
+  };
+
+  const getIcon = (passed, warning = false) => {
+    if (!hasLogo) return <Circle size={16} weight="regular" className="text-gray-300" />;
+    if (passed) return <CheckCircle size={16} weight="fill" className="text-green-600" />;
+    if (warning) return <WarningCircle size={16} weight="fill" className="text-amber-500" />;
+    return <XCircle size={16} weight="fill" className="text-red-500" />;
+  };
+
+  const getTextColor = (passed, warning = false) => {
+    if (!hasLogo) return 'text-gray-400';
+    if (passed) return 'text-green-700';
+    if (warning) return 'text-amber-600';
+    return 'text-red-600';
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        {getIcon(checks.resolution)}
+        <span className={`text-xs ${getTextColor(checks.resolution)}`}>Auflösung</span>
+      </div>
+      <div className="flex items-center gap-2">
+        {getIcon(checks.format, checks.formatAcceptable)}
+        <span className={`text-xs ${getTextColor(checks.format, checks.formatAcceptable)}`}>Format (SVG/PNG)</span>
+      </div>
+      <div className="flex items-center gap-2">
+        {getIcon(checks.fileSize)}
+        <span className={`text-xs ${getTextColor(checks.fileSize)}`}>Dateigröße</span>
+      </div>
+    </div>
+  );
+};
+
 // ProfileView Component
 const ProfileView = React.memo(({ 
   avatarUrl, uploading, uploadAvatar, firstName, setFirstName, lastName, setLastName,
   jobPosition, setJobPosition, user, companyLogo, uploadingLogo, uploadCompanyLogo,
-  removeCompanyLogo, hospitalName, setHospitalName, selectedHospital, setSelectedHospital,
+  removeCompanyLogo, logoQuality, hospitalName, setHospitalName, selectedHospital, setSelectedHospital,
   updating, updateProfile, newPassword, setNewPassword,
   confirmPassword, setConfirmPassword, updatingPassword, updatePassword, isDeletingAccount,
   handleDeleteAccount
@@ -545,15 +594,16 @@ const ProfileView = React.memo(({
       </div>
 
       {/* Company Logo Row - 1/3 : 2/3 Layout */}
-      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-start">
         <div className="space-y-1">
           <Label className="text-sm font-medium">Firmenlogo</Label>
           <p className="text-xs text-muted-foreground">
-            Wird in deinen SOPs angezeigt. Empfohlen: Quadratisch, PNG mit transparentem Hintergrund
+            Wird in deinen SOPs angezeigt
           </p>
         </div>
-        <div className="flex items-start gap-4">
-          <div className="relative">
+        <div className="flex items-center gap-6">
+          {/* Logo Preview */}
+          <div className="relative flex-shrink-0">
             <div className="h-24 w-48 rounded-lg overflow-hidden bg-muted border-2 border-border flex items-center justify-center">
               {companyLogo ? (
                 <img
@@ -586,13 +636,16 @@ const ProfileView = React.memo(({
               <input
                 id="logo-upload"
                 type="file"
-                accept="image/*"
+                accept="image/*,.svg"
                 onChange={uploadCompanyLogo}
                 disabled={uploadingLogo}
                 className="hidden"
               />
             </label>
           </div>
+
+          {/* Quality Checklist */}
+          <LogoQualityChecklist quality={logoQuality} hasLogo={!!companyLogo} />
         </div>
       </div>
 
@@ -861,6 +914,90 @@ export default function Account() {
   const [selectedHospital, setSelectedHospital] = useState(null);
   const [companyLogo, setCompanyLogo] = useState(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoQuality, setLogoQuality] = useState({
+    width: null,
+    height: null,
+    format: null,
+    fileSize: null,
+    isSvg: false
+  });
+
+  // Function to analyze logo quality
+  const analyzeLogoQuality = async (file, imageUrl) => {
+    return new Promise((resolve) => {
+      const quality = {
+        width: null,
+        height: null,
+        format: null,
+        fileSize: file ? file.size : null,
+        isSvg: false
+      };
+
+      // Determine format
+      if (file) {
+        const mimeType = file.type;
+        if (mimeType === 'image/svg+xml') {
+          quality.format = 'SVG';
+          quality.isSvg = true;
+          // SVG is vector, so dimensions are not as relevant
+          quality.width = Infinity;
+          quality.height = Infinity;
+          resolve(quality);
+          return;
+        } else if (mimeType === 'image/png') {
+          quality.format = 'PNG';
+        } else if (mimeType === 'image/jpeg' || mimeType === 'image/jpg') {
+          quality.format = 'JPEG';
+        } else if (mimeType === 'image/gif') {
+          quality.format = 'GIF';
+        } else if (mimeType === 'image/webp') {
+          quality.format = 'WebP';
+        } else {
+          quality.format = mimeType.split('/')[1]?.toUpperCase() || 'Unbekannt';
+        }
+      } else if (imageUrl) {
+        // Determine format from URL extension
+        const ext = imageUrl.split('?')[0].split('.').pop()?.toLowerCase();
+        if (ext === 'svg') {
+          quality.format = 'SVG';
+          quality.isSvg = true;
+          quality.width = Infinity;
+          quality.height = Infinity;
+          resolve(quality);
+          return;
+        } else if (ext === 'png') {
+          quality.format = 'PNG';
+        } else if (ext === 'jpg' || ext === 'jpeg') {
+          quality.format = 'JPEG';
+        } else if (ext === 'gif') {
+          quality.format = 'GIF';
+        } else if (ext === 'webp') {
+          quality.format = 'WebP';
+        } else {
+          quality.format = ext?.toUpperCase() || 'Unbekannt';
+        }
+      }
+
+      // Get dimensions for raster images
+      const img = new Image();
+      img.onload = () => {
+        quality.width = img.naturalWidth;
+        quality.height = img.naturalHeight;
+        resolve(quality);
+      };
+      img.onerror = () => {
+        resolve(quality);
+      };
+      
+      if (file) {
+        img.src = URL.createObjectURL(file);
+      } else if (imageUrl) {
+        img.src = imageUrl;
+      } else {
+        resolve(quality);
+      }
+    });
+  };
   
   // Klinik-Atlas Hook for restoring hospital details
   const { loadData: loadKlinikAtlas, findByName: findHospitalByName, isInitialized: klinikAtlasLoaded } = useKlinikAtlas();
@@ -896,6 +1033,15 @@ export default function Account() {
   useEffect(() => {
     loadKlinikAtlas();
   }, [loadKlinikAtlas]);
+
+  // Analyze existing logo when loaded
+  useEffect(() => {
+    if (companyLogo && logoQuality.width === null) {
+      analyzeLogoQuality(null, companyLogo).then(quality => {
+        setLogoQuality(quality);
+      });
+    }
+  }, [companyLogo, logoQuality.width]);
 
   // Store hospital name for lookup after Klinik-Atlas loads
   const [pendingHospitalName, setPendingHospitalName] = useState(null);
@@ -1017,6 +1163,11 @@ export default function Account() {
       }
 
       const file = event.target.files[0];
+      
+      // Analyze logo quality before upload
+      const quality = await analyzeLogoQuality(file, null);
+      setLogoQuality(quality);
+      
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-company-logo-${Math.random()}.${fileExt}`;
       const filePath = `${fileName}`;
@@ -1059,6 +1210,13 @@ export default function Account() {
 
     try {
       setCompanyLogo(null);
+      setLogoQuality({
+        width: null,
+        height: null,
+        format: null,
+        fileSize: null,
+        isSvg: false
+      });
       
       const updates = {
         id: user.id,
@@ -1564,6 +1722,7 @@ export default function Account() {
             uploadingLogo={uploadingLogo}
             uploadCompanyLogo={uploadCompanyLogo}
             removeCompanyLogo={removeCompanyLogo}
+            logoQuality={logoQuality}
             hospitalName={hospitalName}
             setHospitalName={setHospitalName}
             selectedHospital={selectedHospital}
