@@ -41,6 +41,9 @@ import { getDocuments, deleteDocument, saveDocument, updateDocumentCategory } fr
 import { exportMultipleDocuments } from '../utils/exportUtils';
 import { toast } from 'sonner';
 import AccountDropdown from '../components/AccountDropdown';
+import { HospitalCombobox } from '../components/ui/hospital-combobox';
+import { PositionCombobox } from '../components/ui/position-combobox';
+import { useKlinikAtlas } from '../hooks/useKlinikAtlas';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -386,9 +389,8 @@ const TemplatesView = React.memo(() => (
 const ProfileView = React.memo(({ 
   avatarUrl, uploading, uploadAvatar, firstName, setFirstName, lastName, setLastName,
   jobPosition, setJobPosition, user, companyLogo, uploadingLogo, uploadCompanyLogo,
-  removeCompanyLogo, hospitalName, setHospitalName, hospitalEmployees, setHospitalEmployees,
-  hospitalWebsite, setHospitalWebsite, hospitalAddress, setHospitalAddress, updating,
-  updateProfile, newPassword, setNewPassword,
+  removeCompanyLogo, hospitalName, setHospitalName, selectedHospital, setSelectedHospital,
+  updating, updateProfile, newPassword, setNewPassword,
   confirmPassword, setConfirmPassword, updatingPassword, updatePassword, isDeletingAccount,
   handleDeleteAccount
 }) => {
@@ -492,16 +494,14 @@ const ProfileView = React.memo(({
         <div className="space-y-1">
           <Label htmlFor="jobPosition" className="text-sm font-medium">Position</Label>
           <p className="text-xs text-muted-foreground">
-            Deine Rolle im Unternehmen
+            Deine Rolle im Krankenhaus
           </p>
         </div>
         <div>
-          <Input
-            id="jobPosition"
-            type="text"
+          <PositionCombobox
             value={jobPosition}
-            onChange={(e) => setJobPosition(e.target.value)}
-            placeholder="Arzt, Pfleger, etc."
+            onChange={setJobPosition}
+            placeholder="Position auswählen oder eingeben..."
           />
         </div>
       </div>
@@ -601,78 +601,108 @@ const ProfileView = React.memo(({
         <div className="space-y-1">
           <Label htmlFor="hospitalName" className="text-sm font-medium">Name des Krankenhauses</Label>
           <p className="text-xs text-muted-foreground">
-            Vollständiger Name der Einrichtung
+            Suche im Bundes-Klinik-Atlas oder manuell eingeben
           </p>
         </div>
         <div>
-          <Input
-            id="hospitalName"
-            type="text"
+          <HospitalCombobox
             value={hospitalName}
-            onChange={(e) => setHospitalName(e.target.value)}
-            placeholder="Klinikum Berlin"
+            onChange={setHospitalName}
+            onSelect={(hospital) => {
+              setSelectedHospital(hospital);
+            }}
+            placeholder="Krankenhaus suchen oder eingeben..."
           />
         </div>
       </div>
 
-      {/* Employees & Website Row - 1/3 : 2/3 Layout */}
-      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+      {/* Hospital Info Box - Always visible */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-start">
         <div className="space-y-1">
-          <Label className="text-sm font-medium">Weitere Informationen</Label>
+          <Label className={`text-sm font-medium ${selectedHospital ? 'text-primary' : 'text-muted-foreground'}`}>
+            Klinik-Details
+          </Label>
           <p className="text-xs text-muted-foreground">
-            Optional: Mitarbeiterzahl und Webseite
+            {selectedHospital 
+              ? 'Informationen aus dem Bundes-Klinik-Atlas'
+              : 'Wähle eine Klinik aus der Suche'
+            }
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="hospitalEmployees" className="text-xs text-muted-foreground">Anzahl Mitarbeitende</Label>
-            <div className="relative">
-              <UsersThree size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="hospitalEmployees"
-                type="text"
-                value={hospitalEmployees}
-                onChange={(e) => setHospitalEmployees(e.target.value)}
-                placeholder="500"
-                className="pl-10"
-              />
+        <div className={`p-4 border-2 rounded-lg ${
+          selectedHospital 
+            ? 'border-primary/20 bg-primary/5' 
+            : 'border-dashed border-muted-foreground/20 bg-muted/30'
+        }`}>
+          {selectedHospital ? (
+            <div className="space-y-3">
+              {/* Address */}
+              {(selectedHospital.street || selectedHospital.city) && (
+                <div className="flex items-start gap-3">
+                  <MapPin size={16} className="text-primary mt-0.5 flex-shrink-0" weight="duotone" />
+                  <div className="text-sm">
+                    {selectedHospital.street && <div>{selectedHospital.street}</div>}
+                    {selectedHospital.zip && selectedHospital.city && (
+                      <div>{selectedHospital.zip} {selectedHospital.city}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Beds */}
+              {selectedHospital.beds > 0 && (
+                <div className="flex items-center gap-3">
+                  <UsersThree size={16} className="text-primary flex-shrink-0" weight="duotone" />
+                  <span className="text-sm">{selectedHospital.beds.toLocaleString('de-DE')} Betten</span>
+                </div>
+              )}
+              
+              {/* Phone */}
+              {selectedHospital.phone && (
+                <div className="flex items-center gap-3">
+                  <Buildings size={16} className="text-primary flex-shrink-0" weight="duotone" />
+                  <a href={`tel:${selectedHospital.phone}`} className="text-sm text-primary hover:underline">
+                    {selectedHospital.phone}
+                  </a>
+                </div>
+              )}
+              
+              {/* Email */}
+              {selectedHospital.email && (
+                <div className="flex items-center gap-3">
+                  <LinkIcon size={16} className="text-primary flex-shrink-0" weight="duotone" />
+                  <a href={`mailto:${selectedHospital.email}`} className="text-sm text-primary hover:underline">
+                    {selectedHospital.email}
+                  </a>
+                </div>
+              )}
+              
+              {/* Link to Klinik-Atlas */}
+              {selectedHospital.link && (
+                <div className="pt-2 border-t border-primary/10">
+                  <a 
+                    href={selectedHospital.link} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-xs text-primary hover:underline"
+                  >
+                    <Globe size={14} weight="duotone" />
+                    Im Bundes-Klinik-Atlas ansehen
+                  </a>
+                </div>
+              )}
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="hospitalWebsite" className="text-xs text-muted-foreground">Webseite (optional)</Label>
-            <div className="relative">
-              <LinkIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="hospitalWebsite"
-                type="url"
-                value={hospitalWebsite}
-                onChange={(e) => setHospitalWebsite(e.target.value)}
-                placeholder="https://example.com"
-                className="pl-10"
-              />
+          ) : (
+            <div className="flex flex-col items-center justify-center py-4 text-center">
+              <Buildings size={32} className="text-muted-foreground/40 mb-2" weight="duotone" />
+              <p className="text-sm text-muted-foreground">
+                Keine Klinik ausgewählt
+              </p>
+              <p className="text-xs text-muted-foreground/70 mt-1">
+                Suche oben nach deiner Einrichtung, um Details anzuzeigen
+              </p>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Address Row - 1/3 : 2/3 Layout */}
-      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
-        <div className="space-y-1">
-          <Label htmlFor="hospitalAddress" className="text-sm font-medium">Adresse</Label>
-          <p className="text-xs text-muted-foreground">
-            Standort der Einrichtung
-          </p>
-        </div>
-        <div className="relative">
-          <MapPin size={18} className="absolute left-3 top-3 text-muted-foreground" />
-          <textarea
-            id="hospitalAddress"
-            value={hospitalAddress}
-            onChange={(e) => setHospitalAddress(e.target.value)}
-            placeholder="Musterstraße 123&#10;12345 Berlin&#10;Deutschland"
-            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            rows={3}
-          />
+          )}
         </div>
       </div>
 
@@ -828,11 +858,12 @@ export default function Account() {
   
   // Organization State
   const [hospitalName, setHospitalName] = useState('');
-  const [hospitalEmployees, setHospitalEmployees] = useState('');
-  const [hospitalAddress, setHospitalAddress] = useState('');
-  const [hospitalWebsite, setHospitalWebsite] = useState('');
+  const [selectedHospital, setSelectedHospital] = useState(null);
   const [companyLogo, setCompanyLogo] = useState(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  
+  // Klinik-Atlas Hook for restoring hospital details
+  const { loadData: loadKlinikAtlas, findByName: findHospitalByName, isInitialized: klinikAtlasLoaded } = useKlinikAtlas();
   
   // Account Security State
   const [newEmail, setNewEmail] = useState('');
@@ -861,6 +892,25 @@ export default function Account() {
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(null);
 
+  // Load Klinik-Atlas data on mount
+  useEffect(() => {
+    loadKlinikAtlas();
+  }, [loadKlinikAtlas]);
+
+  // Store hospital name for lookup after Klinik-Atlas loads
+  const [pendingHospitalName, setPendingHospitalName] = useState(null);
+
+  // Restore selectedHospital when Klinik-Atlas data is loaded
+  useEffect(() => {
+    if (klinikAtlasLoaded && pendingHospitalName) {
+      const hospital = findHospitalByName(pendingHospitalName);
+      if (hospital) {
+        setSelectedHospital(hospital);
+      }
+      setPendingHospitalName(null);
+    }
+  }, [klinikAtlasLoaded, pendingHospitalName, findHospitalByName]);
+
   useEffect(() => {
     let ignore = false;
     
@@ -868,7 +918,7 @@ export default function Account() {
       try {
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select(`first_name, last_name, job_position, avatar_url, hospital_name, hospital_employees, hospital_address, hospital_website, company_logo`)
+          .select(`first_name, last_name, job_position, avatar_url, hospital_name, company_logo`)
           .eq('id', user.id)
           .single();
 
@@ -889,17 +939,25 @@ export default function Account() {
             }
           } else if (profile) {
             console.log('Profile loaded:', profile);
-            console.log('Avatar URL from DB:', profile.avatar_url);
             setFirstName(profile.first_name || '');
             setLastName(profile.last_name || '');
             setJobPosition(profile.job_position || '');
-            // Cache-Buster für Bilder beim Laden hinzufügen
             setAvatarUrl(profile.avatar_url ? `${profile.avatar_url}?t=${Date.now()}` : null);
             setHospitalName(profile.hospital_name || '');
-            setHospitalEmployees(profile.hospital_employees || '');
-            setHospitalAddress(profile.hospital_address || '');
-            setHospitalWebsite(profile.hospital_website || '');
             setCompanyLogo(profile.company_logo ? `${profile.company_logo}?t=${Date.now()}` : null);
+            
+            // Try to restore selectedHospital from Klinik-Atlas
+            if (profile.hospital_name) {
+              if (klinikAtlasLoaded) {
+                const hospital = findHospitalByName(profile.hospital_name);
+                if (hospital) {
+                  setSelectedHospital(hospital);
+                }
+              } else {
+                // Store for later lookup when Klinik-Atlas data loads
+                setPendingHospitalName(profile.hospital_name);
+              }
+            }
           }
         }
 
@@ -920,7 +978,7 @@ export default function Account() {
     return () => {
       ignore = true;
     };
-  }, [user]);
+  }, [user, klinikAtlasLoaded, findHospitalByName]);
 
   async function updateProfile(event) {
     event.preventDefault();
@@ -934,9 +992,6 @@ export default function Account() {
         job_position: jobPosition,
         avatar_url: avatarUrl,
         hospital_name: hospitalName,
-        hospital_employees: hospitalEmployees,
-        hospital_address: hospitalAddress,
-        hospital_website: hospitalWebsite,
         company_logo: companyLogo,
         updated_at: new Date(),
       };
@@ -1511,12 +1566,8 @@ export default function Account() {
             removeCompanyLogo={removeCompanyLogo}
             hospitalName={hospitalName}
             setHospitalName={setHospitalName}
-            hospitalEmployees={hospitalEmployees}
-            setHospitalEmployees={setHospitalEmployees}
-            hospitalWebsite={hospitalWebsite}
-            setHospitalWebsite={setHospitalWebsite}
-            hospitalAddress={hospitalAddress}
-            setHospitalAddress={setHospitalAddress}
+            selectedHospital={selectedHospital}
+            setSelectedHospital={setSelectedHospital}
             updating={updating}
             updateProfile={updateProfile}
             newPassword={newPassword}

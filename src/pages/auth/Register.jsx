@@ -6,6 +6,8 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Spinner } from '../../components/ui/spinner';
+import { PositionCombobox } from '../../components/ui/position-combobox';
+import { HospitalCombobox } from '../../components/ui/hospital-combobox';
 import { 
   UserPlus, 
   ArrowLeft, 
@@ -13,21 +15,15 @@ import {
   Envelope, 
   Lock, 
   User, 
-  Briefcase,
-  Buildings,
-  UsersThree,
-  Globe,
-  MapPin,
   CheckCircle,
   Eye,
   EyeSlash
 } from '@phosphor-icons/react';
 
-// Step-Konfiguration
+// Step-Konfiguration (jetzt nur noch 2 Schritte)
 const STEPS = [
   { id: 1, title: 'Account' },
   { id: 2, title: 'Persönlich' },
-  { id: 3, title: 'Organisation' },
 ];
 
 // Kompakter StepIndicator am unteren Rand
@@ -153,7 +149,7 @@ const Step1Account = ({ formData, setFormData, errors }) => {
   );
 };
 
-// Step 2: Persönliche Daten
+// Step 2: Persönliche Daten & Krankenhaus
 const Step2Personal = ({ formData, setFormData, errors }) => {
   return (
     <div className="space-y-4">
@@ -189,88 +185,27 @@ const Step2Personal = ({ formData, setFormData, errors }) => {
 
       <div className="space-y-2">
         <Label htmlFor="jobPosition">Position / Rolle</Label>
-        <div className="relative">
-          <Briefcase size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <Input
-            id="jobPosition"
-            type="text"
-            placeholder="z.B. Oberarzt, Stationsleitung, etc."
-            value={formData.jobPosition}
-            onChange={(e) => setFormData({ ...formData, jobPosition: e.target.value })}
-            className="pl-10"
-          />
-        </div>
-        <p className="text-xs text-gray-400">Optional – hilft uns, das Erlebnis zu personalisieren</p>
-      </div>
-    </div>
-  );
-};
-
-// Step 3: Organisationsdaten
-const Step3Organization = ({ formData, setFormData, errors }) => {
-  return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="hospitalName">Name der Einrichtung</Label>
-        <div className="relative">
-          <Buildings size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <Input
-            id="hospitalName"
-            type="text"
-            placeholder="z.B. Universitätsklinikum Berlin"
-            value={formData.hospitalName}
-            onChange={(e) => setFormData({ ...formData, hospitalName: e.target.value })}
-            className="pl-10"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="hospitalEmployees">Anzahl Mitarbeitende</Label>
-          <div className="relative">
-            <UsersThree size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <Input
-              id="hospitalEmployees"
-              type="text"
-              placeholder="z.B. 500"
-              value={formData.hospitalEmployees}
-              onChange={(e) => setFormData({ ...formData, hospitalEmployees: e.target.value })}
-              className="pl-10"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="hospitalWebsite">Webseite</Label>
-          <div className="relative">
-            <Globe size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <Input
-              id="hospitalWebsite"
-              type="url"
-              placeholder="https://..."
-              value={formData.hospitalWebsite}
-              onChange={(e) => setFormData({ ...formData, hospitalWebsite: e.target.value })}
-              className="pl-10"
-            />
-          </div>
-        </div>
+        <PositionCombobox
+          value={formData.jobPosition}
+          onChange={(value) => setFormData({ ...formData, jobPosition: value })}
+          placeholder="Position auswählen oder eingeben..."
+        />
+        <p className="text-xs text-gray-400">Wähle aus der Liste oder gib eine eigene Position ein</p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="hospitalAddress">Adresse</Label>
-        <div className="relative">
-          <MapPin size={18} className="absolute left-3 top-3 text-gray-400" />
-          <textarea
-            id="hospitalAddress"
-            placeholder="Straße, PLZ Ort"
-            value={formData.hospitalAddress}
-            onChange={(e) => setFormData({ ...formData, hospitalAddress: e.target.value })}
-            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            rows={2}
-          />
-        </div>
-        <p className="text-xs text-gray-400">Alle Felder in diesem Schritt sind optional</p>
+        <Label htmlFor="hospitalName">Krankenhaus / Einrichtung</Label>
+        <HospitalCombobox
+          value={formData.hospitalName}
+          onChange={(value) => setFormData({ ...formData, hospitalName: value })}
+          onSelect={(hospital) => {
+            if (hospital) {
+              setFormData({ ...formData, hospitalName: hospital.name });
+            }
+          }}
+          placeholder="Krankenhaus suchen oder eingeben..."
+        />
+        <p className="text-xs text-gray-400">Suche im Bundes-Klinik-Atlas oder gib einen Namen ein</p>
       </div>
     </div>
   );
@@ -307,9 +242,6 @@ export default function Register() {
     lastName: '',
     jobPosition: '',
     hospitalName: '',
-    hospitalEmployees: '',
-    hospitalWebsite: '',
-    hospitalAddress: '',
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -386,9 +318,6 @@ export default function Register() {
           last_name: formData.lastName || null,
           job_position: formData.jobPosition || null,
           hospital_name: formData.hospitalName || null,
-          hospital_employees: formData.hospitalEmployees || null,
-          hospital_address: formData.hospitalAddress || null,
-          hospital_website: formData.hospitalWebsite || null,
           updated_at: new Date().toISOString(),
         };
 
@@ -418,8 +347,6 @@ export default function Register() {
         return <Step1Account formData={formData} setFormData={setFormData} errors={errors} />;
       case 2:
         return <Step2Personal formData={formData} setFormData={setFormData} errors={errors} />;
-      case 3:
-        return <Step3Organization formData={formData} setFormData={setFormData} errors={errors} />;
       default:
         return null;
     }

@@ -1,6 +1,6 @@
 # SOP Editor - Vollständige Projektdokumentation
 
-> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.2.1)  
+> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.2.2)  
 > **Stack:** React 18 + Supabase + TailwindCSS  
 > **Zielgruppe:** Medizinisches Personal zur Erstellung von Standard Operating Procedures (SOPs)  
 > **Changelog:** [`CHANGELOG.md`](./CHANGELOG.md)
@@ -145,6 +145,8 @@ src/
 │       ├── alert-dialog.jsx
 │       ├── checkbox.jsx
 │       ├── spinner.jsx
+│       ├── hospital-combobox.jsx  # Krankenhaus-Suche Combobox
+│       ├── position-combobox.jsx  # Position-Auswahl Combobox
 │       └── ...
 │
 ├── contexts/
@@ -155,6 +157,7 @@ src/
 ├── hooks/
 │   ├── useEditorHistory.js   # Undo/Redo + LocalStorage
 │   ├── usePageBreaks.js      # A4 Seitenumbruch-Berechnung
+│   ├── useKlinikAtlas.js     # Bundes-Klinik-Atlas API Hook
 │   └── use-debounced-dimensions.js
 │
 ├── pages/
@@ -565,6 +568,47 @@ setEditorState(newState, { history: 'replace' }) // Nur Present ersetzen
 setEditorState(newState, { history: false })     // Kein History-Eintrag
 ```
 
+### useKlinikAtlas (Custom Hook)
+
+Hook zum Laden und Filtern von Krankenhausdaten aus dem Bundes-Klinik-Atlas:
+
+```javascript
+const { 
+  hospitals,         // Array aller ~1.600 Krankenhäuser
+  loading,           // Ladezustand
+  error,             // Fehlermeldung
+  isInitialized,     // Daten geladen
+  loadData,          // Manuell laden (lazy loading)
+  filterHospitals,   // Filtern nach Suchbegriff
+  findByName,        // Krankenhaus nach Namen suchen
+  totalCount         // Gesamtanzahl
+} = useKlinikAtlas();
+```
+
+**Datenquelle:** `https://klinikatlas.api.proxy.bund.dev/fileadmin/json/locations.json`
+
+**Caching:**
+- Memory-Cache für aktuelle Session
+- LocalStorage-Cache für 24 Stunden
+- Lazy Loading beim ersten Öffnen der Combobox
+
+**Krankenhaus-Objekt:**
+```javascript
+{
+  id: '771003',
+  name: 'Klinikum Südstadt Rostock',
+  street: 'Südring 81',
+  city: 'Rostock',
+  zip: '18059',
+  phone: '+49 (0)381/4401-0',
+  email: 'info@kliniksued-rostock.de',
+  beds: 533,
+  latitude: '54.071629513465',
+  longitude: '12.107577323914',
+  link: 'https://bundes-klinik-atlas.de/krankenhaussuche/krankenhaus/771003/'
+}
+```
+
 ---
 
 ## UI-Komponenten
@@ -584,6 +628,7 @@ Basierend auf **shadcn/ui** (Radix Primitives + TailwindCSS):
 | Toggle | `toggle.jsx` | Toggle Button |
 | Spinner | `spinner.jsx` | Lade-Indikator |
 | Toaster | `sonner.jsx` | Toast-Benachrichtigungen |
+| Hospital Combobox | `hospital-combobox.jsx` | Krankenhaus-Suche mit Autocomplete |
 
 ---
 

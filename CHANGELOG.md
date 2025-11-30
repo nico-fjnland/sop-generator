@@ -7,6 +7,33 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.2.2] - 2025-11-30
+
+### ✨ Added
+- **Krankenhaus-Autocomplete:** Intelligente Vervollständigung aus dem Bundes-Klinik-Atlas
+  - Neuer `useKlinikAtlas` Hook zum Laden und Cachen der ~1.600 Krankenhausdaten
+  - Neue `HospitalCombobox` UI-Komponente mit Suchfeld und Dropdown
+  - Info-Box zeigt ausgewählte Klinik-Details (Adresse, Betten, Kontakt, Link)
+  - Lokales Caching (Memory + localStorage für 24h)
+  - Supabase Edge Function `klinik-atlas-proxy` als CORS-Proxy
+  - Fallback für manuelle Eingabe wenn Klinik nicht gefunden
+- **Position-Combobox:** Neues Dropdown für medizinische Positionen
+  - Neue `PositionCombobox` UI-Komponente mit Suchfunktion
+  - 8 vordefinierte Positionen (Ärztlicher Direktor:in bis Famulant:in)
+  - Sortierung von höchster zu niedrigster Position
+  - Fallback für manuelle Eingabe benutzerdefinierter Positionen
+
+### 🗑️ Removed
+- Felder "Weitere Informationen" (Mitarbeiterzahl, Webseite) und "Adresse" aus dem Profil
+  - Werden jetzt automatisch aus dem Bundes-Klinik-Atlas bezogen
+- Datenbankfelder `hospital_employees`, `hospital_address`, `hospital_website` aus `profiles` Tabelle entfernt
+
+### 🐛 Fixed
+- Klinik-Details bleiben nach Speichern und Reload erhalten
+  - Krankenhaus wird automatisch im Klinik-Atlas nachgeschlagen und Details wiederhergestellt
+
+---
+
 ## [0.2.1] - 2025-11-30
 
 ### ✨ Added
