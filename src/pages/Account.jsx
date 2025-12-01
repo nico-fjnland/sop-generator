@@ -404,14 +404,14 @@ const LogoQualityChecklist = ({ quality, hasLogo }) => {
 
   const getIcon = (passed, warning = false) => {
     if (!hasLogo) return <Circle size={16} weight="regular" className="text-gray-300" />;
-    if (passed) return <CheckCircle size={16} weight="fill" className="text-green-600" />;
+    if (passed) return <CheckCircle size={16} weight="fill" className="text-primary" />;
     if (warning) return <WarningCircle size={16} weight="fill" className="text-amber-500" />;
     return <XCircle size={16} weight="fill" className="text-red-500" />;
   };
 
   const getTextColor = (passed, warning = false) => {
     if (!hasLogo) return 'text-gray-400';
-    if (passed) return 'text-green-700';
+    if (passed) return 'text-primary';
     if (warning) return 'text-amber-600';
     return 'text-red-600';
   };
@@ -604,7 +604,7 @@ const ProfileView = React.memo(({
         <div className="flex items-center gap-6">
           {/* Logo Preview */}
           <div className="relative flex-shrink-0">
-            <div className="h-24 w-48 rounded-lg overflow-hidden bg-muted border-2 border-border flex items-center justify-center">
+            <div className="rounded-lg overflow-hidden bg-muted border-2 border-border flex items-center justify-center" style={{ width: '200px', height: '120px' }}>
               {companyLogo ? (
                 <img
                   src={companyLogo}
