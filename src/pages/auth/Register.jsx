@@ -190,7 +190,6 @@ const Step2Personal = ({ formData, setFormData, errors }) => {
           onChange={(value) => setFormData({ ...formData, jobPosition: value })}
           placeholder="Position auswählen oder eingeben..."
         />
-        <p className="text-xs text-gray-400">Wähle aus der Liste oder gib eine eigene Position ein</p>
       </div>
 
       <div className="space-y-2">
@@ -205,7 +204,6 @@ const Step2Personal = ({ formData, setFormData, errors }) => {
           }}
           placeholder="Krankenhaus suchen oder eingeben..."
         />
-        <p className="text-xs text-gray-400">Suche im Bundes-Klinik-Atlas oder gib einen Namen ein</p>
       </div>
     </div>
   );
