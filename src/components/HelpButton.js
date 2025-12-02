@@ -15,6 +15,7 @@ const APP_VERSION = packageJson.version;
  */
 const HelpButton = () => {
   const [isBeaconOpen, setIsBeaconOpen] = useState(false);
+  const [isBeaconAvailable, setIsBeaconAvailable] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
   const { timeOfDay } = useTheme();
 
@@ -36,21 +37,32 @@ const HelpButton = () => {
   }, []);
 
   useEffect(() => {
-    // Configure Beacon to hide the default button when component mounts
-    if (window.Beacon) {
-      window.Beacon('config', {
-        display: {
-          style: 'manual' // Hides the default Beacon button
-        }
-      });
+    // Check if Beacon is available (may be blocked by ad-blockers)
+    const checkBeaconAvailability = () => {
+      // Beacon is available when the script has loaded and initialized
+      if (window.Beacon && typeof window.Beacon === 'function') {
+        setIsBeaconAvailable(true);
+        
+        // Configure Beacon to hide the default button
+        window.Beacon('config', {
+          display: {
+            style: 'manual' // Hides the default Beacon button
+          }
+        });
 
-      // Listen to Beacon open/close events to sync state
-      window.Beacon('on', 'open', () => setIsBeaconOpen(true));
-      window.Beacon('on', 'close', () => setIsBeaconOpen(false));
-    }
+        // Listen to Beacon open/close events to sync state
+        window.Beacon('on', 'open', () => setIsBeaconOpen(true));
+        window.Beacon('on', 'close', () => setIsBeaconOpen(false));
+      }
+    };
+
+    // Check immediately and after a delay (script may still be loading)
+    checkBeaconAvailability();
+    const timeout = setTimeout(checkBeaconAvailability, 2000);
 
     // Cleanup listeners on unmount
     return () => {
+      clearTimeout(timeout);
       if (window.Beacon) {
         window.Beacon('off', 'open');
         window.Beacon('off', 'close');
@@ -59,8 +71,12 @@ const HelpButton = () => {
   }, []);
 
   const handleClick = () => {
-    if (window.Beacon) {
+    if (isBeaconAvailable && window.Beacon) {
       window.Beacon('toggle');
+    } else {
+      // Fallback: Open email if Beacon is blocked (e.g. by ad-blocker)
+      // TODO: Replace with your actual support email address
+      window.location.href = 'mailto:support@example.com?subject=SOP%20Editor%20Hilfe';
     }
   };
 
@@ -80,8 +96,8 @@ const HelpButton = () => {
           onClick={handleClick}
           className={`h-8 w-8 hover:bg-accent hover:text-accent-foreground ${
             isBeaconOpen ? 'bg-accent text-accent-foreground' : ''
-          }`}
-          title="Hilfe & Support"
+          } ${!isBeaconAvailable ? 'opacity-60' : ''}`}
+          title={isBeaconAvailable ? 'Hilfe & Support' : 'Hilfe per E-Mail (Chat blockiert)'}
           aria-label="Hilfe öffnen"
         >
           <QuestionMark size={16} weight="bold" />

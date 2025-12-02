@@ -82,6 +82,8 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
         code: false,
         strike: false,
         hardBreak: true,
+        // Disable underline from StarterKit - we use explicit import to avoid duplicate
+        underline: false,
         paragraph: {
           HTMLAttributes: {
             class: 'tiptap-paragraph',

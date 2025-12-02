@@ -261,7 +261,8 @@ const ContentBoxBlock = ({
               ...prevBlocks.slice(index + 1),
             ];
           })();
-      updateContent(selectedCategory, updatedBlocks);
+      // Schedule updateContent after setState completes to avoid updating parent during render
+      setTimeout(() => updateContent(selectedCategory, updatedBlocks), 0);
       return updatedBlocks;
     });
 
@@ -273,7 +274,8 @@ const ContentBoxBlock = ({
       const updatedBlocks = prevBlocks.map(block =>
         block.id === id ? { ...block, content: blockContent } : block
       );
-      updateContent(selectedCategory, updatedBlocks);
+      // Schedule updateContent after setState completes to avoid updating parent during render
+      setTimeout(() => updateContent(selectedCategory, updatedBlocks), 0);
       return updatedBlocks;
     });
   }, [selectedCategory, updateContent]);
@@ -285,7 +287,8 @@ const ContentBoxBlock = ({
       const updatedBlocks = filtered.length === 0 
         ? [{ id: Date.now().toString(), type: 'text', content: '' }]
         : filtered;
-      updateContent(selectedCategory, updatedBlocks);
+      // Schedule updateContent after setState completes to avoid updating parent during render
+      setTimeout(() => updateContent(selectedCategory, updatedBlocks), 0);
       return updatedBlocks;
     });
   }, [selectedCategory, updateContent]);

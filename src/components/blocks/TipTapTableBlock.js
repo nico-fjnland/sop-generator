@@ -218,6 +218,8 @@ const TipTapTableBlock = forwardRef(({
         codeBlock: false,
         blockquote: false,
         horizontalRule: false,
+        // Disable underline from StarterKit - we use explicit import to avoid duplicate
+        underline: false,
       }),
       Underline,
       Superscript,

@@ -7,6 +7,26 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.2.4] - 2025-12-02
+
+### 🐛 Fixed
+- **TipTap Duplicate Extension Warning:** Behoben die Konsolenwarnung `Duplicate extension names found: ['underline']`
+  - Ursache: `@tiptap/starter-kit` 3.11.0 enthält jetzt `@tiptap/extension-underline` als eingebaute Dependency
+  - Lösung: `underline: false` in `StarterKit.configure()` gesetzt, um die eingebaute Version zu deaktivieren
+  - Betrifft: `TextBlock.js` und `TipTapTableBlock.js`
+
+### ✨ Improved
+- **HelpScout Beacon Graceful Degradation:** Help-Button funktioniert jetzt auch wenn Beacon blockiert ist
+  - Erkennt ob HelpScout Beacon verfügbar ist (oft von Ad-Blockern blockiert)
+  - Visuelles Feedback: Button wird leicht transparent + Tooltip zeigt "Chat blockiert"
+  - Fallback: Öffnet E-Mail-Link wenn Beacon nicht verfügbar
+
+- **React Konsolen-Warnungen behoben:**
+  - SVG-Attribute in `CategoryIcons.jsx` auf camelCase konvertiert (`stroke-width` → `strokeWidth`, etc.)
+  - "Cannot update component while rendering" in `ContentBoxBlock.js` behoben durch Verschieben von Parent-Updates aus setState-Callbacks
+
+---
+
 ## [0.2.3] - 2025-11-30
 
 ### ✨ Added
