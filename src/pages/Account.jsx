@@ -1169,18 +1169,34 @@ export default function Account() {
       setLogoQuality(quality);
       
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-company-logo-${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      // Fester Dateiname pro User - überschreibt vorherige Uploads
+      const filePath = `${user.id}/logo.${fileExt}`;
 
+      // Alte Logo-Dateien des Users löschen (falls vorhanden)
+      const { data: existingFiles } = await supabase.storage
+        .from('brandmarks')
+        .list(user.id);
+      
+      if (existingFiles && existingFiles.length > 0) {
+        const filesToDelete = existingFiles
+          .filter(f => f.name.startsWith('logo.'))
+          .map(f => `${user.id}/${f.name}`);
+        
+        if (filesToDelete.length > 0) {
+          await supabase.storage.from('brandmarks').remove(filesToDelete);
+        }
+      }
+
+      // Neue Datei hochladen in den brandmarks Bucket
       let { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
+        .from('brandmarks')
+        .upload(filePath, file, { upsert: true });
 
       if (uploadError) {
         throw uploadError;
       }
 
-      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      const { data } = supabase.storage.from('brandmarks').getPublicUrl(filePath);
       
       // Cache-Buster hinzufügen, damit der Browser das neue Bild lädt
       const logoUrlWithCacheBuster = `${data.publicUrl}?t=${Date.now()}`;
@@ -1209,6 +1225,21 @@ export default function Account() {
     }
 
     try {
+      // Logo-Dateien aus dem brandmarks Bucket löschen
+      const { data: existingFiles } = await supabase.storage
+        .from('brandmarks')
+        .list(user.id);
+      
+      if (existingFiles && existingFiles.length > 0) {
+        const filesToDelete = existingFiles
+          .filter(f => f.name.startsWith('logo.'))
+          .map(f => `${user.id}/${f.name}`);
+        
+        if (filesToDelete.length > 0) {
+          await supabase.storage.from('brandmarks').remove(filesToDelete);
+        }
+      }
+
       setCompanyLogo(null);
       setLogoQuality({
         width: null,
@@ -1290,12 +1321,28 @@ export default function Account() {
 
       const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      // Fester Dateiname pro User - überschreibt vorherige Uploads
+      const filePath = `${user.id}/avatar.${fileExt}`;
 
+      // Alte Avatar-Dateien des Users löschen (falls vorhanden)
+      const { data: existingFiles } = await supabase.storage
+        .from('avatars')
+        .list(user.id);
+      
+      if (existingFiles && existingFiles.length > 0) {
+        const filesToDelete = existingFiles
+          .filter(f => f.name.startsWith('avatar.'))
+          .map(f => `${user.id}/${f.name}`);
+        
+        if (filesToDelete.length > 0) {
+          await supabase.storage.from('avatars').remove(filesToDelete);
+        }
+      }
+
+      // Neue Datei hochladen
       let { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, file, { upsert: true });
 
       if (uploadError) {
         throw uploadError;

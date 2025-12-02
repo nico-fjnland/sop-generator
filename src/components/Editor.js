@@ -14,13 +14,11 @@ import { CATEGORIES } from './blocks/ContentBoxBlock';
 import { exportAsJson, importFromJson, exportAsWord, exportAsPdf } from '../utils/exportUtils';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-// Switch import removed - not currently used
 import { saveDocument, getDocument, getDocuments } from '../services/documentService';
 import AccountDropdown from './AccountDropdown';
 import { toast } from 'sonner';
 import { getInitialState } from '../hooks/useEditorHistory';
 import { supabase } from '../lib/supabase';
-// Dropdown imports removed - not currently used in Editor
 
 // dnd-kit imports
 import {

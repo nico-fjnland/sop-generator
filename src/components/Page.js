@@ -1,21 +1,6 @@
 import React from 'react';
 
-/**
- * Page Component - Represents a single A4 page
- * 
- * This component creates a visual A4 page container with proper dimensions,
- * shadows, and spacing similar to Google Docs.
- * 
- * Features:
- * - A4 dimensions (210mm x 297mm)
- * - Shadow for depth
- * - Proper margins and padding
- * - Print-optimized
- * 
- * @param {React.ReactNode} children - Content to render inside the page
- * @param {number} pageNumber - Page number (1-indexed)
- * @param {boolean} isFirstPage - Whether this is the first page
- */
+// A4 page container (210mm x 297mm)
 const Page = ({ children, pageNumber, isFirstPage = false }) => {
   return (
     <div 

@@ -7,6 +7,23 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.2.6] - 2025-12-02
+
+### 🔄 Changed
+- **Storage-Buckets reorganisiert:** Profilbilder und Firmenlogos werden jetzt separat gespeichert
+  - Profilbilder (Avatare) bleiben im `avatars` Bucket
+  - Firmenlogos werden jetzt im neuen `brandmarks` Bucket gespeichert
+  - Uploads überschreiben jetzt vorherige Dateien anstatt neue zu erstellen
+  - Dateistruktur: `{user_id}/avatar.{ext}` bzw. `{user_id}/logo.{ext}`
+  - Reduziert Storage-Verbrauch durch Vermeidung von Datei-Duplikaten
+
+### 🔒 Security
+- **RLS Policies für brandmarks Bucket:** Benutzer können nur ihre eigenen Logos verwalten
+  - INSERT, UPDATE, DELETE nur für eigene Dateien
+  - SELECT öffentlich (public bucket)
+
+---
+
 ## [0.2.5] - 2025-12-02
 
 ### ✨ Added

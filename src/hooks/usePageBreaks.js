@@ -1,25 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { PAGE, FOOTER, HEADER } from '../constants/layout';
 
-/**
- * Custom hook for calculating page breaks using IntersectionObserver
- * 
- * This new implementation uses IntersectionObserver to detect when rows
- * cross page boundaries, eliminating re-render loops and maintaining
- * stable component state.
- * 
- * Key improvements:
- * - No ResizeObserver on container (no aggressive re-calculations)
- * - Stable ref callbacks with useCallback
- * - IntersectionObserver for precise boundary detection
- * - Rows never unmount/remount
- * - Content boxes maintain their state during typing
- * 
- * @param {Array} rows - Array of row objects containing blocks
- * @param {React.RefObject} containerRef - Reference to the main container
- * @param {string} footerVariant - Footer variant ('tiny', 'small') - used for dependency tracking
- * @returns {Object} - { pageBreaks: Set<rowId>, setRowRef: Function }
- */
+// Calculates page breaks based on row heights using IntersectionObserver
 export const usePageBreaks = (rows, containerRef, footerVariant = 'tiny') => {
   const rowRefsMap = useRef(new Map());
   const [pageBreaks, setPageBreaks] = useState(new Set());
