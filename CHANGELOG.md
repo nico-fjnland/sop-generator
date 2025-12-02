@@ -7,6 +7,16 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.2.5] - 2025-12-02
+
+### ✨ Added
+- **Vercel Analytics:** `@vercel/analytics` hinzugefügt für Nutzungsstatistiken
+  - Erfasst Page Views und Custom Events
+  - Datenschutzfreundlich (GDPR-konform)
+  - Integration in `src/index.js` neben SpeedInsights
+
+---
+
 ## [0.2.4] - 2025-12-02
 
 ### 🐛 Fixed
