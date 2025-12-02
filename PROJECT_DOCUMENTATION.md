@@ -1,6 +1,6 @@
 # SOP Editor - Vollständige Projektdokumentation
 
-> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.2.2)  
+> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.3.0)  
 > **Stack:** React 18 + Supabase + TailwindCSS  
 > **Zielgruppe:** Medizinisches Personal zur Erstellung von Standard Operating Procedures (SOPs)  
 > **Changelog:** [`CHANGELOG.md`](./CHANGELOG.md)
@@ -167,7 +167,8 @@ src/
 │       └── Register.jsx      # Registrierung
 │
 ├── services/
-│   └── documentService.js    # Dokument CRUD-Operationen
+│   ├── documentService.js    # Dokument CRUD-Operationen
+│   └── organizationService.js # Organisations CRUD-Operationen
 │
 ├── utils/
 │   ├── exportUtils.js        # PDF/Word/JSON Export
@@ -379,33 +380,45 @@ Der Registrierungsflow erfolgt in 3 Schritten mit visuellem Step-Indicator:
 
 ## Datenbankschema
 
+### organizations (Supabase)
+
+```sql
+CREATE TABLE organizations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  logo_url TEXT,
+  address TEXT,
+  website TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+**Zweck:** Gruppiert Benutzer und Dokumente. Bei Registrierung wird automatisch eine Organisation für den Benutzer erstellt.
+
 ### profiles (Supabase)
 
 ```sql
 CREATE TABLE profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id),
+  organization_id UUID REFERENCES organizations(id),
   updated_at TIMESTAMP WITH TIME ZONE,
-  username TEXT UNIQUE,
-  full_name TEXT,
   first_name TEXT,
   last_name TEXT,
   job_position TEXT,
-  avatar_url TEXT,
-  hospital_name TEXT,
-  hospital_employees TEXT,
-  hospital_address TEXT,
-  hospital_website TEXT,
-  company_logo TEXT,
-  website TEXT
+  avatar_url TEXT
 );
 ```
+
+**Hinweis:** Organisations-spezifische Felder (`hospital_name`, `company_logo`) wurden in die `organizations` Tabelle verschoben.
 
 ### documents (Supabase)
 
 ```sql
 CREATE TABLE documents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id),
   title TEXT NOT NULL DEFAULT 'Unbenanntes Dokument',
   version TEXT,
   content JSONB,
@@ -414,6 +427,8 @@ CREATE TABLE documents (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
+
+**Änderung:** Dokumente gehören jetzt zur Organisation (`organization_id`), `user_id` dient nur noch dem Ersteller-Tracking.
 
 **content (JSONB):**
 ```json
@@ -426,17 +441,23 @@ CREATE TABLE documents (
 
 ### Row Level Security (RLS)
 
-- **Profile:** Öffentlich lesbar, nur eigenes Profil bearbeitbar
-- **Documents:** Strikt benutzer-isoliert (nur `authenticated` Rolle)
-  - `documents_select_own`: Nur eigene Dokumente lesbar
-  - `documents_insert_own`: Nur mit eigener `user_id` erstellbar
-  - `documents_update_own`: Nur eigene Dokumente bearbeitbar
-  - `documents_delete_own`: Nur eigene Dokumente löschbar
+- **Organizations:** Mitglieder können ihre Organisation lesen/aktualisieren
+- **Profiles:** Mitglieder der gleichen Organisation können sich gegenseitig sehen
+- **Documents:** Organisations-basiert (alle Mitglieder haben vollen CRUD-Zugriff)
+  - `Organization members can view documents`: Lesen
+  - `Organization members can insert documents`: Erstellen
+  - `Organization members can update documents`: Bearbeiten
+  - `Organization members can delete documents`: Löschen
 
-### Storage (avatars Bucket)
+### Storage
 
-- Öffentlich zugängliche Bilder
-- Für Avatare und Firmenlogos
+**avatars Bucket:**
+- Für Benutzer-Profilbilder
+- Pfad: `{user_id}/avatar.{ext}`
+
+**brandmarks Bucket:**
+- Für Organisations-Logos
+- Pfad: `{organization_id}/logo.{ext}`
 
 ---
 
@@ -517,7 +538,18 @@ Für mehrere Dokumente gleichzeitig.
 </AuthProvider>
 
 // Hook
-const { user, signUp, signIn, signOut, loading } = useAuth();
+const { 
+  user,              // Auth User
+  profile,           // Profil-Daten
+  organization,      // Organisation-Daten
+  organizationId,    // Organisation-ID (Shortcut)
+  signUp, 
+  signIn, 
+  signOut, 
+  loading,
+  refreshOrganization,  // Organisation neu laden
+  refreshProfile        // Profil neu laden
+} = useAuth();
 ```
 
 ### ThemeContext

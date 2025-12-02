@@ -303,19 +303,22 @@ export default function Register() {
       setGlobalError('');
       setLoading(true);
       
-      // 1. User registrieren
+      // 1. User registrieren (Trigger erstellt automatisch Organisation und Profil)
       const { data: authData, error: authError } = await signUp(formData.email, formData.password);
       
       if (authError) throw authError;
       
-      // 2. Profil-Daten speichern (falls User erstellt wurde)
+      // 2. Profil-Daten und Organisation aktualisieren (falls User erstellt wurde)
       if (authData?.user) {
+        // Wait briefly for trigger to complete
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Update profile with personal data
         const profileData = {
           id: authData.user.id,
           first_name: formData.firstName || null,
           last_name: formData.lastName || null,
           job_position: formData.jobPosition || null,
-          hospital_name: formData.hospitalName || null,
           updated_at: new Date().toISOString(),
         };
 
@@ -325,7 +328,28 @@ export default function Register() {
         
         if (profileError) {
           console.error('Profile update error:', profileError);
-          // Nicht blockierend - User ist trotzdem registriert
+        }
+
+        // Get the organization_id from the profile (created by trigger)
+        const { data: profileWithOrg } = await supabase
+          .from('profiles')
+          .select('organization_id')
+          .eq('id', authData.user.id)
+          .single();
+
+        // Update organization with hospital name
+        if (profileWithOrg?.organization_id && formData.hospitalName) {
+          const { error: orgError } = await supabase
+            .from('organizations')
+            .update({
+              name: formData.hospitalName,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', profileWithOrg.organization_id);
+
+          if (orgError) {
+            console.error('Organization update error:', orgError);
+          }
         }
       }
       

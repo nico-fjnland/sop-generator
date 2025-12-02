@@ -42,6 +42,7 @@ import {
   WarningCircle
 } from '@phosphor-icons/react';
 import { getDocuments, deleteDocument, saveDocument, updateDocumentCategory } from '../services/documentService';
+import { updateOrganization } from '../services/organizationService';
 import { exportMultipleDocuments } from '../utils/exportUtils';
 import { toast } from 'sonner';
 import AccountDropdown from '../components/AccountDropdown';
@@ -883,7 +884,7 @@ const ProfileView = React.memo(({
 });
 
 export default function Account() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, organization, organizationId, refreshOrganization } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const fileInputRef = useRef(null);
@@ -1062,9 +1063,10 @@ export default function Account() {
     
     async function fetchData() {
       try {
+        // Fetch profile data (personal info only)
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select(`first_name, last_name, job_position, avatar_url, hospital_name, company_logo`)
+          .select(`first_name, last_name, job_position, avatar_url`)
           .eq('id', user.id)
           .single();
 
@@ -1089,30 +1091,39 @@ export default function Account() {
             setLastName(profile.last_name || '');
             setJobPosition(profile.job_position || '');
             setAvatarUrl(profile.avatar_url ? `${profile.avatar_url}?t=${Date.now()}` : null);
-            setHospitalName(profile.hospital_name || '');
-            setCompanyLogo(profile.company_logo ? `${profile.company_logo}?t=${Date.now()}` : null);
-            
-            // Try to restore selectedHospital from Klinik-Atlas
-            if (profile.hospital_name) {
-              if (klinikAtlasLoaded) {
-                const hospital = findHospitalByName(profile.hospital_name);
-                if (hospital) {
-                  setSelectedHospital(hospital);
-                }
-              } else {
-                // Store for later lookup when Klinik-Atlas data loads
-                setPendingHospitalName(profile.hospital_name);
+          }
+        }
+
+        // Load organization data from context
+        if (organization && !ignore) {
+          setHospitalName(organization.name || '');
+          setCompanyLogo(organization.logo_url ? `${organization.logo_url}?t=${Date.now()}` : null);
+          
+          // Try to restore selectedHospital from Klinik-Atlas
+          if (organization.name) {
+            if (klinikAtlasLoaded) {
+              const hospital = findHospitalByName(organization.name);
+              if (hospital) {
+                setSelectedHospital(hospital);
               }
+            } else {
+              // Store for later lookup when Klinik-Atlas data loads
+              setPendingHospitalName(organization.name);
             }
           }
         }
 
-        setLoadingDocs(true);
-        const { data: docs } = await getDocuments(user.id);
-        if (!ignore && docs) {
-          setDocuments(docs);
+        // Load documents for organization (not user)
+        if (organizationId) {
+          setLoadingDocs(true);
+          const { data: docs } = await getDocuments(organizationId);
+          if (!ignore && docs) {
+            setDocuments(docs);
+          }
+          setLoadingDocs(false);
+        } else {
+          setLoadingDocs(false);
         }
-        setLoadingDocs(false);
 
       } catch (error) {
         console.error('Error loading data!', error);
@@ -1124,27 +1135,36 @@ export default function Account() {
     return () => {
       ignore = true;
     };
-  }, [user, klinikAtlasLoaded, findHospitalByName]);
+  }, [user, organization, organizationId, klinikAtlasLoaded, findHospitalByName]);
 
   async function updateProfile(event) {
     event.preventDefault();
     setUpdating(true);
 
     try {
-      const updates = {
+      // Update personal profile data
+      const profileUpdates = {
         id: user.id,
         first_name: firstName,
         last_name: lastName,
         job_position: jobPosition,
         avatar_url: avatarUrl,
-        hospital_name: hospitalName,
-        company_logo: companyLogo,
         updated_at: new Date(),
       };
 
-      let { error } = await supabase.from('profiles').upsert(updates);
+      let { error: profileError } = await supabase.from('profiles').upsert(profileUpdates);
+      if (profileError) throw profileError;
 
-      if (error) throw error;
+      // Update organization data
+      if (organizationId) {
+        const { error: orgError } = await updateOrganization(organizationId, {
+          name: hospitalName,
+          logo_url: companyLogo,
+        });
+        if (orgError) throw orgError;
+        await refreshOrganization();
+      }
+
       toast.success('Profil erfolgreich aktualisiert');
     } catch (error) {
       toast.error('Fehler beim Aktualisieren des Profils');
@@ -1158,6 +1178,10 @@ export default function Account() {
     try {
       setUploadingLogo(true);
 
+      if (!organizationId) {
+        throw new Error('Keine Organisation gefunden.');
+      }
+
       if (!event.target.files || event.target.files.length === 0) {
         throw new Error('Du musst ein Bild auswählen.');
       }
@@ -1169,18 +1193,18 @@ export default function Account() {
       setLogoQuality(quality);
       
       const fileExt = file.name.split('.').pop();
-      // Fester Dateiname pro User - überschreibt vorherige Uploads
-      const filePath = `${user.id}/logo.${fileExt}`;
+      // Fester Dateiname pro Organisation - überschreibt vorherige Uploads
+      const filePath = `${organizationId}/logo.${fileExt}`;
 
-      // Alte Logo-Dateien des Users löschen (falls vorhanden)
+      // Alte Logo-Dateien der Organisation löschen (falls vorhanden)
       const { data: existingFiles } = await supabase.storage
         .from('brandmarks')
-        .list(user.id);
+        .list(organizationId);
       
       if (existingFiles && existingFiles.length > 0) {
         const filesToDelete = existingFiles
           .filter(f => f.name.startsWith('logo.'))
-          .map(f => `${user.id}/${f.name}`);
+          .map(f => `${organizationId}/${f.name}`);
         
         if (filesToDelete.length > 0) {
           await supabase.storage.from('brandmarks').remove(filesToDelete);
@@ -1204,12 +1228,11 @@ export default function Account() {
       
       setCompanyLogo(logoUrlWithCacheBuster);
       
-      const updates = {
-        id: user.id,
-        company_logo: data.publicUrl, // In DB ohne Cache-Buster speichern
-        updated_at: new Date(),
-      };
-      await supabase.from('profiles').upsert(updates);
+      // Update organization with new logo
+      await updateOrganization(organizationId, {
+        logo_url: data.publicUrl, // In DB ohne Cache-Buster speichern
+      });
+      await refreshOrganization();
       toast.success('Firmenlogo erfolgreich aktualisiert');
 
     } catch (error) {
@@ -1225,15 +1248,19 @@ export default function Account() {
     }
 
     try {
+      if (!organizationId) {
+        throw new Error('Keine Organisation gefunden.');
+      }
+
       // Logo-Dateien aus dem brandmarks Bucket löschen
       const { data: existingFiles } = await supabase.storage
         .from('brandmarks')
-        .list(user.id);
+        .list(organizationId);
       
       if (existingFiles && existingFiles.length > 0) {
         const filesToDelete = existingFiles
           .filter(f => f.name.startsWith('logo.'))
-          .map(f => `${user.id}/${f.name}`);
+          .map(f => `${organizationId}/${f.name}`);
         
         if (filesToDelete.length > 0) {
           await supabase.storage.from('brandmarks').remove(filesToDelete);
@@ -1249,12 +1276,11 @@ export default function Account() {
         isSvg: false
       });
       
-      const updates = {
-        id: user.id,
-        company_logo: null,
-        updated_at: new Date(),
-      };
-      await supabase.from('profiles').upsert(updates);
+      // Update organization
+      await updateOrganization(organizationId, {
+        logo_url: null,
+      });
+      await refreshOrganization();
       toast.success('Firmenlogo entfernt');
     } catch (error) {
       toast.error('Fehler beim Entfernen des Logos');
@@ -1397,6 +1423,11 @@ export default function Account() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (!organizationId) {
+      toast.error('Keine Organisation gefunden.');
+      return;
+    }
+
     try {
       const text = await file.text();
       const importedState = JSON.parse(text);
@@ -1413,6 +1444,7 @@ export default function Account() {
       };
 
       const { error } = await saveDocument(
+        organizationId,
         user.id,
         importedState.headerTitle || 'Importiertes Dokument',
         importedState.headerStand || 'STAND',
@@ -1424,7 +1456,7 @@ export default function Account() {
         return;
       }
 
-      const { data: docs } = await getDocuments(user.id);
+      const { data: docs } = await getDocuments(organizationId);
       if (docs) {
         setDocuments(docs);
       }

@@ -2,16 +2,18 @@ import { supabase } from '../lib/supabase';
 
 /**
  * Saves or updates a document
- * @param {string} userId - The user's ID
+ * @param {string} organizationId - The organization's ID
+ * @param {string} userId - The user's ID (for creator tracking)
  * @param {string} title - Document title
  * @param {string} version - Document version
  * @param {object} content - The editor content (blocks array)
  * @param {string} [id] - Optional document ID if updating
  * @returns {Promise<object>} The saved document
  */
-export const saveDocument = async (userId, title, version, content, id = null) => {
+export const saveDocument = async (organizationId, userId, title, version, content, id = null) => {
   try {
     const documentData = {
+      organization_id: organizationId,
       user_id: userId,
       title,
       version,
@@ -21,38 +23,38 @@ export const saveDocument = async (userId, title, version, content, id = null) =
 
     let query = supabase.from('documents');
 
-      // Check if a document with same title and version exists for this user
-      const { data: existingDocs, error: searchError } = await supabase
-        .from('documents')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('title', title)
-        .eq('version', version)
-        .limit(1);
+    // Check if a document with same title and version exists for this organization
+    const { data: existingDocs, error: searchError } = await supabase
+      .from('documents')
+      .select('id')
+      .eq('organization_id', organizationId)
+      .eq('title', title)
+      .eq('version', version)
+      .limit(1);
 
-      if (searchError) throw searchError;
+    if (searchError) throw searchError;
 
-      if (existingDocs && existingDocs.length > 0) {
-        // Update existing found document
-        const existingId = existingDocs[0].id;
-        const { data, error } = await query
-          .update(documentData)
-          .eq('id', existingId)
-          .select()
-          .single();
-        
-        if (error) throw error;
-        return { data, error: null };
-      } else {
-        // Insert new
-        const { data, error } = await query
-          .insert([documentData])
-          .select()
-          .single();
-        
-        if (error) throw error;
-        return { data, error: null };
-      }
+    if (existingDocs && existingDocs.length > 0) {
+      // Update existing found document
+      const existingId = existingDocs[0].id;
+      const { data, error } = await query
+        .update(documentData)
+        .eq('id', existingId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return { data, error: null };
+    } else {
+      // Insert new
+      const { data, error } = await query
+        .insert([documentData])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return { data, error: null };
+    }
   } catch (error) {
     console.error('Error saving document:', error);
     return { data: null, error };
@@ -60,16 +62,16 @@ export const saveDocument = async (userId, title, version, content, id = null) =
 };
 
 /**
- * Fetches all documents for a user
- * @param {string} userId 
+ * Fetches all documents for an organization
+ * @param {string} organizationId - The organization's ID
  * @returns {Promise<Array>} List of documents
  */
-export const getDocuments = async (userId) => {
+export const getDocuments = async (organizationId) => {
   try {
     const { data, error } = await supabase
       .from('documents')
-      .select('id, title, version, updated_at, created_at, category')
-      .eq('user_id', userId)
+      .select('id, title, version, updated_at, created_at, category, user_id')
+      .eq('organization_id', organizationId)
       .order('updated_at', { ascending: false });
 
     if (error) throw error;
@@ -146,4 +148,3 @@ export const updateDocumentCategory = async (id, category) => {
     return { data: null, error };
   }
 };
-

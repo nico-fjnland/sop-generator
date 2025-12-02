@@ -164,7 +164,7 @@ const SortableBlockWrapper = memo(({
 });
 
 const Editor = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, organizationId } = useAuth();
   const { timeOfDay, toggleTime } = useTheme();
   const navigate = useNavigate();
   const containerRef = useRef(null);
@@ -217,13 +217,15 @@ const Editor = () => {
   useEffect(() => {
     if (user) {
       getProfile();
-      loadDocumentsCount();
+      if (organizationId) {
+        loadDocumentsCount();
+      }
     } else {
       setAvatarUrl(null);
       setProfileData({ firstName: '', lastName: '' });
       setDocumentsCount(0);
     }
-  }, [user]);
+  }, [user, organizationId]);
 
   async function getProfile() {
     try {
@@ -247,7 +249,8 @@ const Editor = () => {
 
   async function loadDocumentsCount() {
     try {
-      const { data, error } = await getDocuments(user.id);
+      if (!organizationId) return;
+      const { data, error } = await getDocuments(organizationId);
       if (data) {
         const count = data.length;
         setDocumentsCount(count);
@@ -355,6 +358,13 @@ const Editor = () => {
       return;
     }
 
+    if (!organizationId) {
+      toast.error('Organisation nicht gefunden', {
+        description: 'Bitte aktualisiere die Seite und versuche es erneut.',
+      });
+      return;
+    }
+
     setIsCloudSaving(true);
     try {
       // Prepare content state to save
@@ -365,6 +375,7 @@ const Editor = () => {
       };
 
       const { error } = await saveDocument(
+        organizationId,
         user.id,
         state.headerTitle,
         state.headerStand,

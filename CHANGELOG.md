@@ -7,6 +7,38 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.3.0] - 2025-12-02
+
+### ✨ Added
+- **Organisations-Struktur:** Neue Multi-User-Organisation-Architektur
+  - Neue `organizations` Tabelle in Supabase für Organisationsdaten
+  - Profile sind jetzt Mitglieder einer Organisation (über `organization_id`)
+  - Dokumente werden auf Organisations-Ebene gespeichert (nicht mehr pro User)
+  - Alle Mitglieder einer Organisation können alle Dokumente sehen und bearbeiten
+  - Neuer `organizationService.js` für Organisations-CRUD-Operationen
+  - `AuthContext` erweitert um `organization`, `organizationId` und `refreshOrganization`
+
+### 🔄 Changed
+- **Dokumenten-Speicherung:** Dokumente werden jetzt der Organisation zugeordnet
+  - `documentService.js` verwendet `organization_id` statt nur `user_id`
+  - `user_id` wird weiterhin für Ersteller-Tracking gespeichert
+- **Profil-Daten getrennt:** Persönliche Daten (Name, Position, Avatar) bleiben im Profil
+  - Organisationsdaten (Name, Logo) werden in `organizations` gespeichert
+- **Account-Seite:** Verwendet jetzt Organisations-Daten für Logo und Krankenhaus-Name
+- **Registrierung:** Erstellt automatisch eine Organisation für neue Nutzer
+
+### 🔒 Security
+- **RLS Policies aktualisiert:**
+  - `organizations`: Mitglieder können ihre Organisation lesen/aktualisieren
+  - `profiles`: Mitglieder der gleichen Organisation können sich gegenseitig sehen
+  - `documents`: Alle Mitglieder einer Organisation haben vollen CRUD-Zugriff
+
+### 🗑️ Removed
+- Spalten `hospital_name` und `company_logo` aus `profiles` Tabelle entfernt
+  - Diese Daten werden jetzt in der `organizations` Tabelle gespeichert
+
+---
+
 ## [0.2.6] - 2025-12-02
 
 ### 🔄 Changed
