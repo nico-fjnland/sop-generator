@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { QuestionMark } from '@phosphor-icons/react';
+import { QuestionMark, EnvelopeSimple, Warning } from '@phosphor-icons/react';
 import { Button } from './ui/button';
 import { useTheme } from '../contexts/ThemeContext';
+import { toast } from 'sonner';
 import packageJson from '../../package.json';
+
+// Support email - change this to your actual support email
+const SUPPORT_EMAIL = 'support@example.com';
 
 // App Version aus package.json
 const APP_VERSION = packageJson.version;
@@ -74,9 +78,35 @@ const HelpButton = () => {
     if (isBeaconAvailable && window.Beacon) {
       window.Beacon('toggle');
     } else {
-      // Fallback: Open email if Beacon is blocked (e.g. by ad-blocker)
-      // TODO: Replace with your actual support email address
-      window.location.href = 'mailto:support@example.com?subject=SOP%20Editor%20Hilfe';
+      // Show informative toast when Beacon is blocked
+      toast.warning(
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 font-medium">
+            <Warning size={18} weight="fill" />
+            <span>Live-Chat nicht verfügbar</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Der Support-Chat wird vermutlich durch einen Ad-Blocker oder Browser-Einstellung blockiert.
+          </p>
+          <div className="flex gap-2 mt-1">
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-1.5 h-8"
+              onClick={() => {
+                window.location.href = `mailto:${SUPPORT_EMAIL}?subject=SOP%20Editor%20Hilfe`;
+              }}
+            >
+              <EnvelopeSimple size={14} weight="bold" />
+              Per E-Mail kontaktieren
+            </Button>
+          </div>
+        </div>,
+        {
+          duration: 8000,
+          id: 'beacon-blocked', // Prevent duplicate toasts
+        }
+      );
     }
   };
 
@@ -89,19 +119,26 @@ const HelpButton = () => {
       className="fixed bottom-6 left-6 z-50 no-print flex items-center gap-3"
     >
       {/* Help Button - matches ZoomControl styling */}
-      <div className="bg-popover rounded-lg border border-border p-1">
+      <div className="bg-popover rounded-lg border border-border p-1 relative">
         <Button
           variant="ghost"
           size="icon"
           onClick={handleClick}
           className={`h-8 w-8 hover:bg-accent hover:text-accent-foreground ${
             isBeaconOpen ? 'bg-accent text-accent-foreground' : ''
-          } ${!isBeaconAvailable ? 'opacity-60' : ''}`}
-          title={isBeaconAvailable ? 'Hilfe & Support' : 'Hilfe per E-Mail (Chat blockiert)'}
+          }`}
+          title={isBeaconAvailable ? 'Hilfe & Support' : 'Live-Chat blockiert – klicken für Alternativen'}
           aria-label="Hilfe öffnen"
         >
           <QuestionMark size={16} weight="bold" />
         </Button>
+        {/* Small warning indicator when Beacon is blocked */}
+        {!isBeaconAvailable && (
+          <div 
+            className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-popover"
+            title="Chat blockiert"
+          />
+        )}
       </div>
 
       {/* Time and Version Display */}

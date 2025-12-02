@@ -18,8 +18,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 ### ✨ Improved
 - **HelpScout Beacon Graceful Degradation:** Help-Button funktioniert jetzt auch wenn Beacon blockiert ist
   - Erkennt ob HelpScout Beacon verfügbar ist (oft von Ad-Blockern blockiert)
-  - Visuelles Feedback: Button wird leicht transparent + Tooltip zeigt "Chat blockiert"
-  - Fallback: Öffnet E-Mail-Link wenn Beacon nicht verfügbar
+  - **NEU:** Orangefarbener Warn-Punkt am Help-Button wenn Chat blockiert
+  - **NEU:** Informativer Toast mit Erklärung und E-Mail-Button als Alternative
+  - Tooltip zeigt "Live-Chat blockiert – klicken für Alternativen"
 
 - **React Konsolen-Warnungen behoben:**
   - SVG-Attribute in `CategoryIcons.jsx` auf camelCase konvertiert (`stroke-width` → `strokeWidth`, etc.)
