@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { Trash } from '@phosphor-icons/react';
 
 const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialStand = 'STAND 12/22', logo: initialLogo = null, onTitleChange, onStandChange, onLogoChange }) => {
-  const { user } = useAuth();
+  const { user, organization, organizationId } = useAuth();
   const [title, setTitle] = useState(initialTitle);
   const [stand, setStand] = useState(initialStand);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -15,49 +15,32 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
   const standInputRef = useRef(null);
   const logoInputRef = useRef(null);
 
-  // Load company logo from profile
+  // Load company logo from organization
   useEffect(() => {
-    async function loadCompanyLogo() {
-      if (!user) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('company_logo')
-          .eq('id', user.id)
-          .single();
-        
-        if (error) {
-          console.error('Error loading company logo:', error);
-          return;
-        }
-        
-        if (data && data.company_logo) {
-          setCompanyLogo(data.company_logo);
-        } else {
-          setCompanyLogo(null);
-        }
-      } catch (error) {
-        console.error('Error loading company logo:', error);
-      }
+    if (organization?.logo_url) {
+      setCompanyLogo(organization.logo_url);
+    } else {
+      setCompanyLogo(null);
     }
-    
-    loadCompanyLogo();
-    
-    // Set up real-time subscription for profile changes
+  }, [organization]);
+
+  // Set up real-time subscription for organization changes
+  useEffect(() => {
+    if (!organizationId) return;
+
     const channel = supabase
-      .channel('profile-changes')
+      .channel('organization-changes')
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${user?.id}`
+          table: 'organizations',
+          filter: `id=eq.${organizationId}`
         },
         (payload) => {
-          if (payload.new && payload.new.company_logo !== undefined) {
-            setCompanyLogo(payload.new.company_logo);
+          if (payload.new && payload.new.logo_url !== undefined) {
+            setCompanyLogo(payload.new.logo_url);
           }
         }
       )
@@ -66,7 +49,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [organizationId]);
 
   useEffect(() => {
     setTitle(initialTitle);
@@ -151,13 +134,12 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
       paddingBottom: '8px',
       paddingLeft: '14px',
       paddingRight: '14px',
-      gap: '64px'
+      gap: '24px'
     }}>
       {/* Left side: Version and Title */}
       <div className="flex flex-col gap-0" style={{ flex: '1', minWidth: 0 }}>
         {/* Version */}
         <div className="flex items-center gap-1" style={{ 
-          paddingRight: '139px',
           paddingLeft: '8px',
           width: '100%'
         }}>
@@ -272,7 +254,10 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               textTransform: 'uppercase',
               lineHeight: '1.2',
               width: '100%',
-              border: '1.5px solid transparent'
+              border: '1.5px solid transparent',
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
+              hyphens: 'auto'
             }}
           >
             {title}
@@ -289,7 +274,10 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
             letterSpacing: '1.04px',
             textTransform: 'uppercase',
             lineHeight: '1.2',
-            width: '100%'
+            width: '100%',
+            overflowWrap: 'break-word',
+            wordBreak: 'break-word',
+            hyphens: 'auto'
           }}
         >
           {title}

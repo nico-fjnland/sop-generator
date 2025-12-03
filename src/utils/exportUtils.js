@@ -4,6 +4,126 @@ import { toPng, toJpeg } from 'html-to-image';
 import { getDocument } from '../services/documentService';
 
 /**
+ * Fetches and prepares font CSS for html-to-image.
+ * This is needed because Firefox blocks access to cross-origin stylesheet CSS rules.
+ * By fetching the CSS as text and passing it via fontEmbedCSS option, we bypass this issue.
+ * @returns {Promise<string>} - The font CSS as a string
+ */
+let cachedFontCSS = null;
+const fetchFontCSS = async () => {
+  if (cachedFontCSS) return cachedFontCSS;
+  
+  try {
+    // Fetch Google Fonts CSS directly as text
+    const fontUrl = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap';
+    const response = await fetch(fontUrl);
+    
+    if (!response.ok) {
+      throw new Error(`Font fetch failed: ${response.status}`);
+    }
+    
+    cachedFontCSS = await response.text();
+    return cachedFontCSS;
+  } catch (error) {
+    console.warn('Could not fetch Google Fonts CSS, using fallback:', error.message);
+    // Return fallback font-face rules for system fonts
+    return `
+      @font-face {
+        font-family: 'Roboto';
+        font-style: normal;
+        font-weight: 400;
+        src: local('Roboto'), local('Roboto-Regular'), local('Arial');
+      }
+      @font-face {
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 400;
+        src: local('Inter'), local('Inter-Regular'), local('-apple-system'), local('BlinkMacSystemFont'), local('Arial');
+      }
+      @font-face {
+        font-family: 'Quicksand';
+        font-style: normal;
+        font-weight: 400;
+        src: local('Quicksand'), local('Quicksand-Regular'), local('Arial');
+      }
+    `;
+  }
+};
+
+/**
+ * Common options for html-to-image to fix Firefox cross-origin issues
+ * @param {string} fontEmbedCSS - Pre-fetched font CSS
+ * @param {boolean} skipFonts - Whether to skip font processing entirely (fallback mode)
+ * @returns {Object} - html-to-image options
+ */
+const getHtmlToImageOptions = (fontEmbedCSS, skipFonts = false) => ({
+  quality: 0.98,
+  pixelRatio: 6,
+  backgroundColor: '#ffffff',
+  cacheBust: true,
+  // Pass the font CSS directly to avoid cross-origin issues in Firefox
+  fontEmbedCSS: skipFonts ? undefined : fontEmbedCSS,
+  // Skip automatic font embedding if fallback mode or we provide it manually
+  skipFonts: skipFonts,
+  // Use 'woff2' for better compression and compatibility
+  preferredFontFormat: 'woff2',
+  // Custom filter to skip problematic elements
+  filter: (node) => {
+    // Skip script tags and hidden elements that might cause issues
+    if (node.tagName === 'SCRIPT' || node.tagName === 'NOSCRIPT') {
+      return false;
+    }
+    return true;
+  },
+});
+
+/**
+ * Captures a page to image with automatic fallback for Firefox cross-origin issues.
+ * First tries with font embedding, then falls back to skipFonts if that fails.
+ * @param {HTMLElement} page - The page element to capture
+ * @param {Function} captureFunc - The capture function (toPng or toJpeg)
+ * @param {string} fontEmbedCSS - Pre-fetched font CSS
+ * @param {Object} extraOptions - Additional options to merge
+ * @returns {Promise<string>} - Data URL of the captured image
+ */
+const captureWithFallback = async (page, captureFunc, fontEmbedCSS, extraOptions = {}) => {
+  // First attempt: with font embedding
+  try {
+    const options = {
+      ...getHtmlToImageOptions(fontEmbedCSS, false),
+      ...extraOptions,
+    };
+    return await captureFunc(page, options);
+  } catch (firstError) {
+    // Check if it's a cross-origin stylesheet error (common in Firefox)
+    const errorMessage = firstError.message || firstError.toString();
+    const isCrossOriginError = errorMessage.includes('cssRules') || 
+                               errorMessage.includes('cross-origin') ||
+                               errorMessage.includes('SecurityError') ||
+                               errorMessage.includes("can't access property");
+    
+    if (isCrossOriginError) {
+      console.warn('Cross-origin stylesheet error detected, retrying with skipFonts=true...');
+      
+      // Second attempt: skip fonts entirely (uses browser-cached fonts)
+      try {
+        const fallbackOptions = {
+          ...getHtmlToImageOptions(fontEmbedCSS, true),
+          ...extraOptions,
+        };
+        return await captureFunc(page, fallbackOptions);
+      } catch (secondError) {
+        console.error('Fallback capture also failed:', secondError);
+        throw secondError;
+      }
+    }
+    
+    // Not a cross-origin error, rethrow
+    throw firstError;
+  }
+};
+
+/**
  * Native file download function (replaces file-saver).
  * @param {Blob} blob - The blob to download.
  * @param {string} filename - The filename for the download.
@@ -495,6 +615,9 @@ const generateFilename = (title, stand) => {
 export const exportAsWord = async (containerRef, title = 'SOP Überschrift', stand = 'STAND 12/22') => {
   if (!containerRef) return;
   
+  // Pre-fetch font CSS to avoid Firefox cross-origin issues
+  const fontEmbedCSS = await fetchFontCSS();
+  
   // Create invisible clone with print styles
   const { clone, styleElement } = createPrintClone(containerRef);
   
@@ -517,14 +640,10 @@ export const exportAsWord = async (containerRef, title = 'SOP Überschrift', sta
       console.log(`Capturing page ${i + 1}/${pages.length} for Word...`);
       console.log('Page dimensions:', page.offsetWidth, 'x', page.offsetHeight);
       
-      // Use html-to-image (better with Tailwind/modern CSS)
+      // Use html-to-image with font CSS to fix Firefox cross-origin issues
       // pixelRatio 6 = ~476 DPI for ultra-sharp print quality
-      const dataUrl = await toPng(page, {
-        quality: 1.0,
-        pixelRatio: 6, // Ultra-high resolution for print (794px × 6 = 4764px width)
-        backgroundColor: '#ffffff',
-        cacheBust: true,
-      });
+      // captureWithFallback handles cross-origin errors automatically
+      const dataUrl = await captureWithFallback(page, toPng, fontEmbedCSS, { quality: 1.0 });
       
       console.log('Image captured, data URL length:', dataUrl.length);
       
@@ -582,6 +701,9 @@ export const exportAsWord = async (containerRef, title = 'SOP Überschrift', sta
 export const exportAsPdf = async (containerRef, title = 'SOP Überschrift', stand = 'STAND 12/22') => {
   if (!containerRef) return;
 
+  // Pre-fetch font CSS to avoid Firefox cross-origin issues
+  const fontEmbedCSS = await fetchFontCSS();
+
   // Create invisible clone with print styles
   const { clone, styleElement } = createPrintClone(containerRef);
   
@@ -606,14 +728,10 @@ export const exportAsPdf = async (containerRef, title = 'SOP Überschrift', stan
       console.log(`Capturing page ${i + 1}/${pages.length} for PDF...`);
       console.log('Page dimensions:', page.offsetWidth, 'x', page.offsetHeight);
       
-      // Use html-to-image with JPEG for smaller file size
+      // Use html-to-image with font CSS to fix Firefox cross-origin issues
       // pixelRatio 6 = ~476 DPI for ultra-sharp print quality
-      const dataUrl = await toJpeg(page, {
-        quality: 0.98, // Higher quality for print
-        pixelRatio: 6, // Ultra-high resolution (794px × 6 = 4764px width ≈ 476 DPI)
-        backgroundColor: '#ffffff',
-        cacheBust: true,
-      });
+      // captureWithFallback handles cross-origin errors automatically
+      const dataUrl = await captureWithFallback(page, toJpeg, fontEmbedCSS);
       
       console.log('Image captured, data URL length:', dataUrl.length);
       

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, CaretDown, Check, SortAscending } from '@phosphor-icons/react';
+import React, { useState, useMemo } from 'react';
+import { Plus, CaretDown, SortAscending, Infinity } from '@phosphor-icons/react';
 import { Button } from './ui/button';
 import { CATEGORIES, ADDITIONAL_ELEMENTS } from './blocks/ContentBoxBlock';
 import {
@@ -14,9 +14,22 @@ import {
 const BoxTypeDropdown = ({ onSelect, onAddBlock, onSortBlocks, usedCategories = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
 
+  // Count how many times each category is used
+  const categoryUsageCount = useMemo(() => {
+    const counts = {};
+    usedCategories.forEach(catId => {
+      counts[catId] = (counts[catId] || 0) + 1;
+    });
+    return counts;
+  }, [usedCategories]);
+
   const handleSelect = (categoryId) => {
-    // Don't allow selecting already used categories
-    if (usedCategories.includes(categoryId)) {
+    const category = CATEGORIES.find(c => c.id === categoryId);
+    const usageCount = categoryUsageCount[categoryId] || 0;
+    const maxUsage = category?.maxUsage || 1;
+    
+    // Don't allow selecting if max usage reached
+    if (usageCount >= maxUsage) {
       return;
     }
     onSelect(categoryId);
@@ -69,24 +82,26 @@ const BoxTypeDropdown = ({ onSelect, onAddBlock, onSortBlocks, usedCategories = 
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
           {CATEGORIES.map((cat) => {
-            const isUsed = usedCategories.includes(cat.id);
+            const usageCount = categoryUsageCount[cat.id] || 0;
+            const maxUsage = cat.maxUsage || 1;
+            const isMaxed = usageCount >= maxUsage;
             return (
             <DropdownMenuItem
                 key={cat.id}
-                disabled={isUsed}
+                disabled={isMaxed}
                 onClick={() => handleSelect(cat.id)}
               className="flex items-center gap-2 cursor-pointer"
               >
                 <span
                 className="flex items-center justify-center w-4 h-4"
-                style={{ color: isUsed ? 'var(--muted-foreground)' : cat.color }}
+                style={{ color: isMaxed ? 'var(--muted-foreground)' : cat.color }}
                 >
                   {cat.iconComponent}
                 </span>
               <span className="flex-1">{cat.label}</span>
-                {isUsed && (
-                <Check className="h-3.5 w-3.5 text-primary" weight="bold" />
-                )}
+                <span className="text-[10px] tabular-nums">
+                  {usageCount}/{maxUsage}
+                </span>
             </DropdownMenuItem>
             );
           })}
@@ -112,6 +127,7 @@ const BoxTypeDropdown = ({ onSelect, onAddBlock, onSortBlocks, usedCategories = 
                 <Icon className="h-4 w-4" weight="regular" />
               </span>
               <span className="flex-1">{element.label}</span>
+              <Infinity className="h-[10px] w-[10px] mr-1" weight="bold" />
             </DropdownMenuItem>
           );
         })}

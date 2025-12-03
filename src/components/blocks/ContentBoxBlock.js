@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { DotsSixVertical, X, Plus, Check, Table, Quotes, SortAscending } from '@phosphor-icons/react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { DotsSixVertical, X, Plus, Table, Quotes, SortAscending, Infinity } from '@phosphor-icons/react';
 import Block from '../Block';
 import { CategoryIcons } from '../icons/CategoryIcons';
 import {
@@ -30,90 +30,103 @@ export const ADDITIONAL_ELEMENTS = [
 ];
 
 // Category configurations based on Figma design
+// Order: Definition, Ursachen, Symptome, Diagnostik, Differenzial, Therapie, Algorithmus, Merke, Disposition, Sonstiges, Abläufe, Studie
 export const CATEGORIES = [
   { 
     id: 'definition', 
     label: 'Definition', 
     color: '#EB5547', 
     bgColor: '#FCEAE8',
-    iconComponent: CategoryIcons.definition
+    iconComponent: CategoryIcons.definition,
+    maxUsage: 1
   },
   { 
     id: 'ursachen', 
     label: 'Ursachen', 
     color: '#003366', 
     bgColor: '#E5F2FF',
-    iconComponent: CategoryIcons.ursachen
+    iconComponent: CategoryIcons.ursachen,
+    maxUsage: 1
   },
   { 
     id: 'symptome', 
     label: 'Symptome', 
     color: '#004D99', 
     bgColor: '#E5F2FF',
-    iconComponent: CategoryIcons.symptome
+    iconComponent: CategoryIcons.symptome,
+    maxUsage: 1
   },
   { 
     id: 'diagnostik', 
     label: 'Diagnostik', 
     color: '#3399FF', 
     bgColor: '#E5F2FF',
-    iconComponent: CategoryIcons.diagnostik
-  },
-  { 
-    id: 'therapie', 
-    label: 'Therapie', 
-    color: '#52C41A', 
-    bgColor: '#ECF9EB',
-    iconComponent: CategoryIcons.therapie
-  },
-  { 
-    id: 'algorithmus', 
-    label: 'Algorithmus', 
-    color: '#47D1C6', 
-    bgColor: '#E8FAF9',
-    iconComponent: CategoryIcons.algorithmus
-  },
-  { 
-    id: 'merke', 
-    label: 'Merke', 
-    color: '#FAAD14', 
-    bgColor: '#FFF7E6',
-    iconComponent: CategoryIcons.merke
-  },
-  { 
-    id: 'disposition', 
-    label: 'Disposition', 
-    color: '#B27700', 
-    bgColor: '#FFF7E6',
-    iconComponent: CategoryIcons.disposition
-  },
-  { 
-    id: 'ablaeufe', 
-    label: 'Abläufe', 
-    color: '#524714', 
-    bgColor: '#FAF8EB',
-    iconComponent: CategoryIcons.ablaeufe
+    iconComponent: CategoryIcons.diagnostik,
+    maxUsage: 1
   },
   { 
     id: 'differenzial', 
     label: 'Differenzial', 
     color: '#9254DE', 
     bgColor: '#F5ECFE',
-    iconComponent: CategoryIcons.differenzial
+    iconComponent: CategoryIcons.differenzial,
+    maxUsage: 1
   },
   { 
-    id: 'studie', 
-    label: 'Studie', 
-    color: '#DB70C1', 
-    bgColor: '#FCF0F9',
-    iconComponent: CategoryIcons.studie
+    id: 'therapie', 
+    label: 'Therapie', 
+    color: '#52C41A', 
+    bgColor: '#ECF9EB',
+    iconComponent: CategoryIcons.therapie,
+    maxUsage: 1
+  },
+  { 
+    id: 'algorithmus', 
+    label: 'Algorithmus', 
+    color: '#47D1C6', 
+    bgColor: '#E8FAF9',
+    iconComponent: CategoryIcons.algorithmus,
+    maxUsage: 1
+  },
+  { 
+    id: 'merke', 
+    label: 'Merke', 
+    color: '#FAAD14', 
+    bgColor: '#FFF7E6',
+    iconComponent: CategoryIcons.merke,
+    maxUsage: 1
+  },
+  { 
+    id: 'disposition', 
+    label: 'Disposition', 
+    color: '#B27700', 
+    bgColor: '#FFF7E6',
+    iconComponent: CategoryIcons.disposition,
+    maxUsage: 1
   },
   { 
     id: 'sonstiges', 
     label: 'Sonstiges', 
     color: '#B3B3B3', 
     bgColor: '#F5F5F5',
-    iconComponent: CategoryIcons.sonstiges
+    iconComponent: CategoryIcons.sonstiges,
+    maxUsage: 3
+  },
+  { 
+    id: 'ablaeufe', 
+    label: 'Abläufe', 
+    color: '#524714', 
+    bgColor: '#FAF8EB',
+    iconComponent: CategoryIcons.ablaeufe,
+    maxUsage: 1
+  },
+  { 
+    id: 'studie', 
+    label: 'Studie', 
+    color: '#DB70C1', 
+    bgColor: '#FCF0F9',
+    iconComponent: CategoryIcons.studie,
+    maxUsage: 1
   },
 ];
 
@@ -195,6 +208,15 @@ const ContentBoxBlock = ({
   }, [content]);
 
   const category = CATEGORIES.find(cat => cat.id === selectedCategory) || CATEGORIES[0];
+
+  // Count how many times each category is used
+  const categoryUsageCount = useMemo(() => {
+    const counts = {};
+    usedCategories.forEach(catId => {
+      counts[catId] = (counts[catId] || 0) + 1;
+    });
+    return counts;
+  }, [usedCategories]);
 
   // Define updateContent first so other functions can reference it
   const updateContent = useCallback((category, blocks) => {
@@ -303,7 +325,10 @@ const ContentBoxBlock = ({
 
   const handleAddBoxCategorySelect = (categoryId) => {
     if (!onAddBoxAfter) return;
-    if (usedCategories.includes(categoryId)) {
+    const category = CATEGORIES.find(c => c.id === categoryId);
+    const usageCount = categoryUsageCount[categoryId] || 0;
+    const maxUsage = category?.maxUsage || 1;
+    if (usageCount >= maxUsage) {
       return;
     }
     onAddBoxAfter(categoryId);
@@ -392,24 +417,26 @@ const ContentBoxBlock = ({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {CATEGORIES.map((cat) => {
-                const isUsed = usedCategories.includes(cat.id);
+                const usageCount = categoryUsageCount[cat.id] || 0;
+                const maxUsage = cat.maxUsage || 1;
+                const isMaxed = usageCount >= maxUsage;
                 return (
                   <DropdownMenuItem
                     key={cat.id}
-                    disabled={isUsed}
+                    disabled={isMaxed}
                     onClick={() => handleAddBoxCategorySelect(cat.id)}
                     className="flex items-center gap-2 cursor-pointer"
                   >
                     <span
                       className="flex items-center justify-center w-4 h-4"
-                      style={{ color: isUsed ? 'var(--muted-foreground)' : cat.color }}
+                      style={{ color: isMaxed ? 'var(--muted-foreground)' : cat.color }}
                     >
                       {cat.iconComponent}
                     </span>
                     <span className="flex-1">{cat.label}</span>
-                    {isUsed && (
-                      <Check className="h-3.5 w-3.5 text-primary" weight="bold" />
-                    )}
+                    <span className="text-[10px] tabular-nums">
+                      {usageCount}/{maxUsage}
+                    </span>
                   </DropdownMenuItem>
                 );
               })}
@@ -433,6 +460,7 @@ const ContentBoxBlock = ({
                           <Icon className="h-4 w-4" weight="regular" />
                         </span>
                         <span className="flex-1">{element.label}</span>
+                        <Infinity className="h-[10px] w-[10px] mr-1" weight="bold" />
                       </DropdownMenuItem>
                     );
                   })}
@@ -564,24 +592,28 @@ const ContentBoxBlock = ({
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {CATEGORIES.map((cat) => {
-                      const isUsed = usedCategories.includes(cat.id) && cat.id !== selectedCategory;
+                      const usageCount = categoryUsageCount[cat.id] || 0;
+                      const maxUsage = cat.maxUsage || 1;
+                      // For category change: allow selecting current category, but check max for others
+                      const isCurrentCategory = cat.id === selectedCategory;
+                      const isMaxed = !isCurrentCategory && usageCount >= maxUsage;
                       return (
                         <DropdownMenuItem
                           key={cat.id}
-                          disabled={isUsed}
+                          disabled={isMaxed}
                           onClick={() => handleCategorySelect(cat.id)}
                           className="flex items-center gap-2 cursor-pointer"
                         >
                           <span
                             className="flex items-center justify-center w-4 h-4"
-                            style={{ color: isUsed ? 'var(--muted-foreground)' : cat.color }}
+                            style={{ color: isMaxed ? 'var(--muted-foreground)' : cat.color }}
                           >
                             {cat.iconComponent}
                           </span>
                           <span className="flex-1">{cat.label}</span>
-                          {isUsed && (
-                            <Check className="h-3.5 w-3.5 text-primary" weight="bold" />
-                          )}
+                          <span className="text-[10px] tabular-nums">
+                            {usageCount}/{maxUsage}
+                          </span>
                         </DropdownMenuItem>
                       );
                     })}

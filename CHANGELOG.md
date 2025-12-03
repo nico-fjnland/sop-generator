@@ -7,6 +7,46 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.3.2] - 2025-12-03
+
+### 🐛 Fixed
+- **Firefox PDF-Export:** Cross-Origin Stylesheet-Fehler behoben
+  - Firefox blockierte den Zugriff auf CSS-Regeln von Google Fonts beim PDF-Export
+  - `html-to-image` konnte die Fonts nicht verarbeiten → `TypeError: can't access property "trim", e is undefined`
+  - **Lösung 1:** `crossorigin="anonymous"` Attribut zu Google Fonts Link in `index.html` hinzugefügt
+  - **Lösung 2:** `exportUtils.js` erweitert um manuelle Font-CSS-Ladung via fetch
+  - **Lösung 3:** Automatischer Fallback-Mechanismus (`captureWithFallback`) - wenn Cross-Origin-Fehler auftreten, wird der Export mit `skipFonts=true` wiederholt
+  - Redundanten `@import` für Google Fonts aus `index.css` entfernt (war doppelt + problematisch)
+
+---
+
+## [0.3.1] - 2025-12-03
+
+### 🐛 Fixed
+- **SOPHeader Titelumbruch:** Lange Überschriften brechen jetzt intelligent um
+  - `overflow-wrap: break-word` verhindert Überlaufen des Containers
+  - `word-break: break-word` erlaubt Umbrüche innerhalb langer Wörter
+  - `hyphens: auto` ermöglicht automatische Silbentrennung (browserabhängig)
+  - Gilt für Editor- und Druckansicht
+
+### 🔄 Changed
+- **SOPHeader Layout optimiert:**
+  - Gap zwischen Titel und Logo von 64px auf 24px reduziert
+  - Überflüssiges `paddingRight: 139px` bei der Versionszeile entfernt
+
+- **Content-Box Kategorien neu geordnet:**
+  - Neue Standard-Reihenfolge: Definition → Ursachen → Symptome → Diagnostik → Differenzial → Therapie → Algorithmus → Merke → Disposition → Sonstiges → Abläufe → Studie
+  - Diese Reihenfolge gilt für Dropdown-Menüs und die Sortier-Funktion
+
+- **Kategorie-Nutzungsanzeige überarbeitet:**
+  - Haken durch Nutzungszähler ersetzt: zeigt `0/1`, `1/1` etc.
+  - Die meisten Kategorien können 1× verwendet werden (maxUsage: 1)
+  - "Sonstiges" kann bis zu 3× verwendet werden (maxUsage: 3)
+  - Tabellen und Quellen sind von der Limitierung ausgenommen (∞-Symbol)
+  - Zähler nutzt gleiche Farbe/Opazität wie Kategorie-Label
+
+---
+
 ## [0.3.0] - 2025-12-02
 
 ### ✨ Added
@@ -36,6 +76,12 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 ### 🗑️ Removed
 - Spalten `hospital_name` und `company_logo` aus `profiles` Tabelle entfernt
   - Diese Daten werden jetzt in der `organizations` Tabelle gespeichert
+
+### 🐛 Fixed
+- **RLS-Policy Rekursion behoben:** Die RLS-Policy für `profiles` verursachte eine Endlosschleife
+  - Neue `get_user_organization_id()` Funktion mit `SECURITY DEFINER` umgeht die Rekursion
+- **SOPHeader.js:** Lädt Firmenlogo jetzt aus der Organisation statt aus dem Profil
+  - Echtzeit-Subscription auf `organizations` Tabelle statt `profiles`
 
 ---
 

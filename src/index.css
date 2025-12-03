@@ -2,7 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap');
+/* Google Fonts are loaded in index.html with crossorigin attribute for Firefox compatibility */
+/* Do NOT use @import for external fonts as it causes cross-origin issues in Firefox PDF export */
 @import 'tippy.js/dist/tippy.css';
 
 @layer base {
