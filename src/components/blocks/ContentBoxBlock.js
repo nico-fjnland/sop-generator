@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { NotePencil, X, Plus, Table, Quotes, SortAscending, Infinity, Check } from '@phosphor-icons/react';
+import { NotePencil, X, Plus, Table, Quotes, SortAscending, Infinity, Check, ArrowCounterClockwise } from '@phosphor-icons/react';
 import Block from '../Block';
 import { CategoryIconComponents } from '../icons/CategoryIcons';
 import { Input } from '../ui/input';
@@ -383,6 +383,27 @@ const ContentBoxBlock = ({
       const updatedBlocks = [...innerBlocks, newBlock];
       setInnerBlocks(updatedBlocks);
       setTimeout(() => updateContent(selectedCategory, updatedBlocks, { isTwoColumn: checked }), 0);
+    } else if (!checked && innerBlocks.length > 1) {
+      // When disabling two-column mode, remove empty placeholder blocks
+      const isBlockEmpty = (block) => {
+        if (block.type !== 'text') return false;
+        if (!block.content) return true;
+        if (typeof block.content === 'string') {
+          // Check if content is empty or just whitespace/empty HTML tags
+          const stripped = block.content.replace(/<[^>]*>/g, '').trim();
+          return stripped === '';
+        }
+        return false;
+      };
+      
+      // Remove trailing empty blocks, but keep at least one block
+      let updatedBlocks = [...innerBlocks];
+      while (updatedBlocks.length > 1 && isBlockEmpty(updatedBlocks[updatedBlocks.length - 1])) {
+        updatedBlocks.pop();
+      }
+      
+      setInnerBlocks(updatedBlocks);
+      setTimeout(() => updateContent(selectedCategory, updatedBlocks, { isTwoColumn: checked }), 0);
     } else {
       setTimeout(() => updateContent(selectedCategory, innerBlocks, { isTwoColumn: checked }), 0);
     }
@@ -435,8 +456,8 @@ const ContentBoxBlock = ({
               type="button"
               className="notion-control-button"
               style={{ backgroundColor: effectiveColor }}
-              aria-label="Box-Einstellungen"
-              title="Box-Einstellungen"
+              aria-label="Box individualisieren"
+              title="Box individualisieren"
             >
               <NotePencil className="h-4 w-4 text-white" weight="bold" />
             </button>
@@ -459,8 +480,27 @@ const ContentBoxBlock = ({
               }
             }}
           >
-            <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Box-Einstellungen
+            <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
+              <span>Box individualisieren</span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Reset to defaults
+                  setCustomLabel('');
+                  setCustomColor('');
+                  setIsTwoColumn(false);
+                  setTimeout(() => updateContent(selectedCategory, innerBlocks, { 
+                    customLabel: null, 
+                    customColor: null, 
+                    isTwoColumn: false 
+                  }), 0);
+                }}
+                className="p-1 rounded hover:bg-muted transition-colors"
+                title="Auf Standard zurücksetzen"
+              >
+                <ArrowCounterClockwise className="h-4 w-4" weight="regular" />
+              </button>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             

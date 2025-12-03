@@ -1453,60 +1453,23 @@ body.export-ready .a4-page {
   pointer-events: auto;
 }
 
-/* Drop indicator line (horizontal - between rows) */
-.drop-indicator-line.horizontal {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #3399FF 0%, #3399FF 100%);
+/* Einheitliche Drop-Linie Styles - angepasst an Column Resizer Optik */
+.drop-line,
+.drop-indicator {
+  background-color: #3399FF;
   border-radius: 2px;
-  top: 50%;
-  transform: translateY(-50%);
-  box-shadow: 0 0 8px rgba(51, 153, 255, 0.5);
   z-index: 100;
   pointer-events: none;
 }
 
-/* Dot indicators at the ends of the line */
-.drop-indicator-line.horizontal::before,
-.drop-indicator-line.horizontal::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #3399FF;
-  box-shadow: 0 0 6px rgba(51, 153, 255, 0.6);
+.drop-line-horizontal,
+.drop-indicator-horizontal {
+  height: 4px;
 }
 
-.drop-indicator-line.horizontal::before {
-  left: -5px;
-}
-
-.drop-indicator-line.horizontal::after {
-  right: -5px;
-}
-
-/* Drop zone highlight for two-column merge */
-.drop-zone-highlight {
-  border-radius: 6px;
-  border: 2px dashed #3399FF;
-  background-color: rgba(51, 153, 255, 0.08);
-  animation: pulse-highlight 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse-highlight {
-  0%, 100% {
-    background-color: rgba(51, 153, 255, 0.06);
-    border-color: rgba(51, 153, 255, 0.6);
-  }
-  50% {
-    background-color: rgba(51, 153, 255, 0.12);
-    border-color: rgba(51, 153, 255, 1);
-  }
+.drop-line-vertical,
+.drop-indicator-vertical {
+  width: 4px;
 }
 
 /* Active drop zone */
@@ -1567,8 +1530,8 @@ body.is-dragging .block-row {
 @media print {
   .drop-zone-row,
   .drop-zone-column,
-  .drop-indicator-line,
-  .drop-zone-highlight,
+  .drop-line,
+  .drop-indicator,
   .drag-handle {
     display: none !important;
   }

@@ -43,6 +43,13 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   - Cursor-Styles für Drag-Handles (grab/grabbing)
   - Ghost-Element-Styling mit Rotation und Schatten
 
+### 🔄 Changed
+- **Box-Einstellungen umbenannt:** Menü heißt jetzt "Box individualisieren"
+  - Reset-Icon (↺) am oberen rechten Rand zum Zurücksetzen auf Standardwerte
+  - Setzt Name, Farbe und Zweispaltigkeit auf Default zurück
+- **Zweispaltigkeit-Toggle verbessert:** Leere Platzhalter-Blöcke werden beim Deaktivieren automatisch entfernt
+  - Wenn der automatisch erstellte rechte Spalten-Block leer bleibt, wird er beim Umschalten auf einspaltig gelöscht
+
 ### 🐛 Fixed
 - **Drag-Ghost Darstellung:** Entfernt weißen Container um gedraggtes Element
   - Ghost zeigt jetzt die "echte" Box ohne zusätzlichen Rahmen
@@ -52,9 +59,13 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   - Custom `snapLeftToCursor` Modifier erstellt
   - Box wird so positioniert, dass der Cursor am Icon (linker Rand) bleibt
   - Verwendet gleiche Logik wie `snapCenterToCursor`, aber mit Offset nach rechts
-- **Drop-Zonen verkleinert:**
-  - Horizontale Drop-Zonen (oben/unten): 24px → 16px Höhe
-  - Spalten Drop-Zonen (links/rechts): 50% → 60px feste Breite
+- **Drop-Zonen optimiert:**
+  - Spalten Drop-Zonen (links/rechts): 50% → 120px feste Breite
+- **Drop-Indikatoren vereinheitlicht und an Column Resizer angepasst:**
+  - Alle Indikatoren nutzen jetzt einheitlichen `DropLine` Komponenten-Stil
+  - Optik wie Column Resizer: 4px Breite/Höhe, border-radius 2px, #3399FF
+  - Vertikale Linien: Gleiche Höhen-Logik wie Resizer (oben/unten 0.75rem Abstand)
+  - Entfernt: Dicke Endpunkte, Box-Shadow, gestrichelte Rahmen
 
 ---
 

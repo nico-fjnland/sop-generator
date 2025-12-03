@@ -3,11 +3,13 @@ import { useSortable } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { useDragDropState } from '../../contexts/DragDropContext';
+import { DropLine } from './DropIndicator';
 
 /**
  * Drop zone component for between-row and column positioning
+ * Verwendet einheitlichen DropLine Stil für alle Indikatoren
  */
-const DropZone = ({ id, type, isActive, children }) => {
+const DropZone = ({ id, type, isActive }) => {
   const { setNodeRef, isOver } = useDroppable({ id });
   const showIndicator = isOver || isActive;
 
@@ -20,15 +22,12 @@ const DropZone = ({ id, type, isActive, children }) => {
           position: 'absolute',
           left: 0,
           right: 0,
-          height: '16px',
+          height: '24px',
           zIndex: 50,
-          ...(type === 'before' ? { top: '-8px' } : { bottom: '-8px' }),
+          ...(type === 'before' ? { top: '-12px' } : { bottom: '-12px' }),
         }}
       >
-        {showIndicator && (
-          <div className="drop-indicator-line horizontal" />
-        )}
-        {children}
+        {showIndicator && <DropLine type="horizontal" />}
       </div>
     );
   }
@@ -42,25 +41,12 @@ const DropZone = ({ id, type, isActive, children }) => {
           position: 'absolute',
           top: 0,
           bottom: 0,
-          width: '60px', // Schmale Zone am Rand
+          width: '120px',
           zIndex: 40,
           ...(type === 'left' ? { left: 0 } : { right: 0 }),
         }}
       >
-        {showIndicator && (
-          <div 
-            className="drop-zone-highlight"
-            style={{
-              position: 'absolute',
-              inset: '4px',
-              borderRadius: '6px',
-              border: '2px dashed #3399FF',
-              backgroundColor: 'rgba(51, 153, 255, 0.08)',
-              pointerEvents: 'none',
-            }}
-          />
-        )}
-        {children}
+        {showIndicator && <DropLine type="vertical" position={type} />}
       </div>
     );
   }

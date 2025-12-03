@@ -1,7 +1,19 @@
 import React from 'react';
 
 /**
+ * Einheitlicher Drop-Indikator Stil
+ * Angepasst an Column Resizer Optik: 4px, border-radius 2px, #3399FF
+ */
+const INDICATOR_STYLE = {
+  backgroundColor: '#3399FF',
+  borderRadius: '2px',
+  zIndex: 100,
+  pointerEvents: 'none',
+};
+
+/**
  * DropIndicator shows visual feedback for where a block will be dropped
+ * Styled to match Column Resizer appearance
  */
 const DropIndicator = ({ 
   type = 'horizontal', // 'horizontal' for between rows, 'vertical' for column split
@@ -15,47 +27,17 @@ const DropIndicator = ({
       <div 
         className={`drop-indicator drop-indicator-horizontal drop-indicator-${position}`}
         style={{
+          ...INDICATOR_STYLE,
           position: 'absolute',
-          left: 0,
-          right: 0,
-          height: '3px',
-          backgroundColor: '#3399FF',
-          borderRadius: '2px',
-          zIndex: 100,
-          pointerEvents: 'none',
+          left: '14px',
+          right: '14px',
+          height: '4px',
           ...(position === 'before' 
-            ? { top: '-1.5px' } 
-            : { bottom: '-1.5px' }
+            ? { top: '-2px' } 
+            : { bottom: '-2px' }
           ),
-          boxShadow: '0 0 8px rgba(51, 153, 255, 0.5)',
         }}
-      >
-        {/* Dot indicators at the ends */}
-        <div 
-          style={{
-            position: 'absolute',
-            left: '-4px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: '#3399FF',
-          }}
-        />
-        <div 
-          style={{
-            position: 'absolute',
-            right: '-4px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: '#3399FF',
-          }}
-        />
-      </div>
+      />
     );
   }
 
@@ -64,47 +46,63 @@ const DropIndicator = ({
       <div 
         className={`drop-indicator drop-indicator-vertical drop-indicator-${position}`}
         style={{
+          ...INDICATOR_STYLE,
           position: 'absolute',
-          top: 0,
-          bottom: 0,
-          width: '3px',
-          backgroundColor: '#3399FF',
-          borderRadius: '2px',
-          zIndex: 100,
-          pointerEvents: 'none',
+          // Angepasst: 8px nach oben verschoben
+          top: 'calc(0.75rem - 8px)',
+          bottom: 'calc(0.75rem + 8px)',
+          width: '4px',
           ...(position === 'left' 
-            ? { left: '50%', transform: 'translateX(-50%)' } 
-            : { right: '50%', transform: 'translateX(50%)' }
+            ? { left: 0 } 
+            : { right: 0 }
           ),
-          boxShadow: '0 0 8px rgba(51, 153, 255, 0.5)',
         }}
-      >
-        {/* Dot indicators at the ends */}
-        <div 
-          style={{
-            position: 'absolute',
-            top: '-4px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: '#3399FF',
-          }}
-        />
-        <div 
-          style={{
-            position: 'absolute',
-            bottom: '-4px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: '#3399FF',
-          }}
-        />
-      </div>
+      />
+    );
+  }
+
+  return null;
+};
+
+/**
+ * DropLine für Drop-Zonen in SortableRow
+ * Angepasst an Column Resizer Optik
+ */
+export const DropLine = ({ type = 'horizontal', position }) => {
+  if (type === 'horizontal') {
+    return (
+      <div 
+        className="drop-line drop-line-horizontal"
+        style={{
+          ...INDICATOR_STYLE,
+          position: 'absolute',
+          left: '14px',
+          right: '14px',
+          height: '4px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+        }}
+      />
+    );
+  }
+
+  if (type === 'vertical') {
+    return (
+      <div 
+        className="drop-line drop-line-vertical"
+        style={{
+          ...INDICATOR_STYLE,
+          position: 'absolute',
+          // Angepasst: 8px nach oben verschoben
+          top: 'calc(0.75rem - 8px)',
+          bottom: 'calc(0.75rem + 8px)',
+          width: '4px',
+          ...(position === 'left' 
+            ? { left: 0 } 
+            : { right: 0 }
+          ),
+        }}
+      />
     );
   }
 
