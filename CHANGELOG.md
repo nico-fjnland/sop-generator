@@ -49,8 +49,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   - Hover-Buttons (Einstellungen, Hinzufügen, Löschen) werden im Ghost versteckt
   - Verwendet `drop-shadow` Filter statt `box-shadow` für natürlicheren Schatten
 - **Drag-Cursor-Tracking:** Box folgt jetzt dem Cursor während des Drag & Drop
-  - Neue Dependency `@dnd-kit/modifiers` (9.0.0) hinzugefügt
-  - `snapCenterToCursor` Modifier sorgt dafür, dass das Element am Cursor klebt
+  - Custom `snapLeftToCursor` Modifier erstellt
+  - Box wird so positioniert, dass der Cursor am Icon (linker Rand) bleibt
+  - Verwendet gleiche Logik wie `snapCenterToCursor`, aber mit Offset nach rechts
 
 ---
 

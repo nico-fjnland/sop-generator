@@ -15,7 +15,44 @@ import {
   verticalListSortingStrategy,
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
-import { snapCenterToCursor } from '@dnd-kit/modifiers';
+
+/**
+ * Custom modifier: Snaps to cursor but offsets the box to the right
+ * so the cursor stays at the left edge (where the icon/drag handle is).
+ * Uses the same logic as snapCenterToCursor but adds 50% width offset.
+ */
+const snapLeftToCursor = ({
+  activatorEvent,
+  draggingNodeRect,
+  transform,
+}) => {
+  if (draggingNodeRect && activatorEvent) {
+    // Get cursor coordinates from the activator event
+    const activatorCoordinates = activatorEvent instanceof MouseEvent || activatorEvent instanceof PointerEvent
+      ? { x: activatorEvent.clientX, y: activatorEvent.clientY }
+      : activatorEvent instanceof TouchEvent && activatorEvent.touches[0]
+        ? { x: activatorEvent.touches[0].clientX, y: activatorEvent.touches[0].clientY }
+        : null;
+
+    if (!activatorCoordinates) {
+      return transform;
+    }
+
+    // Calculate offset to position the LEFT edge of the box at cursor
+    // (snapCenterToCursor uses width/2, we use 0 for left edge, then add small offset for icon)
+    const iconOffset = 30; // Approximate width of the icon area
+    const offsetX = activatorCoordinates.x - draggingNodeRect.left - iconOffset;
+    const offsetY = activatorCoordinates.y - draggingNodeRect.top - draggingNodeRect.height / 2;
+
+    return {
+      ...transform,
+      x: transform.x + offsetX,
+      y: transform.y + offsetY,
+    };
+  }
+
+  return transform;
+};
 
 // Context for drag state
 const DragDropStateContext = createContext(null);
@@ -310,7 +347,7 @@ export const DragDropProvider = ({
         </SortableContext>
         
         <DragOverlay 
-          modifiers={[snapCenterToCursor]}
+          modifiers={[snapLeftToCursor]}
           dropAnimation={{
             duration: 200,
             easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',

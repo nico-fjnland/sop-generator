@@ -771,65 +771,65 @@ const Editor = () => {
         onRowsChange={setRows}
         renderDragOverlay={renderDragOverlay}
       >
-        <div className="editor print:block" ref={containerRef}>
-          {/* Render pages with A4 formatting */}
-          {pages.map((pageRows, pageIndex) => (
-            <Page 
-              key={`page-${pageIndex}`}
-              pageNumber={pageIndex + 1}
-              isFirstPage={pageIndex === 0}
+      <div className="editor print:block" ref={containerRef}>
+        {/* Render pages with A4 formatting */}
+        {pages.map((pageRows, pageIndex) => (
+          <Page 
+            key={`page-${pageIndex}`}
+            pageNumber={pageIndex + 1}
+            isFirstPage={pageIndex === 0}
+          >
+            {/* Page content wrapper with padding */}
+            <div 
+              className="page-content"
+              style={{
+                height: '100%',
+                width: '100%',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '32px 32px 0 32px', // Content gets padding, not page
+                boxSizing: 'border-box',
+              }}
             >
-              {/* Page content wrapper with padding */}
-              <div 
-                className="page-content"
-                style={{
-                  height: '100%',
-                  width: '100%',
-                  position: 'relative',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '32px 32px 0 32px', // Content gets padding, not page
-                  boxSizing: 'border-box',
-                }}
-              >
-                {/* Header - only on first page */}
-                {pageIndex === 0 && (
-                  <SOPHeader 
-                    title={headerTitle}
-                    stand={headerStand}
-                    logo={headerLogo}
-                    onTitleChange={setHeaderTitle}
-                    onStandChange={setHeaderStand}
-                    onLogoChange={setHeaderLogo}
-                  />
-                )}
-                
-                {/* Content area for this page */}
-                <div style={{ 
-                  flex: 1, 
-                  position: 'relative',
-                  // No paddingBottom needed - footer is absolutely positioned and 
-                  // page break calculation already accounts for footer height
-                  minHeight: 0,
-                  overflow: 'visible', // Allow hover buttons to extend outside
-                }}>
-                  {pageRows.map((row) => (
+              {/* Header - only on first page */}
+              {pageIndex === 0 && (
+                <SOPHeader 
+                  title={headerTitle}
+                  stand={headerStand}
+                  logo={headerLogo}
+                  onTitleChange={setHeaderTitle}
+                  onStandChange={setHeaderStand}
+                  onLogoChange={setHeaderLogo}
+                />
+              )}
+              
+              {/* Content area for this page */}
+              <div style={{ 
+                flex: 1, 
+                position: 'relative',
+                // No paddingBottom needed - footer is absolutely positioned and 
+                // page break calculation already accounts for footer height
+                minHeight: 0,
+                overflow: 'visible', // Allow hover buttons to extend outside
+              }}>
+                {pageRows.map((row) => (
                     <SortableRow
-                      key={row.id}
+                    key={row.id}
                       row={row}
                       rowRefCallback={rowRefCallback}
                       resizingRowId={resizingRowId}
                       onResizeStart={onResizeStart}
-                    >
-                      {row.blocks.map((block, blockIndex) => {
-                        const isRightColumn = row.blocks.length !== 2 || blockIndex === 1;
-                        const iconOnRight = row.blocks.length === 2 && blockIndex === 1;
-                        const ratio = row.columnRatio || 0.5;
-                        const flexBasis = row.blocks.length === 2 
-                          ? (blockIndex === 0 ? `${ratio * 100}%` : `${(1 - ratio) * 100}%`)
-                          : '100%';
+                  >
+                    {row.blocks.map((block, blockIndex) => {
+                      const isRightColumn = row.blocks.length !== 2 || blockIndex === 1;
+                      const iconOnRight = row.blocks.length === 2 && blockIndex === 1;
+                      const ratio = row.columnRatio || 0.5;
+                      const flexBasis = row.blocks.length === 2 
+                        ? (blockIndex === 0 ? `${ratio * 100}%` : `${(1 - ratio) * 100}%`)
+                        : '100%';
 
-                        return (
+                      return (
                           <DraggableBlock 
                             key={block.id} 
                             block={block}
@@ -852,29 +852,29 @@ const Editor = () => {
                               iconOnRight={iconOnRight}
                             />
                           </DraggableBlock>
-                        );
-                      })}
+                      );
+                    })}
                     </SortableRow>
-                  ))}
-                </div>
+                ))}
               </div>
-              
-              {/* Footer - fixed at bottom of every page, full width */}
-              <div style={{ 
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                width: '100%',
-              }}>
-                <SOPFooter 
-                  variant={footerVariant}
-                  onVariantChange={setFooterVariant}
-                />
-              </div>
-            </Page>
-          ))}
-        </div>
+            </div>
+            
+            {/* Footer - fixed at bottom of every page, full width */}
+            <div style={{ 
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              width: '100%',
+            }}>
+              <SOPFooter 
+                variant={footerVariant}
+                onVariantChange={setFooterVariant}
+              />
+            </div>
+          </Page>
+        ))}
+      </div>
       </DragDropProvider>
     </div>
   );
