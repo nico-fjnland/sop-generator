@@ -9,7 +9,7 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
-import { NotePencil, X, Plus, Check, Table as TableIcon, SortAscending, Infinity } from '@phosphor-icons/react';
+import { NotePencil, X, Plus, Check, Table as TableIcon, SortAscending, Infinity, DotsSixVertical } from '@phosphor-icons/react';
 import { CategoryIconComponents } from '../icons/CategoryIcons';
 import InlineTextToolbar from '../InlineTextToolbar';
 import {
@@ -129,14 +129,14 @@ const TipTapTableBlock = forwardRef(({
   content, 
   onChange,
   onDelete,
-  isDragging,
   blockId,
   onAddBoxAfter,
   onAddBlockAfter,
   onSortBlocks,
   usedCategories = [],
   isRightColumn = false,
-  dragHandleProps = {}, // dnd-kit drag handle props
+  dragHandleProps, // For drag & drop functionality
+  isDragging = false,
 }, ref) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
@@ -475,18 +475,34 @@ const TipTapTableBlock = forwardRef(({
   return (
     <div 
       ref={containerRef}
-      className={`tiptap-table-block-wrapper mb-6 relative group z-auto ${isDragging ? 'dragging-box' : ''}`}
+      className="tiptap-table-block-wrapper mb-6 relative group z-auto"
       style={{ 
         pageBreakInside: 'avoid', 
         breakInside: 'avoid',
-        transition: isDragging ? 'none' : 'opacity 0.2s ease, transform 0.1s ease',
-        cursor: isDragging ? 'grabbing' : 'default'
+        transition: 'opacity 0.2s ease, transform 0.1s ease',
       }}
     >
       {/* Hover controls similar to ContentBoxBlock */}
       <div 
         className={`notion-box-controls no-print ${!isRightColumn ? 'notion-box-controls-left' : ''} ${isDropdownOpen || isOptionsOpen ? 'dropdown-open' : ''}`}
       >
+        {/* Drag Handle - Only shown when dragHandleProps are provided */}
+        {dragHandleProps && (
+          <button
+            type="button"
+            className="notion-control-button drag-handle"
+            style={{ 
+              backgroundColor: tableColor,
+              cursor: 'grab',
+            }}
+            aria-label="Tabelle verschieben"
+            title="Ziehen zum Verschieben"
+            {...dragHandleProps}
+          >
+            <DotsSixVertical className="h-4 w-4 text-white" weight="bold" />
+          </button>
+        )}
+        
         {/* Settings Button with Table Options Dropdown */}
         <DropdownMenu open={isOptionsOpen} onOpenChange={setIsOptionsOpen}>
           <DropdownMenuTrigger asChild>

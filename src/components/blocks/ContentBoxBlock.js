@@ -133,7 +133,6 @@ const ContentBoxBlock = ({
   content, 
   onChange, 
   onDelete,
-  isDragging,
   blockId,
   usedCategories = [],
   onAddBoxAfter,
@@ -141,7 +140,8 @@ const ContentBoxBlock = ({
   onSortBlocks, // For sorting content boxes to default order
   isRightColumn = false,
   iconOnRight = false,
-  dragHandleProps = {}, // dnd-kit drag handle props
+  dragHandleProps, // For drag & drop functionality
+  isDragging = false,
 }) => {
   // Initialize content structure helper
   const getInitializedContent = (contentToInit) => {
@@ -417,12 +417,11 @@ const ContentBoxBlock = ({
   return (
     <div 
       ref={containerRef}
-      className={`content-box-block mb-6 relative group z-auto ${isDragging ? 'dragging-box' : ''} ${isIconPressed ? 'scale-[0.995] opacity-90' : ''}`} 
+      className={`content-box-block mb-6 relative group z-auto ${isIconPressed ? 'scale-[0.995] opacity-90' : ''}`} 
       style={{ 
         pageBreakInside: 'avoid', 
         breakInside: 'avoid',
-        transition: isDragging ? 'none' : 'opacity 0.2s ease, transform 0.1s ease',
-        cursor: isDragging ? 'grabbing' : 'default'
+        transition: 'opacity 0.2s ease, transform 0.1s ease',
       }}
     >
       {/* Hover controls similar to Notion */}
@@ -651,26 +650,19 @@ const ContentBoxBlock = ({
 
       {/* Content Box - Figma Structure: Icon left (or right for right column in two-column layout), Box, Caption on top border */}
       <div className={`flex items-center mb-[-7px] relative w-full ${iconOnRight ? 'flex-row-reverse' : ''}`} style={{ overflow: 'visible' }}>
-        {/* Icon - Oval - Draggable (Editor only) */}
+        {/* Icon - Oval (Editor only) - Also serves as drag handle */}
         <div 
-          className={`icon-container flex items-center justify-center ${iconOnRight ? 'ml-[-14px]' : 'mr-[-14px]'} relative shrink-0 z-10 no-print touch-none`} 
-          style={{ overflow: 'visible', cursor: isDragging ? 'grabbing' : 'grab' }}
-          {...dragHandleProps}
-          onMouseDown={(e) => {
-            setIsIconPressed(true);
-            // Call dnd-kit's onMouseDown if it exists
-            if (dragHandleProps.onMouseDown) {
-              dragHandleProps.onMouseDown(e);
-            }
+          className={`icon-container flex items-center justify-center ${iconOnRight ? 'ml-[-14px]' : 'mr-[-14px]'} relative shrink-0 z-10 no-print ${dragHandleProps ? 'drag-handle' : ''}`} 
+          style={{ 
+            overflow: 'visible',
+            cursor: dragHandleProps ? 'grab' : undefined,
           }}
-          onMouseUp={() => {
-            setIsIconPressed(false);
-          }}
+          onMouseDown={() => setIsIconPressed(true)}
+          onMouseUp={() => setIsIconPressed(false)}
           onMouseLeave={() => setIsIconPressed(false)}
+          {...(dragHandleProps || {})}
         >
-          <div 
-            className={`flex items-center justify-center transition-opacity ${isDragging ? 'opacity-50' : ''}`}
-          >
+          <div className="flex items-center justify-center transition-opacity">
             {getIconWithColors(category.id, effectiveColor, effectiveBgColor)}
           </div>
         </div>

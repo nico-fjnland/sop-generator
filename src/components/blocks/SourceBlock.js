@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { DotsSixVertical, X, Plus, SortAscending } from '@phosphor-icons/react';
+import { X, Plus, SortAscending, DotsSixVertical } from '@phosphor-icons/react';
 import Block from '../Block';
 import { CATEGORIES, ADDITIONAL_ELEMENTS } from './ContentBoxBlock';
 import {
@@ -15,14 +15,14 @@ const SourceBlock = ({
   content,
   onChange,
   onDelete,
-  isDragging,
   blockId,
   usedCategories = [],
   onAddBoxAfter,
   onAddBlockAfter,
   onSortBlocks,
   isRightColumn = false,
-  dragHandleProps = {}, // dnd-kit drag handle props
+  dragHandleProps, // For drag & drop functionality
+  isDragging = false,
 }) => {
   // Initialize content structure helper
   const getInitializedContent = (contentToInit) => {
@@ -140,12 +140,11 @@ const SourceBlock = ({
   return (
     <div
       ref={containerRef}
-      className={`source-block mb-6 relative group z-auto ${isDragging ? 'dragging-box' : ''}`}
+      className="source-block mb-6 relative group z-auto"
       style={{
         pageBreakInside: 'avoid',
         breakInside: 'avoid',
-        transition: isDragging ? 'none' : 'opacity 0.2s ease, transform 0.1s ease',
-        cursor: isDragging ? 'grabbing' : 'default',
+        transition: 'opacity 0.2s ease, transform 0.1s ease',
         margin: '0 14px', // 14px indentation on each side
       }}
       onMouseEnter={() => setIsHovered(true)}
@@ -155,16 +154,23 @@ const SourceBlock = ({
       <div
         className={`notion-box-controls no-print ${isDropdownOpen ? 'dropdown-open' : ''}`}
       >
-        <button
-          type="button"
-          className="notion-control-button touch-none"
-          style={{ backgroundColor: buttonColor, cursor: isDragging ? 'grabbing' : 'grab' }}
-          aria-label="Box verschieben"
-          title="Box verschieben"
-          {...dragHandleProps}
-        >
-          <DotsSixVertical className="h-4 w-4 text-white" weight="bold" />
-        </button>
+        {/* Drag Handle - Only shown when dragHandleProps are provided */}
+        {dragHandleProps && (
+          <button
+            type="button"
+            className="notion-control-button drag-handle"
+            style={{ 
+              backgroundColor: buttonColor,
+              cursor: 'grab',
+            }}
+            aria-label="Quellen-Box verschieben"
+            title="Ziehen zum Verschieben"
+            {...dragHandleProps}
+          >
+            <DotsSixVertical className="h-4 w-4 text-white" weight="bold" />
+          </button>
+        )}
+        
         {onAddBoxAfter && (
           <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
             <DropdownMenuTrigger asChild>

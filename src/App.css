@@ -761,49 +761,11 @@ body.export-ready .a4-page {
     width: 100%;
   }
   
-  /* Drag and Drop styles */
-.drop-indicator {
-  position: fixed;
-  height: 4px;
-  background: #3399FF; /* SOP Accent Light Blue */
-  z-index: 10000;
-  pointer-events: none;
-  border-radius: 2px;
-  transition: all 0.2s ease;
-  will-change: top, left, width, height;
-  box-shadow: 0 0 8px rgba(51, 153, 255, 0.4);
-}
-  
-  .drop-target {
-    opacity: 0.9;
-  }
-  
-  .dragging {
-    opacity: 0.5;
-    transform: scale(0.98);
-  }
-  
-  .dragging-box {
-    opacity: 0.5 !important;
-    transform: scale(0.98);
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    will-change: opacity, transform;
-  }
-  
   .icon-container {
     pointer-events: auto !important;
     user-select: none;
-    -webkit-user-drag: element;
-    z-index: 50 !important; /* Much higher than bridge and buttons to ensure always draggable */
+    z-index: 50 !important;
     position: relative;
-  }
-  
-  .icon-container:active {
-    cursor: grabbing !important;
-  }
-  
-  .icon-container:hover {
-    cursor: grab;
   }
   
   /* Ensure icon on right side is also properly positioned */
@@ -1437,177 +1399,179 @@ body.export-ready .a4-page {
   color: #3399FF !important;
 }
 
-/* ========================================
-   dnd-kit Drag and Drop Styles
-   ======================================== */
+/* =====================================================
+   DRAG & DROP STYLES
+   ===================================================== */
 
-/* Global dragging state */
-body.is-dragging {
-  cursor: grabbing !important;
-}
-
-body.is-dragging * {
-  cursor: grabbing !important;
-}
-
-/* Block wrapper styling */
-.block-wrapper-dnd {
-  position: relative;
-  transition: transform 200ms cubic-bezier(0.25, 1, 0.5, 1),
-              opacity 150ms ease;
-}
-
-.block-wrapper-dnd.dragging {
-  opacity: 0.4;
-  z-index: 0;
-}
-
-.block-wrapper-dnd.is-being-dragged {
-  /* The original item being dragged - slightly faded */
-  opacity: 0.3;
-  transform: scale(0.98);
-}
-
-/* Content row for horizontal layout */
-.block-content-row {
-  display: flex;
-  align-items: stretch;
-}
-
-.block-content {
-  flex: 1;
-  min-width: 0;
-}
-
-/* ===== DROPZONE SYSTEM ===== */
-/* Dropzones have hitbox but take NO space via negative margins */
-/* Only on hover they expand and push content */
-
-/* Base dropzone style */
-.dropzone {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  border-radius: 8px;
-  border: 2px dashed transparent;
-  background: transparent;
-  z-index: 50;
-  position: relative;
-}
-
-/* Dropzone inner glow effect */
-.dropzone::before {
-  content: '';
-  position: absolute;
-  inset: 4px;
-  border-radius: 4px;
-  background: transparent;
-  transition: background 200ms ease;
-}
-
-/* Horizontal dropzones (above/below) - hitbox but no space */
-.dropzone-above {
-  height: 24px;
-  margin: 0 14px -24px 14px; /* negative bottom margin = takes 0 space */
-}
-
-.dropzone-below {
-  height: 24px;
-  margin: -24px 14px 0 14px; /* negative top margin = takes 0 space */
-}
-
-/* Vertical dropzones (left/right) - hitbox but no space */
-.dropzone-left {
-  width: 24px;
-  margin-right: -24px; /* negative margin = takes 0 space */
-  margin-bottom: 16px;
-  flex-shrink: 0;
-  align-self: stretch;
-}
-
-.dropzone-right {
-  width: 24px;
-  margin-left: -24px; /* negative margin = takes 0 space */
-  margin-bottom: 16px;
-  flex-shrink: 0;
-  align-self: stretch;
-}
-
-/* ===== HOVER STATES - Expand and show visual feedback ===== */
-
-.dropzone-hover {
-  background: linear-gradient(135deg, rgba(51, 153, 255, 0.12), rgba(51, 153, 255, 0.2));
-  border: 2px dashed #3399FF;
-  box-shadow: 0 0 0 4px rgba(51, 153, 255, 0.08),
-              inset 0 0 12px rgba(51, 153, 255, 0.1);
-}
-
-.dropzone-hover::before {
-  background: linear-gradient(135deg, rgba(51, 153, 255, 0.05), transparent);
-}
-
-/* Horizontal zones: remove negative margin on hover = takes space */
-.dropzone-above.dropzone-hover {
-  height: 50px;
-  margin-bottom: 0; /* Now takes space! */
-}
-
-.dropzone-below.dropzone-hover {
-  height: 50px;
-  margin-top: 0; /* Now takes space! */
-}
-
-/* Vertical zones: remove negative margin on hover = takes space */
-.dropzone-left.dropzone-hover {
-  width: 80px;
-  margin-right: 0; /* Now takes space! */
-}
-
-.dropzone-right.dropzone-hover {
-  width: 80px;
-  margin-left: 0; /* Now takes space! */
-}
-
-
-/* Drag overlay styling - preserves original box shape */
-.drag-overlay-content {
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  animation: dragOverlayAppear 150ms ease-out;
-}
-
-@keyframes dragOverlayAppear {
-  from {
-    opacity: 0.8;
-    transform: scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1.02);
-  }
-}
-
-/* Hide control buttons in drag overlay */
-.drag-overlay-content .notion-box-controls,
-.drag-overlay-content .notion-box-controls-left {
-  display: none !important;
-}
-
-/* Hide dropzones in drag overlay */
-.drag-overlay-content .dropzone {
-  display: none !important;
-}
-
-/* Touch-none class for drag handles */
-.touch-none {
+/* Drag handle cursor */
+.drag-handle {
+  cursor: grab !important;
   touch-action: none;
 }
 
-/* Sortable item animation when items shift */
-.block-wrapper-dnd[style*="transform"] {
-  will-change: transform;
+.drag-handle:active {
+  cursor: grabbing !important;
 }
+
+/* Block being dragged - reduced opacity */
+.draggable-block.is-dragging {
+  opacity: 0.4;
+}
+
+.block-row.is-dragging {
+  opacity: 0.4;
+}
+
+/* Drag ghost/overlay styles - shows actual box without extra container */
+.drag-ghost {
+  opacity: 0.9;
+  transform: rotate(1.5deg) scale(1.02);
+  cursor: grabbing;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+/* Hide hover controls in drag ghost */
+.drag-ghost .notion-box-controls,
+.drag-ghost .notion-box-controls-left {
+  display: none !important;
+}
+
+/* Remove any margins/padding that might create visual container */
+.drag-ghost .content-box-block,
+.drag-ghost .tiptap-table-block-wrapper,
+.drag-ghost .source-block {
+  margin: 0 !important;
+}
+
+/* Drop zone styles */
+.drop-zone-row {
+  pointer-events: auto;
+}
+
+.drop-zone-column {
+  pointer-events: auto;
+}
+
+/* Drop indicator line (horizontal - between rows) */
+.drop-indicator-line.horizontal {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3399FF 0%, #3399FF 100%);
+  border-radius: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  box-shadow: 0 0 8px rgba(51, 153, 255, 0.5);
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* Dot indicators at the ends of the line */
+.drop-indicator-line.horizontal::before,
+.drop-indicator-line.horizontal::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3399FF;
+  box-shadow: 0 0 6px rgba(51, 153, 255, 0.6);
+}
+
+.drop-indicator-line.horizontal::before {
+  left: -5px;
+}
+
+.drop-indicator-line.horizontal::after {
+  right: -5px;
+}
+
+/* Drop zone highlight for two-column merge */
+.drop-zone-highlight {
+  border-radius: 6px;
+  border: 2px dashed #3399FF;
+  background-color: rgba(51, 153, 255, 0.08);
+  animation: pulse-highlight 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-highlight {
+  0%, 100% {
+    background-color: rgba(51, 153, 255, 0.06);
+    border-color: rgba(51, 153, 255, 0.6);
+  }
+  50% {
+    background-color: rgba(51, 153, 255, 0.12);
+    border-color: rgba(51, 153, 255, 1);
+  }
+}
+
+/* Active drop zone */
+.drop-zone-row.active,
+.drop-zone-column.active {
+  z-index: 60;
+}
+
+/* Sortable Row styling when over */
+.block-row[data-is-over="true"] {
+  outline: 2px solid rgba(51, 153, 255, 0.3);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* During drag - reduce z-index of non-dragging elements to prevent overlap issues */
+body.is-dragging .content-box-block:not(.is-dragging),
+body.is-dragging .tiptap-table-block-wrapper:not(.is-dragging),
+body.is-dragging .source-block:not(.is-dragging) {
+  pointer-events: none;
+}
+
+/* Ensure drag handle is always clickable */
+.notion-control-button.drag-handle {
+  cursor: grab !important;
+}
+
+.notion-control-button.drag-handle:active {
+  cursor: grabbing !important;
+}
+
+/* Icon container as drag handle for ContentBoxBlock */
+.icon-container.drag-handle {
+  cursor: grab !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.icon-container.drag-handle:hover {
+  transform: scale(1.05);
+}
+
+.icon-container.drag-handle:active {
+  cursor: grabbing !important;
+  transform: scale(0.95);
+}
+
+/* Smooth transition for row reordering */
+.block-row {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Disable transitions during active drag to prevent jank */
+body.is-dragging .block-row {
+  transition: none;
+}
+
+/* Print mode - hide all DnD elements */
+@media print {
+  .drop-zone-row,
+  .drop-zone-column,
+  .drop-indicator-line,
+  .drop-zone-highlight,
+  .drag-handle {
+    display: none !important;
+  }
+}
+
 

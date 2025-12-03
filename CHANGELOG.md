@@ -7,6 +7,53 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.5.0] - 2025-12-03
+
+### ✨ Added
+- **Drag & Drop für Content-Boxen:** Neue @dnd-kit basierte Implementierung
+  - Content-Boxen können über das Icon am linken Rand gegriffen und verschoben werden
+  - Vertikales Sortieren: Boxen können über/unter andere Boxen gezogen werden
+  - Zweispalten-Layout: Boxen können auf die linke/rechte Hälfte einer anderen Box gezogen werden, um ein Zweispalten-Layout zu erstellen
+  - Drop-Indikatoren: Blaue Linie zeigt die Zielposition an
+  - Ghost-Vorschau: Transparente Kopie des gedraggten Blocks während des Ziehens
+  - Spalte auflösen: Block aus Zweispalten-Row wegziehen wandelt zurück zu Single-Column
+  - Bestehender Resize-Handle für Spaltenbreiten bleibt funktionsfähig
+
+### 🔧 Technical
+- **Neue Dependencies:**
+  - `@dnd-kit/core` (6.3.1) - Drag & Drop Framework
+  - `@dnd-kit/sortable` (10.0.0) - Sortierbare Listen
+  - `@dnd-kit/utilities` (3.2.2) - Hilfsfunktionen
+
+- **Neue Komponenten:**
+  - `src/contexts/DragDropContext.js` - DnD-Provider mit Sensors und Collision Detection
+  - `src/components/dnd/SortableRow.jsx` - Sortierbare Row mit Drop-Zonen
+  - `src/components/dnd/DraggableBlock.jsx` - Draggable Wrapper für Blöcke
+  - `src/components/dnd/DropIndicator.jsx` - Visuelle Drop-Indikatoren
+
+- **Angepasste Komponenten:**
+  - `Editor.js` - Integration des DragDropProviders
+  - `Block.js` - Weiterleitung von dragHandleProps
+  - `ContentBoxBlock.js` - Icon-Container als Drag-Handle
+  - `TipTapTableBlock.js` - Drag-Handle-Button hinzugefügt
+  - `SourceBlock.js` - Drag-Handle-Button hinzugefügt
+
+- **CSS:**
+  - Neue Styles für Drag-States, Drop-Indikatoren und Drop-Zonen
+  - Cursor-Styles für Drag-Handles (grab/grabbing)
+  - Ghost-Element-Styling mit Rotation und Schatten
+
+### 🐛 Fixed
+- **Drag-Ghost Darstellung:** Entfernt weißen Container um gedraggtes Element
+  - Ghost zeigt jetzt die "echte" Box ohne zusätzlichen Rahmen
+  - Hover-Buttons (Einstellungen, Hinzufügen, Löschen) werden im Ghost versteckt
+  - Verwendet `drop-shadow` Filter statt `box-shadow` für natürlicheren Schatten
+- **Drag-Cursor-Tracking:** Box folgt jetzt dem Cursor während des Drag & Drop
+  - Neue Dependency `@dnd-kit/modifiers` (9.0.0) hinzugefügt
+  - `snapCenterToCursor` Modifier sorgt dafür, dass das Element am Cursor klebt
+
+---
+
 ## [0.4.0] - 2025-12-03
 
 ### ✨ Added

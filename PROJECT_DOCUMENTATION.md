@@ -1,6 +1,6 @@
 # SOP Editor - Vollständige Projektdokumentation
 
-> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.3.0)  
+> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.5.0)  
 > **Stack:** React 18 + Supabase + TailwindCSS  
 > **Zielgruppe:** Medizinisches Personal zur Erstellung von Standard Operating Procedures (SOPs)  
 > **Changelog:** [`CHANGELOG.md`](./CHANGELOG.md)
@@ -67,6 +67,8 @@ Der **SOP Editor** ist eine webbasierte Anwendung zur Erstellung von Standard Op
 |-------------|---------|-------|
 | @dnd-kit/core | 6.3.1 | Drag & Drop Framework |
 | @dnd-kit/sortable | 10.0.0 | Sortierbare Listen |
+| @dnd-kit/utilities | 3.2.2 | Hilfsfunktionen (CSS Transform) |
+| @dnd-kit/modifiers | 9.0.0 | Drag-Modifikatoren (snapCenterToCursor) |
 
 ### UI-Komponenten
 | Technologie | Version | Zweck |
@@ -131,6 +133,11 @@ src/
 │   │   ├── HeadingBlock.js       # Überschrift
 │   │   └── ImageBlock.js         # Bild
 │   │
+│   ├── dnd/                  # Drag & Drop Komponenten (@dnd-kit)
+│   │   ├── SortableRow.jsx       # Sortierbare Row mit Drop-Zonen
+│   │   ├── DraggableBlock.jsx    # Draggable Wrapper für Blöcke
+│   │   └── DropIndicator.jsx     # Visuelle Drop-Indikatoren
+│   │
 │   ├── extensions/           # TipTap-Erweiterungen
 │   │   ├── SlashCommand.js       # Slash-Kommando Extension
 │   │   └── HighlightItem.js      # Hervorhebung
@@ -152,7 +159,8 @@ src/
 ├── contexts/
 │   ├── AuthContext.js        # Authentifizierung
 │   ├── ThemeContext.js       # Tag/Nacht Modus
-│   └── ZoomContext.js        # Zoom-Level
+│   ├── ZoomContext.js        # Zoom-Level
+│   └── DragDropContext.js    # Drag & Drop State & Provider (@dnd-kit)
 │
 ├── hooks/
 │   ├── useEditorHistory.js   # Undo/Redo + LocalStorage

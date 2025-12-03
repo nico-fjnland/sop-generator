@@ -10,7 +10,7 @@ import FlowchartBlock from './blocks/FlowchartBlock';
 import SourceBlock from './blocks/SourceBlock';
 import { X } from '@phosphor-icons/react';
 
-const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideContentBox = false, isDragging, usedCategories = [], isRightColumn = false, iconOnRight = false, dragHandleProps = {}, onSortBlocks }) => {
+const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideContentBox = false, usedCategories = [], isRightColumn = false, iconOnRight = false, onSortBlocks, dragHandleProps, isDragging }) => {
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const blockRef = useRef(null);
   const inputRef = useRef(null);
@@ -80,11 +80,9 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             content={block.content}
             onChange={(content) => onUpdate(block.id, content)}
             onDelete={onDelete}
-            isDragging={isDragging}
             blockId={block.id}
             usedCategories={isInsideContentBox ? [] : usedCategories}
             isRightColumn={isRightColumn}
-            dragHandleProps={dragHandleProps}
             onSortBlocks={!isInsideContentBox ? onSortBlocks : undefined}
             onAddBoxAfter={
               !isInsideContentBox && onAddAfter
@@ -96,6 +94,8 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
                 ? (blockType) => onAddAfter(blockType, block.id)
                 : undefined
             }
+            dragHandleProps={!isInsideContentBox ? dragHandleProps : undefined}
+            isDragging={isDragging}
           />
         );
       case 'image':
@@ -118,12 +118,10 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             content={block.content || { category: 'definition', blocks: [{ id: '1', type: 'text', content: '' }] }}
             onChange={(content) => onUpdate(block.id, content)}
             onDelete={onDelete}
-            isDragging={isDragging}
             blockId={block.id}
             usedCategories={isInsideContentBox ? [] : usedCategories}
             isRightColumn={isRightColumn}
             iconOnRight={iconOnRight}
-            dragHandleProps={dragHandleProps}
             onSortBlocks={!isInsideContentBox ? onSortBlocks : undefined}
             onAddBoxAfter={
               !isInsideContentBox && onAddAfter
@@ -135,6 +133,8 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
                 ? (blockType) => onAddAfter(blockType, block.id)
                 : undefined
             }
+            dragHandleProps={!isInsideContentBox ? dragHandleProps : undefined}
+            isDragging={isDragging}
           />
         );
       case 'source':
@@ -143,11 +143,9 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
             content={block.content || { blocks: [{ id: '1', type: 'text', content: '' }] }}
             onChange={(content) => onUpdate(block.id, content)}
             onDelete={onDelete}
-            isDragging={isDragging}
             blockId={block.id}
             usedCategories={isInsideContentBox ? [] : usedCategories}
             isRightColumn={isRightColumn}
-            dragHandleProps={dragHandleProps}
             onSortBlocks={!isInsideContentBox ? onSortBlocks : undefined}
             onAddBoxAfter={
               !isInsideContentBox && onAddAfter
@@ -159,6 +157,8 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
                 ? (blockType) => onAddAfter(blockType, block.id)
                 : undefined
             }
+            dragHandleProps={!isInsideContentBox ? dragHandleProps : undefined}
+            isDragging={isDragging}
           />
         );
       default:
