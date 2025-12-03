@@ -7,6 +7,35 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.4.0] - 2025-12-03
+
+### ✨ Added
+- **Content-Box Einstellungsmenü:**
+  - Neuer Einstellungs-Button (Zahnrad-Icon) ersetzt den Drag-Button in den HoverButtons
+  - Das Oval-Icon der Box behält weiterhin die Drag-Funktion via `iconOnRight`
+  - Neues Dropdown-Menü mit folgenden Einstellungen:
+    - **Name/Caption:** Editierbares Textfeld zum Überschreiben des Kategorie-Labels
+    - **Zweispaltigkeit:** Toggle zum Aktivieren eines zweispaltigen Layouts innerhalb der Box (fügt automatisch einen Platzhalter-Block für die rechte Spalte hinzu)
+    - **Farbe:** Vordefinierte Farbfelder aller Kategorie-Farben zur schnellen Auswahl
+
+### 🔄 Changed
+- **Datenstruktur erweitert:** Content-Boxen speichern nun zusätzlich `customLabel`, `isTwoColumn` und `customColor`
+- **CSS:** Neue `.two-column` Klasse für zweispaltiges Grid-Layout in Content-Boxen
+
+---
+
+## [0.3.3] - 2025-12-03
+
+### 🔄 Changed
+- **Account-Navigation umstrukturiert:**
+  - "Profil & Einstellungen" in "Account" umbenannt
+  - Neue separate Seite "Organisation" für Krankenhaus- und Logo-Einstellungen
+  - Organisations-Sektion aus dem Profil-Bereich extrahiert
+  - Neue `OrganizationView`-Komponente in `Account.jsx`
+  - `AccountDropdown.js` um "Organisation"-Menüpunkt erweitert
+
+---
+
 ## [0.3.2] - 2025-12-03
 
 ### 🐛 Fixed

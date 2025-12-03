@@ -960,6 +960,22 @@ body.export-ready .a4-page {
   overflow: visible;
 }
 
+/* Two-column layout for content box content */
+.content-box-content.two-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Ensure two-column works in print */
+@media print {
+  .content-box-content.two-column {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+  }
+}
+
 /* Default hover state - slide out to the right */
 .content-box-block:focus-within .notion-box-controls,
 .content-box-block:hover .notion-box-controls,

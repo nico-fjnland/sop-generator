@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { DotsSixVertical, X, Plus, Table, Quotes, SortAscending, Infinity } from '@phosphor-icons/react';
+import { NotePencil, X, Plus, Table, Quotes, SortAscending, Infinity, Check } from '@phosphor-icons/react';
 import Block from '../Block';
-import { CategoryIcons } from '../icons/CategoryIcons';
+import { CategoryIconComponents } from '../icons/CategoryIcons';
+import { Input } from '../ui/input';
+import { Switch } from '../ui/switch';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +39,6 @@ export const CATEGORIES = [
     label: 'Definition', 
     color: '#EB5547', 
     bgColor: '#FCEAE8',
-    iconComponent: CategoryIcons.definition,
     maxUsage: 1
   },
   { 
@@ -45,7 +46,6 @@ export const CATEGORIES = [
     label: 'Ursachen', 
     color: '#003366', 
     bgColor: '#E5F2FF',
-    iconComponent: CategoryIcons.ursachen,
     maxUsage: 1
   },
   { 
@@ -53,7 +53,6 @@ export const CATEGORIES = [
     label: 'Symptome', 
     color: '#004D99', 
     bgColor: '#E5F2FF',
-    iconComponent: CategoryIcons.symptome,
     maxUsage: 1
   },
   { 
@@ -61,7 +60,6 @@ export const CATEGORIES = [
     label: 'Diagnostik', 
     color: '#3399FF', 
     bgColor: '#E5F2FF',
-    iconComponent: CategoryIcons.diagnostik,
     maxUsage: 1
   },
   { 
@@ -69,7 +67,6 @@ export const CATEGORIES = [
     label: 'Differenzial', 
     color: '#9254DE', 
     bgColor: '#F5ECFE',
-    iconComponent: CategoryIcons.differenzial,
     maxUsage: 1
   },
   { 
@@ -77,7 +74,6 @@ export const CATEGORIES = [
     label: 'Therapie', 
     color: '#52C41A', 
     bgColor: '#ECF9EB',
-    iconComponent: CategoryIcons.therapie,
     maxUsage: 1
   },
   { 
@@ -85,7 +81,6 @@ export const CATEGORIES = [
     label: 'Algorithmus', 
     color: '#47D1C6', 
     bgColor: '#E8FAF9',
-    iconComponent: CategoryIcons.algorithmus,
     maxUsage: 1
   },
   { 
@@ -93,7 +88,6 @@ export const CATEGORIES = [
     label: 'Merke', 
     color: '#FAAD14', 
     bgColor: '#FFF7E6',
-    iconComponent: CategoryIcons.merke,
     maxUsage: 1
   },
   { 
@@ -101,7 +95,6 @@ export const CATEGORIES = [
     label: 'Disposition', 
     color: '#B27700', 
     bgColor: '#FFF7E6',
-    iconComponent: CategoryIcons.disposition,
     maxUsage: 1
   },
   { 
@@ -109,7 +102,6 @@ export const CATEGORIES = [
     label: 'Sonstiges', 
     color: '#B3B3B3', 
     bgColor: '#F5F5F5',
-    iconComponent: CategoryIcons.sonstiges,
     maxUsage: 3
   },
   { 
@@ -117,7 +109,6 @@ export const CATEGORIES = [
     label: 'Abläufe', 
     color: '#524714', 
     bgColor: '#FAF8EB',
-    iconComponent: CategoryIcons.ablaeufe,
     maxUsage: 1
   },
   { 
@@ -125,10 +116,18 @@ export const CATEGORIES = [
     label: 'Studie', 
     color: '#DB70C1', 
     bgColor: '#FCF0F9',
-    iconComponent: CategoryIcons.studie,
     maxUsage: 1
   },
 ];
+
+// Helper function to get icon component with colors
+const getIconWithColors = (categoryId, color, bgColor) => {
+  const IconComponent = CategoryIconComponents[categoryId];
+  if (IconComponent) {
+    return IconComponent({ color, bgColor });
+  }
+  return null;
+};
 
 const ContentBoxBlock = ({ 
   content, 
@@ -149,7 +148,10 @@ const ContentBoxBlock = ({
     if (!contentToInit || typeof contentToInit === 'string' || !contentToInit.category) {
       return {
         category: 'definition',
-        blocks: [{ id: Date.now().toString(), type: 'text', content: '' }]
+        blocks: [{ id: Date.now().toString(), type: 'text', content: '' }],
+        customLabel: null,
+        isTwoColumn: false,
+        customColor: null,
       };
     }
     // For algorithmus category, ensure it has a flowchart block
@@ -158,6 +160,9 @@ const ContentBoxBlock = ({
       if (!hasFlowchart) {
         return {
           ...contentToInit,
+          customLabel: contentToInit.customLabel ?? null,
+          isTwoColumn: contentToInit.isTwoColumn ?? false,
+          customColor: contentToInit.customColor ?? null,
           blocks: [{ 
             id: Date.now().toString(), 
             type: 'flowchart', 
@@ -171,7 +176,12 @@ const ContentBoxBlock = ({
         };
       }
     }
-    return contentToInit;
+    return {
+      ...contentToInit,
+      customLabel: contentToInit.customLabel ?? null,
+      isTwoColumn: contentToInit.isTwoColumn ?? false,
+      customColor: contentToInit.customColor ?? null,
+    };
   };
 
   const initialContent = getInitializedContent(content);
@@ -183,7 +193,14 @@ const ContentBoxBlock = ({
     initialContent.blocks || [{ id: Date.now().toString(), type: 'text', content: '' }]
   );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSettingsDropdownOpen, setIsSettingsDropdownOpen] = useState(false);
   const [isIconPressed, setIsIconPressed] = useState(false);
+  
+  // Box settings state
+  const [customLabel, setCustomLabel] = useState(initialContent.customLabel || '');
+  const [isTwoColumn, setIsTwoColumn] = useState(initialContent.isTwoColumn || false);
+  const [customColor, setCustomColor] = useState(initialContent.customColor || '');
+  
   const containerRef = useRef(null);
   
   // Use ref to track if we're updating from parent to prevent infinite loop
@@ -200,6 +217,9 @@ const ContentBoxBlock = ({
       setContentData(initialized);
       setSelectedCategory(initialized.category || 'definition');
       setInnerBlocks(initialized.blocks || [{ id: Date.now().toString(), type: 'text', content: '' }]);
+      setCustomLabel(initialized.customLabel || '');
+      setIsTwoColumn(initialized.isTwoColumn || false);
+      setCustomColor(initialized.customColor || '');
       // Reset flag after state updates
       setTimeout(() => {
         isUpdatingFromParent.current = false;
@@ -219,7 +239,7 @@ const ContentBoxBlock = ({
   }, [usedCategories]);
 
   // Define updateContent first so other functions can reference it
-  const updateContent = useCallback((category, blocks) => {
+  const updateContent = useCallback((category, blocks, settings = {}) => {
     // Don't call onChange if we're currently updating from parent
     if (isUpdatingFromParent.current) {
       return;
@@ -228,6 +248,9 @@ const ContentBoxBlock = ({
     const newContent = {
       category,
       blocks,
+      customLabel: settings.customLabel !== undefined ? settings.customLabel : customLabel || null,
+      isTwoColumn: settings.isTwoColumn !== undefined ? settings.isTwoColumn : isTwoColumn,
+      customColor: settings.customColor !== undefined ? settings.customColor : customColor || null,
     };
     
     // Only call onChange if content actually changed
@@ -236,7 +259,7 @@ const ContentBoxBlock = ({
       lastContentRef.current = newContentStr;
       onChange(newContent);
     }
-  }, [onChange]);
+  }, [onChange, customLabel, isTwoColumn, customColor]);
 
   const handleCategoryChange = useCallback((categoryId) => {
     setSelectedCategory(categoryId);
@@ -341,6 +364,56 @@ const ContentBoxBlock = ({
     setIsDropdownOpen(false);
   };
 
+  // Settings handlers
+  const handleCustomLabelChange = useCallback((value) => {
+    setCustomLabel(value);
+    setTimeout(() => updateContent(selectedCategory, innerBlocks, { customLabel: value || null }), 0);
+  }, [selectedCategory, innerBlocks, updateContent]);
+
+  const handleTwoColumnToggle = useCallback((checked) => {
+    setIsTwoColumn(checked);
+    
+    // When enabling two-column mode, ensure there's a second block for the right column
+    if (checked && innerBlocks.length === 1) {
+      const newBlock = {
+        id: Date.now().toString(),
+        type: 'text',
+        content: '',
+      };
+      const updatedBlocks = [...innerBlocks, newBlock];
+      setInnerBlocks(updatedBlocks);
+      setTimeout(() => updateContent(selectedCategory, updatedBlocks, { isTwoColumn: checked }), 0);
+    } else {
+      setTimeout(() => updateContent(selectedCategory, innerBlocks, { isTwoColumn: checked }), 0);
+    }
+  }, [selectedCategory, innerBlocks, updateContent]);
+
+  const handleColorSelect = useCallback((color) => {
+    // If selecting the current category's default color, reset to null
+    const newColor = color === category.color ? '' : color;
+    setCustomColor(newColor);
+    setTimeout(() => updateContent(selectedCategory, innerBlocks, { customColor: newColor || null }), 0);
+  }, [selectedCategory, innerBlocks, updateContent, category.color]);
+
+  // Compute the effective color (custom or category default)
+  const effectiveColor = customColor || category.color;
+  
+  // Convert hex color to a light, opaque background color (mix with white)
+  const hexToLightBg = (hex, lightness = 0.88) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    // Mix with white (255, 255, 255) based on lightness factor
+    const lightR = Math.round(r + (255 - r) * lightness);
+    const lightG = Math.round(g + (255 - g) * lightness);
+    const lightB = Math.round(b + (255 - b) * lightness);
+    return `rgb(${lightR}, ${lightG}, ${lightB})`;
+  };
+  
+  const effectiveBgColor = customColor 
+    ? hexToLightBg(customColor, 0.88) // Light, opaque version of the color
+    : category.bgColor;
+
   return (
     <div 
       ref={containerRef}
@@ -354,25 +427,116 @@ const ContentBoxBlock = ({
     >
       {/* Hover controls similar to Notion */}
       <div 
-        className={`notion-box-controls no-print ${!isRightColumn ? 'notion-box-controls-left' : ''} ${isDropdownOpen ? 'dropdown-open' : ''}`} 
+        className={`notion-box-controls no-print ${!isRightColumn ? 'notion-box-controls-left' : ''} ${isDropdownOpen || isSettingsDropdownOpen ? 'dropdown-open' : ''}`} 
       >
-        <button
-          type="button"
-          className="notion-control-button touch-none"
-          style={{ backgroundColor: category.color, cursor: isDragging ? 'grabbing' : 'grab' }}
-          aria-label="Box verschieben"
-          title="Box verschieben"
-          {...dragHandleProps}
-        >
-          <DotsSixVertical className="h-4 w-4 text-white" weight="bold" />
-        </button>
+        {/* Settings Button with Dropdown */}
+        <DropdownMenu open={isSettingsDropdownOpen} onOpenChange={setIsSettingsDropdownOpen}>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="notion-control-button"
+              style={{ backgroundColor: effectiveColor }}
+              aria-label="Box-Einstellungen"
+              title="Box-Einstellungen"
+            >
+              <NotePencil className="h-4 w-4 text-white" weight="bold" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent 
+            className="w-64" 
+            align="start" 
+            side="right" 
+            sideOffset={10}
+            collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }}
+            avoidCollisions={true}
+            onPointerDownOutside={(e) => {
+              if (e.target.closest('.notion-control-button')) {
+                e.preventDefault();
+              }
+            }}
+            onInteractOutside={(e) => {
+              if (e.target.closest('.notion-box-controls')) {
+                e.preventDefault();
+              }
+            }}
+          >
+            <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Box-Einstellungen
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            
+            {/* Custom Label Input */}
+            <div className="px-2 py-2">
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                Name
+              </label>
+              <Input
+                type="text"
+                value={customLabel}
+                onChange={(e) => handleCustomLabelChange(e.target.value)}
+                placeholder={category.label}
+                className="h-8 text-sm"
+              />
+            </div>
+            
+            <DropdownMenuSeparator />
+            
+            {/* Two Column Toggle */}
+            <div 
+              className="flex items-center justify-between px-2 py-2 cursor-pointer hover:bg-accent rounded-sm transition-colors"
+              onClick={() => handleTwoColumnToggle(!isTwoColumn)}
+            >
+              <label className="text-xs font-medium text-muted-foreground cursor-pointer">
+                Zweispaltigkeit
+              </label>
+              <Switch 
+                checked={isTwoColumn} 
+                onCheckedChange={handleTwoColumnToggle}
+                className="data-[state=checked]:bg-primary scale-90"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+            
+            <DropdownMenuSeparator />
+            
+            {/* Color Swatches */}
+            <div className="px-2 py-2">
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                Farbe
+              </label>
+              <div className="grid grid-cols-6 gap-1.5">
+                {CATEGORIES.map((cat) => {
+                  const isSelected = effectiveColor === cat.color;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => handleColorSelect(cat.color)}
+                      className={`w-7 h-7 rounded-md border-2 transition-all flex items-center justify-center ${
+                        isSelected 
+                          ? 'border-foreground scale-110' 
+                          : 'border-transparent hover:scale-105'
+                      }`}
+                      style={{ backgroundColor: cat.color }}
+                      title={cat.label}
+                    >
+                      {isSelected && (
+                        <Check className="h-4 w-4 text-white" weight="bold" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
         {onAddBoxAfter && (
           <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
                 className="notion-control-button"
-                style={{ backgroundColor: category.color }}
+                style={{ backgroundColor: effectiveColor }}
                 aria-label="Box hinzufügen"
                 title="Box hinzufügen"
               >
@@ -429,9 +593,8 @@ const ContentBoxBlock = ({
                   >
                     <span
                       className="flex items-center justify-center w-4 h-4"
-                      style={{ color: isMaxed ? 'var(--muted-foreground)' : cat.color }}
                     >
-                      {cat.iconComponent}
+                      {getIconWithColors(cat.id, isMaxed ? '#9CA3AF' : cat.color, isMaxed ? '#F3F4F6' : cat.bgColor)}
                     </span>
                     <span className="flex-1">{cat.label}</span>
                     <span className="text-[10px] tabular-nums">
@@ -472,7 +635,7 @@ const ContentBoxBlock = ({
         <button
           type="button"
           className="notion-control-button"
-          style={{ backgroundColor: category.color }}
+          style={{ backgroundColor: effectiveColor }}
           aria-label="Content-Box löschen"
           title="Content-Box löschen"
           onClick={(event) => {
@@ -506,15 +669,9 @@ const ContentBoxBlock = ({
           onMouseLeave={() => setIsIconPressed(false)}
         >
           <div 
-            className={`h-[42px] w-[28px] rounded-[1000px] flex items-center justify-center transition-opacity ${isDragging ? 'opacity-50' : ''}`}
-            style={{ backgroundColor: category.bgColor }}
+            className={`flex items-center justify-center transition-opacity ${isDragging ? 'opacity-50' : ''}`}
           >
-            <div 
-              className="flex items-center justify-center"
-              style={{ color: category.color }}
-            >
-              {category.iconComponent}
-            </div>
+            {getIconWithColors(category.id, effectiveColor, effectiveBgColor)}
           </div>
         </div>
         
@@ -523,16 +680,8 @@ const ContentBoxBlock = ({
           className={`hidden print:flex items-center justify-center ${iconOnRight ? 'ml-[-14px]' : 'mr-[-14px]'} relative shrink-0 z-10`}
           style={{ overflow: 'visible' }}
         >
-          <div 
-            className="h-[42px] w-[28px] rounded-[1000px] flex items-center justify-center"
-            style={{ backgroundColor: category.bgColor }}
-          >
-            <div 
-              className="flex items-center justify-center"
-              style={{ color: category.color }}
-            >
-              {category.iconComponent}
-            </div>
+          <div className="flex items-center justify-center">
+            {getIconWithColors(category.id, effectiveColor, effectiveBgColor)}
           </div>
         </div>
         
@@ -541,7 +690,7 @@ const ContentBoxBlock = ({
           <div 
             className="bg-white border-[1.8px] border-solid relative rounded-[6px] min-h-[50px] w-full notion-box-shell"
             style={{
-              borderColor: category.color,
+              borderColor: effectiveColor,
             }}
           >
             {/* Caption on top border - left-aligned with text, vertically centered on border */}
@@ -556,7 +705,7 @@ const ContentBoxBlock = ({
                     <div
                       className="border-2 border-solid border-white box-border flex items-center relative shrink-0 no-print cursor-pointer"
                       style={{
-                        backgroundColor: category.color,
+                        backgroundColor: effectiveColor,
                         borderRadius: '6px',
                         padding: '4px 8px',
                       }}
@@ -569,7 +718,7 @@ const ContentBoxBlock = ({
                           lineHeight: '9px'
                         }}
                       >
-                        {category.label}
+                        {customLabel || category.label}
                       </p>
                     </div>
                   </DropdownMenuTrigger>
@@ -606,9 +755,8 @@ const ContentBoxBlock = ({
                         >
                           <span
                             className="flex items-center justify-center w-4 h-4"
-                            style={{ color: isMaxed ? 'var(--muted-foreground)' : cat.color }}
                           >
-                            {cat.iconComponent}
+                            {getIconWithColors(cat.id, isMaxed ? '#9CA3AF' : cat.color, isMaxed ? '#F3F4F6' : cat.bgColor)}
                           </span>
                           <span className="flex-1">{cat.label}</span>
                           <span className="text-[10px] tabular-nums">
@@ -624,7 +772,7 @@ const ContentBoxBlock = ({
                 <div
                   className="caption-box-print border-2 border-solid border-white box-border flex items-center relative shrink-0 hidden print:block"
                   style={{
-                    backgroundColor: category.color,
+                    backgroundColor: effectiveColor,
                     borderRadius: '6px',
                     padding: '4px 8px',
                   }}
@@ -637,7 +785,7 @@ const ContentBoxBlock = ({
                       lineHeight: '9px'
                     }}
                   >
-                    {category.label}
+                    {customLabel || category.label}
                   </p>
                 </div>
               </div>
@@ -645,17 +793,17 @@ const ContentBoxBlock = ({
 
             {/* Content area */}
             <div 
-              className={`content-box-content flex flex-col gap-[8px] ${
+              className={`content-box-content ${
                 selectedCategory === 'algorithmus' && innerBlocks.length === 1 && innerBlocks[0].type === 'flowchart'
                   ? 'pt-0 px-0'
                   : 'pt-[24px] px-[26px]'
-              }`}
+              } ${isTwoColumn ? 'two-column' : 'flex flex-col gap-[8px]'}`}
               style={{
                 fontFamily: "'Roboto', sans-serif",
                 fontSize: '12px',
                 lineHeight: 1.5,
                 fontWeight: 400,
-                '--content-box-color': category.color,
+                '--content-box-color': effectiveColor,
               }}
             >
               {innerBlocks.map((block, index) => (

@@ -9,7 +9,8 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
-import { DotsSixVertical, X, Plus, Check, DotsThree, Table as TableIcon, SortAscending } from '@phosphor-icons/react';
+import { NotePencil, X, Plus, Check, Table as TableIcon, SortAscending, Infinity } from '@phosphor-icons/react';
+import { CategoryIconComponents } from '../icons/CategoryIcons';
 import InlineTextToolbar from '../InlineTextToolbar';
 import {
   DropdownMenu,
@@ -147,6 +148,24 @@ const TipTapTableBlock = forwardRef(({
 
   // Table color (dark blue to match design)
   const tableColor = '#003366';
+
+  // Count how many times each category is used
+  const categoryUsageCount = React.useMemo(() => {
+    const counts = {};
+    usedCategories.forEach(catId => {
+      counts[catId] = (counts[catId] || 0) + 1;
+    });
+    return counts;
+  }, [usedCategories]);
+
+  // Helper function to get icon component with colors
+  const getIconWithColors = (categoryId, color, bgColor) => {
+    const IconComponent = CategoryIconComponents[categoryId];
+    if (IconComponent) {
+      return IconComponent({ color, bgColor });
+    }
+    return null;
+  };
 
   // Parse content - handle both old string format and new object format
   const parseContent = useCallback(() => {
@@ -435,7 +454,10 @@ const TipTapTableBlock = forwardRef(({
 
   const handleAddBoxCategorySelect = (categoryId) => {
     if (!onAddBoxAfter) return;
-    if (usedCategories.includes(categoryId)) return;
+    const category = CATEGORIES.find(c => c.id === categoryId);
+    const usageCount = categoryUsageCount[categoryId] || 0;
+    const maxUsage = category?.maxUsage || 1;
+    if (usageCount >= maxUsage) return;
     onAddBoxAfter(categoryId);
     setIsDropdownOpen(false);
   };
@@ -463,18 +485,131 @@ const TipTapTableBlock = forwardRef(({
     >
       {/* Hover controls similar to ContentBoxBlock */}
       <div 
-        className={`notion-box-controls no-print ${!isRightColumn ? 'notion-box-controls-left' : ''} ${isDropdownOpen ? 'dropdown-open' : ''}`}
+        className={`notion-box-controls no-print ${!isRightColumn ? 'notion-box-controls-left' : ''} ${isDropdownOpen || isOptionsOpen ? 'dropdown-open' : ''}`}
       >
-        <button
-          type="button"
-          className="notion-control-button touch-none"
-          style={{ backgroundColor: tableColor, cursor: isDragging ? 'grabbing' : 'grab' }}
-          aria-label="Tabelle verschieben"
-          title="Tabelle verschieben"
-          {...dragHandleProps}
-        >
-          <DotsSixVertical className="h-4 w-4 text-white" weight="bold" />
-        </button>
+        {/* Settings Button with Table Options Dropdown */}
+        <DropdownMenu open={isOptionsOpen} onOpenChange={setIsOptionsOpen}>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="notion-control-button"
+              style={{ backgroundColor: tableColor }}
+              aria-label="Tabelleneinstellungen"
+              title="Tabelleneinstellungen"
+            >
+              <NotePencil className="h-4 w-4 text-white" weight="bold" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent 
+            className="w-56" 
+            align="start" 
+            side="right" 
+            sideOffset={10}
+            collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }}
+            avoidCollisions={true}
+          >
+            <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Tabellenoptionen
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>Zeile</DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={addRowBefore}>Zeile oben einfügen</DropdownMenuItem>
+                <DropdownMenuItem onClick={addRowAfter}>Zeile unten einfügen</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={deleteRow} className="text-destructive focus:text-destructive">
+                  Zeile löschen
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>Spalte</DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={addColumnBefore}>Spalte links einfügen</DropdownMenuItem>
+                <DropdownMenuItem onClick={addColumnAfter}>Spalte rechts einfügen</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={deleteColumn} className="text-destructive focus:text-destructive">
+                  Spalte löschen
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuItem onClick={toggleHeaderRow}>
+              Kopfzeile umschalten
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={toggleHeaderColumn}>
+              Kopfspalte umschalten
+            </DropdownMenuItem>
+            
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuItem 
+              onClick={mergeCells} 
+              disabled={!editor?.can().mergeCells()}
+            >
+              Zellen verbinden
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={splitCell}
+              disabled={!editor?.can().splitCell()}
+            >
+              Zelle teilen
+            </DropdownMenuItem>
+            
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>Hintergrundfarbe</DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="p-2">
+                <div className="grid grid-cols-4 gap-2">
+                  {/* Keine Farbe / Zurücksetzen */}
+                  <div 
+                    className="w-7 h-7 border-2 border-gray-300 rounded bg-white cursor-pointer hover:border-gray-400 transition-colors flex items-center justify-center"
+                    title="Farbe zurücksetzen"
+                    onClick={() => clearCellBackgroundColor()}
+                  >
+                    <X className="h-4 w-4 text-gray-500" weight="bold" />
+                  </div>
+                  
+                  {/* Dunkelblau (#036) - mit weißer Schrift */}
+                  <div
+                    className="w-7 h-7 rounded border border-gray-200 cursor-pointer hover:scale-110 transition-transform" 
+                    style={{ backgroundColor: '#003366' }}
+                    title="Dunkelblau"
+                    onClick={() => setCellBackgroundColor('#003366')}
+                  ></div>
+                  
+                  {/* Farbfelder - nur eine blaue und eine gelbe/orange Farbe */}
+                  {CATEGORIES.filter(cat => 
+                    !['ursachen', 'symptome', 'disposition'].includes(cat.id)
+                  ).map((cat) => (
+                    <div
+                      key={cat.id}
+                      className="w-7 h-7 rounded border border-gray-200 cursor-pointer hover:scale-110 transition-transform" 
+                      style={{ backgroundColor: cat.bgColor }}
+                      title={cat.label}
+                      onClick={() => setCellBackgroundColor(cat.bgColor)}
+                    ></div>
+                  ))}
+                </div>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuItem 
+              onClick={resetTable} 
+              className="text-destructive focus:text-destructive"
+            >
+              Tabelle zurücksetzen
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         
         {onAddBoxAfter && (
           <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
@@ -515,24 +650,25 @@ const TipTapTableBlock = forwardRef(({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {CATEGORIES.map((cat) => {
-                const isUsed = usedCategories.includes(cat.id);
+                const usageCount = categoryUsageCount[cat.id] || 0;
+                const maxUsage = cat.maxUsage || 1;
+                const isMaxed = usageCount >= maxUsage;
                 return (
                   <DropdownMenuItem
                     key={cat.id}
-                    disabled={isUsed}
+                    disabled={isMaxed}
                     onClick={() => handleAddBoxCategorySelect(cat.id)}
                     className="flex items-center gap-2 cursor-pointer"
                   >
                     <span
                       className="flex items-center justify-center w-4 h-4"
-                      style={{ color: isUsed ? 'var(--muted-foreground)' : cat.color }}
                     >
-                      {cat.iconComponent}
+                      {getIconWithColors(cat.id, isMaxed ? '#9CA3AF' : cat.color, isMaxed ? '#F3F4F6' : cat.bgColor)}
                     </span>
                     <span className="flex-1">{cat.label}</span>
-                    {isUsed && (
-                      <Check className="h-3.5 w-3.5 text-primary" weight="bold" />
-                    )}
+                    <span className="text-[10px] tabular-nums">
+                      {usageCount}/{maxUsage}
+                    </span>
                   </DropdownMenuItem>
                 );
               })}
@@ -556,6 +692,7 @@ const TipTapTableBlock = forwardRef(({
                           <Icon className="h-4 w-4" weight="regular" />
                         </span>
                         <span className="flex-1">{element.label}</span>
+                        <Infinity className="h-[10px] w-[10px] mr-1" weight="bold" />
                       </DropdownMenuItem>
                     );
                   })}
@@ -647,127 +784,10 @@ const TipTapTableBlock = forwardRef(({
         />
       )}
 
-      {/* Table with Notion-like options menu */}
+      {/* Table */}
       <div className="flex items-start w-full" style={{ paddingLeft: '14px', paddingRight: '14px' }}>
         <div className="tiptap-table-wrapper flex-1 relative">
           <EditorContent editor={editor} />
-          
-          {/* Table options button (three dots) - appears on hover, Notion-style */}
-          <div className={`table-options-button no-print ${isOptionsOpen ? 'visible' : ''}`}>
-            <DropdownMenu open={isOptionsOpen} onOpenChange={setIsOptionsOpen}>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className="h-6 px-2 rounded flex items-center justify-center bg-white/90 backdrop-blur-sm border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"
-                  title="Tabellenoptionen"
-                >
-                  <DotsThree className="h-4 w-4 text-gray-500" weight="bold" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="start" sideOffset={4}>
-                <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Tabellenoptionen
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>Zeile</DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuItem onClick={addRowBefore}>Zeile oben einfügen</DropdownMenuItem>
-                    <DropdownMenuItem onClick={addRowAfter}>Zeile unten einfügen</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={deleteRow} className="text-destructive focus:text-destructive">
-                      Zeile löschen
-                    </DropdownMenuItem>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-                
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>Spalte</DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuItem onClick={addColumnBefore}>Spalte links einfügen</DropdownMenuItem>
-                    <DropdownMenuItem onClick={addColumnAfter}>Spalte rechts einfügen</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={deleteColumn} className="text-destructive focus:text-destructive">
-                      Spalte löschen
-                    </DropdownMenuItem>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-                
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem onClick={toggleHeaderRow}>
-                  Kopfzeile umschalten
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={toggleHeaderColumn}>
-                  Kopfspalte umschalten
-                </DropdownMenuItem>
-                
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem 
-                  onClick={mergeCells} 
-                  disabled={!editor?.can().mergeCells()}
-                >
-                  Zellen verbinden
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={splitCell}
-                  disabled={!editor?.can().splitCell()}
-                >
-                  Zelle teilen
-                </DropdownMenuItem>
-                
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>Hintergrundfarbe</DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="p-2">
-                    <div className="grid grid-cols-4 gap-2">
-                      {/* Keine Farbe / Zurücksetzen */}
-                      <div 
-                        className="w-7 h-7 border-2 border-gray-300 rounded bg-white cursor-pointer hover:border-gray-400 transition-colors flex items-center justify-center"
-                        title="Farbe zurücksetzen"
-                        onClick={() => clearCellBackgroundColor()}
-                      >
-                        <X className="h-4 w-4 text-gray-500" weight="bold" />
-                      </div>
-                      
-                      {/* Dunkelblau (#036) - mit weißer Schrift */}
-                      <div
-                        className="w-7 h-7 rounded border border-gray-200 cursor-pointer hover:scale-110 transition-transform" 
-                        style={{ backgroundColor: '#003366' }}
-                        title="Dunkelblau"
-                        onClick={() => setCellBackgroundColor('#003366')}
-                      ></div>
-                      
-                      {/* Farbfelder - nur eine blaue und eine gelbe/orange Farbe */}
-                      {CATEGORIES.filter(cat => 
-                        !['ursachen', 'symptome', 'disposition'].includes(cat.id)
-                      ).map((cat) => (
-                        <div
-                          key={cat.id}
-                          className="w-7 h-7 rounded border border-gray-200 cursor-pointer hover:scale-110 transition-transform" 
-                          style={{ backgroundColor: cat.bgColor }}
-                          title={cat.label}
-                          onClick={() => setCellBackgroundColor(cat.bgColor)}
-                        ></div>
-                      ))}
-                    </div>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-                
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem 
-                  onClick={resetTable} 
-                  className="text-destructive focus:text-destructive"
-                >
-                  Tabelle zurücksetzen
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
         </div>
       </div>
     </div>

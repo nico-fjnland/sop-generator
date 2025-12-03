@@ -367,231 +367,27 @@ const SopsView = React.memo(({
   );
 });
 
-// TemplatesView Component
-const TemplatesView = React.memo(() => (
-  <div className="page-container bg-white shadow-lg rounded-lg">
-    <div className="space-y-6 p-8">
-      {/* Header */}
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">SOP Templates</h1>
-        <p className="text-muted-foreground">
-          Vorgefertigte Vorlagen für häufige SOPs
-        </p>
-      </div>
-      
-      <div className="py-16">
-        <EmptyState 
-          icon={Layout}
-          title="Demnächst verfügbar"
-          description="Wir arbeiten an einer Sammlung professioneller SOP-Vorlagen für verschiedene medizinische Bereiche."
-        />
-      </div>
-    </div>
-  </div>
-));
-
-// LogoQualityChecklist Component
-const LogoQualityChecklist = ({ quality, hasLogo }) => {
-  const MIN_RESOLUTION = 300;
-  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-
-  // Check conditions
-  const checks = {
-    resolution: quality.isSvg || (quality.width >= MIN_RESOLUTION && quality.height >= MIN_RESOLUTION),
-    format: ['SVG', 'PNG'].includes(quality.format),
-    formatAcceptable: ['JPEG', 'WebP', 'GIF'].includes(quality.format),
-    fileSize: quality.fileSize === null || quality.fileSize <= MAX_FILE_SIZE,
-  };
-
-  const getIcon = (passed, warning = false) => {
-    if (!hasLogo) return <Circle size={16} weight="regular" className="text-gray-300" />;
-    if (passed) return <CheckCircle size={16} weight="fill" className="text-primary" />;
-    if (warning) return <WarningCircle size={16} weight="fill" className="text-amber-500" />;
-    return <XCircle size={16} weight="fill" className="text-red-500" />;
-  };
-
-  const getTextColor = (passed, warning = false) => {
-    if (!hasLogo) return 'text-gray-400';
-    if (passed) return 'text-primary';
-    if (warning) return 'text-amber-600';
-    return 'text-red-600';
-  };
-
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-2">
-        {getIcon(checks.resolution)}
-        <span className={`text-xs ${getTextColor(checks.resolution)}`}>Auflösung</span>
-      </div>
-      <div className="flex items-center gap-2">
-        {getIcon(checks.format, checks.formatAcceptable)}
-        <span className={`text-xs ${getTextColor(checks.format, checks.formatAcceptable)}`}>Format (SVG/PNG)</span>
-      </div>
-      <div className="flex items-center gap-2">
-        {getIcon(checks.fileSize)}
-        <span className={`text-xs ${getTextColor(checks.fileSize)}`}>Dateigröße</span>
-      </div>
-    </div>
-  );
-};
-
-// ProfileView Component
-const ProfileView = React.memo(({ 
-  avatarUrl, uploading, uploadAvatar, firstName, setFirstName, lastName, setLastName,
-  jobPosition, setJobPosition, user, companyLogo, uploadingLogo, uploadCompanyLogo,
-  removeCompanyLogo, logoQuality, hospitalName, setHospitalName, selectedHospital, setSelectedHospital,
-  updating, updateProfile, newPassword, setNewPassword,
-  confirmPassword, setConfirmPassword, updatingPassword, updatePassword, isDeletingAccount,
-  handleDeleteAccount
-}) => {
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  return (
+// OrganizationView Component
+const OrganizationView = React.memo(({ 
+  companyLogo, uploadingLogo, uploadCompanyLogo, removeCompanyLogo, logoQuality,
+  hospitalName, setHospitalName, selectedHospital, setSelectedHospital,
+  updating, updateProfile
+}) => (
   <div className="page-container space-y-4">
-    {/* 1. Persönliche Informationen */}
-    <form onSubmit={updateProfile} className="bg-white shadow-lg rounded-lg p-8 space-y-6">
+    {/* Organisation / Krankenhaus */}
+    <div className="bg-white shadow-lg rounded-lg p-8 space-y-6">
       {/* Page Header */}
       <div className="space-y-1 pb-6 border-b">
-        <h1 className="text-3xl font-bold tracking-tight">Profil & Einstellungen</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-[#003366]">Organisation</h1>
         <p className="text-muted-foreground">
-          Verwalte deine persönlichen Informationen und Kontoeinstellungen
+          Verwalte deine Krankenhaus- und Organisationsdaten
         </p>
       </div>
 
-      {/* Section Header - Full Width */}
-      <div className="flex items-center gap-2">
-        <User size={20} className="text-primary" weight="duotone" />
-        <h2 className="text-xl font-semibold">Persönliche Informationen</h2>
-      </div>
-
-      {/* Avatar Row - 1/3 : 2/3 Layout */}
-      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
-        <div className="space-y-1">
-          <Label className="text-sm font-medium">Profilbild</Label>
-          <p className="text-xs text-muted-foreground">
-            JPG, PNG oder GIF, max. 2MB
-          </p>
-        </div>
-        <div className="flex items-start gap-4">
-          <div className="relative">
-            <div className="h-24 w-24 rounded-full overflow-hidden bg-muted border-2 border-border">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt="Avatar"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-                  <User size={40} />
-                </div>
-              )}
-            </div>
-            <label 
-              htmlFor="avatar-upload" 
-              className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-md"
-              title="Bild ändern"
-            >
-              <Upload size={14} weight="bold" />
-              <input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                onChange={uploadAvatar}
-                disabled={uploading}
-                className="hidden"
-              />
-            </label>
-          </div>
-        </div>
-      </div>
-
-      {/* Name Row - 1/3 : 2/3 Layout */}
-      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
-        <div className="space-y-1">
-          <Label className="text-sm font-medium">Name</Label>
-          <p className="text-xs text-muted-foreground">
-            Dein vollständiger Name
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="firstName" className="text-xs text-muted-foreground">Vorname</Label>
-            <Input
-              id="firstName"
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Max"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="lastName" className="text-xs text-muted-foreground">Nachname</Label>
-            <Input
-              id="lastName"
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Mustermann"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Position Row - 1/3 : 2/3 Layout */}
-      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
-        <div className="space-y-1">
-          <Label htmlFor="jobPosition" className="text-sm font-medium">Position</Label>
-          <p className="text-xs text-muted-foreground">
-            Deine Rolle im Krankenhaus
-          </p>
-        </div>
-        <div>
-          <PositionCombobox
-            value={jobPosition}
-            onChange={setJobPosition}
-            placeholder="Position auswählen oder eingeben..."
-          />
-        </div>
-      </div>
-
-      {/* Email Row - 1/3 : 2/3 Layout */}
-      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
-        <div className="space-y-1">
-          <Label htmlFor="email" className="text-sm font-medium">E-Mail-Adresse</Label>
-          <p className="text-xs text-muted-foreground">
-            Deine Anmelde-E-Mail
-          </p>
-        </div>
-        <div>
-          <Input
-            id="email"
-            type="email"
-            value={user?.email || ''}
-            disabled
-            className="bg-muted cursor-not-allowed"
-          />
-        </div>
-      </div>
-
-      {/* Save Button Row - 1/3 : 2/3 Layout */}
-      <div className="grid grid-cols-[1fr_2fr] gap-8">
-        <div></div>
-        <div className="flex justify-end">
-          <Button type="submit" disabled={updating}>
-            {updating ? 'Wird gespeichert...' : 'Änderungen speichern'}
-          </Button>
-        </div>
-      </div>
-    </form>
-
-    {/* 2. Organisation / Krankenhaus */}
-    <div className="bg-white shadow-lg rounded-lg p-8 space-y-6">
       {/* Section Header - Full Width */}
       <div className="flex items-center gap-2">
         <Buildings size={20} className="text-primary" weight="duotone" />
-        <h2 className="text-xl font-semibold">Organisation</h2>
+        <h2 className="text-xl font-semibold">Krankenhaus & Logo</h2>
       </div>
 
       {/* Company Logo Row - 1/3 : 2/3 Layout */}
@@ -629,13 +425,13 @@ const ProfileView = React.memo(({
               </button>
             )}
             <label 
-              htmlFor="logo-upload" 
+              htmlFor="logo-upload-org" 
               className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-md"
               title="Logo ändern"
             >
               <Upload size={14} weight="bold" />
               <input
-                id="logo-upload"
+                id="logo-upload-org"
                 type="file"
                 accept="image/*,.svg"
                 onChange={uploadCompanyLogo}
@@ -770,8 +566,228 @@ const ProfileView = React.memo(({
         </div>
       </div>
     </div>
+  </div>
+));
 
-    {/* 3. Sicherheit */}
+// TemplatesView Component
+const TemplatesView = React.memo(() => (
+  <div className="page-container bg-white shadow-lg rounded-lg">
+    <div className="space-y-6 p-8">
+      {/* Header */}
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight">SOP Templates</h1>
+        <p className="text-muted-foreground">
+          Vorgefertigte Vorlagen für häufige SOPs
+        </p>
+      </div>
+      
+      <div className="py-16">
+        <EmptyState 
+          icon={Layout}
+          title="Demnächst verfügbar"
+          description="Wir arbeiten an einer Sammlung professioneller SOP-Vorlagen für verschiedene medizinische Bereiche."
+        />
+      </div>
+    </div>
+  </div>
+));
+
+// LogoQualityChecklist Component
+const LogoQualityChecklist = ({ quality, hasLogo }) => {
+  const MIN_RESOLUTION = 300;
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+
+  // Check conditions
+  const checks = {
+    resolution: quality.isSvg || (quality.width >= MIN_RESOLUTION && quality.height >= MIN_RESOLUTION),
+    format: ['SVG', 'PNG'].includes(quality.format),
+    formatAcceptable: ['JPEG', 'WebP', 'GIF'].includes(quality.format),
+    fileSize: quality.fileSize === null || quality.fileSize <= MAX_FILE_SIZE,
+  };
+
+  const getIcon = (passed, warning = false) => {
+    if (!hasLogo) return <Circle size={16} weight="regular" className="text-gray-300" />;
+    if (passed) return <CheckCircle size={16} weight="fill" className="text-primary" />;
+    if (warning) return <WarningCircle size={16} weight="fill" className="text-amber-500" />;
+    return <XCircle size={16} weight="fill" className="text-red-500" />;
+  };
+
+  const getTextColor = (passed, warning = false) => {
+    if (!hasLogo) return 'text-gray-400';
+    if (passed) return 'text-primary';
+    if (warning) return 'text-amber-600';
+    return 'text-red-600';
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        {getIcon(checks.resolution)}
+        <span className={`text-xs ${getTextColor(checks.resolution)}`}>Auflösung</span>
+      </div>
+      <div className="flex items-center gap-2">
+        {getIcon(checks.format, checks.formatAcceptable)}
+        <span className={`text-xs ${getTextColor(checks.format, checks.formatAcceptable)}`}>Format (SVG/PNG)</span>
+      </div>
+      <div className="flex items-center gap-2">
+        {getIcon(checks.fileSize)}
+        <span className={`text-xs ${getTextColor(checks.fileSize)}`}>Dateigröße</span>
+      </div>
+    </div>
+  );
+};
+
+// ProfileView Component
+const ProfileView = React.memo(({ 
+  avatarUrl, uploading, uploadAvatar, firstName, setFirstName, lastName, setLastName,
+  jobPosition, setJobPosition, user,
+  updating, updateProfile, newPassword, setNewPassword,
+  confirmPassword, setConfirmPassword, updatingPassword, updatePassword, isDeletingAccount,
+  handleDeleteAccount
+}) => {
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  return (
+  <div className="page-container space-y-4">
+    {/* 1. Persönliche Informationen */}
+    <form onSubmit={updateProfile} className="bg-white shadow-lg rounded-lg p-8 space-y-6">
+      {/* Page Header */}
+      <div className="space-y-1 pb-6 border-b">
+        <h1 className="text-3xl font-bold tracking-tight text-[#003366]">Account</h1>
+        <p className="text-muted-foreground">
+          Verwalte deine persönlichen Informationen und Kontoeinstellungen
+        </p>
+      </div>
+
+      {/* Section Header - Full Width */}
+      <div className="flex items-center gap-2">
+        <User size={20} className="text-primary" weight="duotone" />
+        <h2 className="text-xl font-semibold">Persönliche Informationen</h2>
+      </div>
+
+      {/* Avatar Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+        <div className="space-y-1">
+          <Label className="text-sm font-medium">Profilbild</Label>
+          <p className="text-xs text-muted-foreground">
+            JPG, PNG oder GIF, max. 2MB
+          </p>
+        </div>
+        <div className="flex items-start gap-4">
+          <div className="relative">
+            <div className="h-24 w-24 rounded-full overflow-hidden bg-muted border-2 border-border">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="Avatar"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                  <User size={40} />
+                </div>
+              )}
+            </div>
+            <label 
+              htmlFor="avatar-upload" 
+              className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-md"
+              title="Bild ändern"
+            >
+              <Upload size={14} weight="bold" />
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                onChange={uploadAvatar}
+                disabled={uploading}
+                className="hidden"
+              />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Name Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+        <div className="space-y-1">
+          <Label className="text-sm font-medium">Name</Label>
+          <p className="text-xs text-muted-foreground">
+            Dein vollständiger Name
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="firstName" className="text-xs text-muted-foreground">Vorname</Label>
+            <Input
+              id="firstName"
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="Max"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lastName" className="text-xs text-muted-foreground">Nachname</Label>
+            <Input
+              id="lastName"
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Mustermann"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Position Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+        <div className="space-y-1">
+          <Label htmlFor="jobPosition" className="text-sm font-medium">Position</Label>
+          <p className="text-xs text-muted-foreground">
+            Deine Rolle im Krankenhaus
+          </p>
+        </div>
+        <div>
+          <PositionCombobox
+            value={jobPosition}
+            onChange={setJobPosition}
+            placeholder="Position auswählen oder eingeben..."
+          />
+        </div>
+      </div>
+
+      {/* Email Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+        <div className="space-y-1">
+          <Label htmlFor="email" className="text-sm font-medium">E-Mail-Adresse</Label>
+          <p className="text-xs text-muted-foreground">
+            Deine Anmelde-E-Mail
+          </p>
+        </div>
+        <div>
+          <Input
+            id="email"
+            type="email"
+            value={user?.email || ''}
+            disabled
+            className="bg-muted cursor-not-allowed"
+          />
+        </div>
+      </div>
+
+      {/* Save Button Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8">
+        <div></div>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={updating}>
+            {updating ? 'Wird gespeichert...' : 'Änderungen speichern'}
+          </Button>
+        </div>
+      </div>
+    </form>
+
+    {/* 2. Sicherheit */}
     <div className="bg-white shadow-lg rounded-lg p-8 space-y-6">
       {/* Section Header - Full Width */}
       <div className="flex items-center gap-2">
@@ -845,7 +861,7 @@ const ProfileView = React.memo(({
       </div>
     </div>
 
-    {/* 4. Gefährlicher Bereich */}
+    {/* 3. Gefährlicher Bereich */}
     <div className="bg-white shadow-lg rounded-lg p-8 space-y-6">
       {/* Section Header - Full Width */}
       <div className="flex items-center gap-2">
@@ -892,7 +908,7 @@ export default function Account() {
   // Get current tab from URL, with fallback to 'sops'
   const currentTab = (() => {
     const tabParam = searchParams.get('tab');
-    return tabParam && ['sops', 'templates', 'profile'].includes(tabParam) ? tabParam : 'sops';
+    return tabParam && ['sops', 'templates', 'profile', 'organization'].includes(tabParam) ? tabParam : 'sops';
   })();
 
   // Function to change tabs - updates URL only
@@ -1736,7 +1752,16 @@ export default function Account() {
                 className="h-8 text-xs px-3"
               >
                 <User size={16} className="mr-1.5" weight={currentTab === 'profile' ? 'fill' : 'regular'} />
-                Profil & Einstellungen
+                Account
+              </Button>
+              <Button
+                variant={currentTab === 'organization' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => changeTab('organization')}
+                className="h-8 text-xs px-3"
+              >
+                <Buildings size={16} className="mr-1.5" weight={currentTab === 'organization' ? 'fill' : 'regular'} />
+                Organisation
               </Button>
             </div>
           </div>
@@ -1797,6 +1822,18 @@ export default function Account() {
             jobPosition={jobPosition}
             setJobPosition={setJobPosition}
             user={user}
+            updating={updating}
+            updateProfile={updateProfile}
+            newPassword={newPassword}
+            setNewPassword={setNewPassword}
+            confirmPassword={confirmPassword}
+            setConfirmPassword={setConfirmPassword}
+            updatingPassword={updatingPassword}
+            updatePassword={updatePassword}
+            isDeletingAccount={isDeletingAccount}
+            handleDeleteAccount={handleDeleteAccount}
+          />}
+          {currentTab === 'organization' && <OrganizationView 
             companyLogo={companyLogo}
             uploadingLogo={uploadingLogo}
             uploadCompanyLogo={uploadCompanyLogo}
@@ -1808,14 +1845,6 @@ export default function Account() {
             setSelectedHospital={setSelectedHospital}
             updating={updating}
             updateProfile={updateProfile}
-            newPassword={newPassword}
-            setNewPassword={setNewPassword}
-            confirmPassword={confirmPassword}
-            setConfirmPassword={setConfirmPassword}
-            updatingPassword={updatingPassword}
-            updatePassword={updatePassword}
-            isDeletingAccount={isDeletingAccount}
-            handleDeleteAccount={handleDeleteAccount}
           />}
           </main>
       </div>

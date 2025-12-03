@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
-  User, FileText, Layout, SignOut, ChatCircleDots, Globe, Moon, Sun 
+  User, FileText, Layout, SignOut, ChatCircleDots, Globe, Moon, Sun, Buildings 
 } from '@phosphor-icons/react';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
@@ -99,7 +99,11 @@ const AccountDropdown = ({
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => handleNavigation('profile')} className="cursor-pointer">
             <User className="mr-2 h-4 w-4" />
-            <span>Profil & Einstellungen</span>
+            <span>Account</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => handleNavigation('organization')} className="cursor-pointer">
+            <Buildings className="mr-2 h-4 w-4" />
+            <span>Organisation</span>
           </DropdownMenuItem>
           
           {/* Theme Toggle */}
