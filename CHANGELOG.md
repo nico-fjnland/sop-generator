@@ -52,6 +52,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   - Custom `snapLeftToCursor` Modifier erstellt
   - Box wird so positioniert, dass der Cursor am Icon (linker Rand) bleibt
   - Verwendet gleiche Logik wie `snapCenterToCursor`, aber mit Offset nach rechts
+- **Drop-Zonen verkleinert:**
+  - Horizontale Drop-Zonen (oben/unten): 24px → 16px Höhe
+  - Spalten Drop-Zonen (links/rechts): 50% → 60px feste Breite
 
 ---
 

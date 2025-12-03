@@ -20,9 +20,9 @@ const DropZone = ({ id, type, isActive, children }) => {
           position: 'absolute',
           left: 0,
           right: 0,
-          height: '24px',
+          height: '16px',
           zIndex: 50,
-          ...(type === 'before' ? { top: '-12px' } : { bottom: '-12px' }),
+          ...(type === 'before' ? { top: '-8px' } : { bottom: '-8px' }),
         }}
       >
         {showIndicator && (
@@ -42,7 +42,7 @@ const DropZone = ({ id, type, isActive, children }) => {
           position: 'absolute',
           top: 0,
           bottom: 0,
-          width: '50%',
+          width: '60px', // Schmale Zone am Rand
           zIndex: 40,
           ...(type === 'left' ? { left: 0 } : { right: 0 }),
         }}
