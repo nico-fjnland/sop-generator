@@ -24,7 +24,7 @@ const DropZone = ({ id, type, isActive }) => {
           right: 0,
           height: '24px',
           zIndex: 50,
-          ...(type === 'before' ? { top: '-12px' } : { bottom: '-12px' }),
+          ...(type === 'before' ? { top: '-24px' } : { bottom: 0 }),
         }}
       >
         {showIndicator && <DropLine type="horizontal" />}

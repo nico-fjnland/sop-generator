@@ -675,8 +675,8 @@ const ContentBoxBlock = ({
           type="button"
           className="notion-control-button"
           style={{ backgroundColor: effectiveColor }}
-          aria-label="Content-Box löschen"
-          title="Content-Box löschen"
+          aria-label="Box löschen"
+          title="Box löschen"
           onClick={(event) => {
             event.preventDefault();
             if (onDelete) {
