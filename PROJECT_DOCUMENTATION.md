@@ -1,6 +1,6 @@
 # SOP Editor - Vollständige Projektdokumentation
 
-> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.5.0)  
+> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.6.0)  
 > **Stack:** React 18 + Supabase + TailwindCSS  
 > **Zielgruppe:** Medizinisches Personal zur Erstellung von Standard Operating Procedures (SOPs)  
 > **Changelog:** [`CHANGELOG.md`](./CHANGELOG.md)
@@ -35,7 +35,7 @@ Der **SOP Editor** ist eine webbasierte Anwendung zur Erstellung von Standard Op
 - **Block-basierter Editor** mit "/" Slash-Kommandos
 - **12 vordefinierte Content-Box Kategorien** für medizinische Inhalte
 - **Drag & Drop** zum Verschieben und Anordnen von Blöcken
-- **Zweispalten-Layout** mit anpassbarem Spaltenverhältnis
+- **Mehrspalten-Layout** (1/2/3 Spalten) mit anpassbarem Spaltenverhältnis
 - **Flowchart-Editor** für Algorithmen (basierend auf ReactFlow)
 - **Tabellen** mit TipTap (Zellen verbinden, Spalten/Zeilen, Hintergrundfarben)
 - **Multi-Format Export:** PDF, Word (DOCX), JSON
@@ -43,6 +43,7 @@ Der **SOP Editor** ist eine webbasierte Anwendung zur Erstellung von Standard Op
 - **Undo/Redo** mit lokalem History-Tracking
 - **A4-Seitenumbruch-Vorschau** mit automatischer Paginierung
 - **Tag/Nacht Modus**
+- **GitHub Releases** via release-it
 
 ---
 
@@ -94,12 +95,13 @@ Der **SOP Editor** ist eine webbasierte Anwendung zur Erstellung von Standard Op
 |-------------|---------|-------|
 | date-fns | 4.1.0 | Datumsformatierung |
 | @vercel/speed-insights | 1.2.0 | Performance-Monitoring |
+| @vercel/analytics | 1.6.1 | Nutzungsstatistiken |
 
 ### DevDependencies
 | Technologie | Version | Zweck |
 |-------------|---------|-------|
-| release-it | latest | Release-Management & GitHub Releases |
-| @release-it/conventional-changelog | latest | Automatische Changelog-Generierung |
+| release-it | 19.0.6 | Release-Management & GitHub Releases |
+| @release-it/conventional-changelog | 10.0.2 | Automatische Changelog-Generierung |
 | tailwindcss | 3.4.1 | CSS Framework |
 | autoprefixer | 10.4.16 | CSS Vendor Prefixes |
 | postcss | 8.4.32 | CSS Processing |
@@ -307,8 +309,15 @@ Vollständige Tabellen-Unterstützung:
 
 - **Verschieben von Blöcken** zwischen Zeilen
 - **Dropzones:** Oben, Unten, Links, Rechts eines Blocks
-- **Zwei-Spalten-Layout:** Drag auf Links/Rechts erstellt Spalten
+- **Mehrspalten-Layout:** Drag auf Links/Rechts erstellt Spalten
 - **Spalten-Resize:** Horizontaler Ziehregler zwischen Spalten
+
+### Content-Box Individualisierung
+
+Über das Zahnrad-Icon können Content-Boxen angepasst werden:
+- **Name/Caption:** Überschreiben des Kategorie-Labels
+- **Spaltenanzahl:** 1, 2 oder 3 Spalten (3 Spalten nur für Disposition)
+- **Reset:** Zurücksetzen auf Standardwerte
 
 ### Slash-Kommandos
 
@@ -372,26 +381,24 @@ Der Registrierungsflow erfolgt in 3 Schritten mit visuellem Step-Indicator:
 
 ### Account-Seite
 
-3 Tabs:
+4 Navigations-Bereiche:
 1. **Meine Leitfäden** - Dokumente mit Sortierung, Filter nach Fachgebiet
 2. **SOP Templates** - (In Entwicklung)
-3. **Profil & Einstellungen** - Persönliche Daten, Organisation, Sicherheit
+3. **Account** - Persönliche Daten und Sicherheitseinstellungen
+4. **Organisation** - Krankenhaus- und Logo-Einstellungen
 
-#### Profil-Felder
+#### Account-Felder
 - Vorname, Nachname
-- Position
+- Position (mit Autocomplete für medizinische Positionen)
 - Profilbild (Avatar)
-
-#### Organisation
-- Krankenhaus-Name
-- Mitarbeiteranzahl
-- Adresse
-- Webseite
-- Firmenlogo (wird in SOPs angezeigt)
-
-#### Sicherheit
 - Passwort ändern
 - Account löschen
+
+#### Organisation
+- Krankenhaus-Name (mit Autocomplete aus Bundes-Klinik-Atlas)
+- Adresse (automatisch aus Klinik-Atlas)
+- Webseite (automatisch aus Klinik-Atlas)
+- Firmenlogo (wird in SOPs angezeigt, mit Qualitätsprüfung)
 
 ---
 
@@ -678,6 +685,7 @@ Basierend auf **shadcn/ui** (Radix Primitives + TailwindCSS):
 | Spinner | `spinner.jsx` | Lade-Indikator |
 | Toaster | `sonner.jsx` | Toast-Benachrichtigungen |
 | Hospital Combobox | `hospital-combobox.jsx` | Krankenhaus-Suche mit Autocomplete |
+| Position Combobox | `position-combobox.jsx` | Positions-Auswahl mit Autocomplete |
 
 ---
 
@@ -837,10 +845,10 @@ npm run build
 # Interaktiver Release (wählt Version)
 npm run release
 
-# Spezifische Version
-npm run release:patch   # 0.6.0 → 0.6.1
-npm run release:minor   # 0.6.0 → 0.7.0
-npm run release:major   # 0.6.0 → 1.0.0
+# Spezifische Version (Beispiel ausgehend von 0.6.0)
+npm run release:patch   # → 0.6.1
+npm run release:minor   # → 0.7.0
+npm run release:major   # → 1.0.0
 
 # Dry-Run (zeigt was passieren würde, ohne Änderungen)
 npm run release:dry-run
@@ -857,9 +865,15 @@ npm run release:dry-run
 ### Umgebungsvariablen
 
 ```env
+# Supabase (erforderlich)
 REACT_APP_SUPABASE_URL=https://xxx.supabase.co
 REACT_APP_SUPABASE_ANON_KEY=eyJ...
+
+# GitHub Releases (optional, nur für Releases)
+GITHUB_TOKEN=ghp_xxx
 ```
+
+**Hinweis:** Die `.env` Datei ist in `.gitignore` und wird nicht committed.
 
 ---
 
@@ -918,7 +932,7 @@ Für die beste Nutzererfahrung empfehlen wir:
 
 - ✅ Block-basierter Editor
 - ✅ 12 medizinische Kategorien
-- ✅ Drag & Drop (inkl. Zwei-Spalten)
+- ✅ Drag & Drop (inkl. Mehrspalten-Layout)
 - ✅ Flowchart-Editor
 - ✅ TipTap-Tabellen
 - ✅ PDF/Word/JSON Export
@@ -926,8 +940,10 @@ Für die beste Nutzererfahrung empfehlen wir:
 - ✅ Undo/Redo
 - ✅ Tag/Nacht Modus
 - ✅ Zoom-Steuerung
-- ✅ Benutzer-Profile
+- ✅ Benutzer-Profile & Organisationen
 - ✅ Firmenlogo in SOPs
+- ✅ Krankenhaus-Autocomplete (Bundes-Klinik-Atlas)
+- ✅ GitHub Releases (release-it)
 
 ### In Entwicklung
 
@@ -937,10 +953,10 @@ Für die beste Nutzererfahrung empfehlen wir:
 
 - Export-Qualität abhängig von Browser-Rendering
 - Flowchart-Größe limitiert (300-1200px)
-- Nur eine Content-Box pro Kategorie erlaubt
+- Content-Box Nutzung pro Kategorie limitiert (1×, "Sonstiges" 3×)
 
 ---
 
 *Dokumentation erstellt: November 2024*  
-*Letzte Aktualisierung: November 2025*
+*Letzte Aktualisierung: Dezember 2025*
 
