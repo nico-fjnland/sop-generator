@@ -1,6 +1,6 @@
 # SOP Editor (ALPHA)
 
-Der SOP Editor/Generator ist ein webbasierter Block-Editor zur Erstellung von Standard Operating Procedures (SOPs) für den medizinischen Bereich. Er folgt dem etablierten System von SOP Notaufnahme, dessen Leitfäden sich an alle in der Akutmedizin tätigen Fachkräfte richten.
+Der SOP Editor/Generator ist ein webbasierter Block-Editor zur Erstellung von Standard Operating Procedures (SOPs) für den medizinischen Bereich. Er folgt dem etablierten System von [sop-notaufnahme.de](https://sop-notaufnahme.de), dessen etablierte Leitfäden sich an alle in der Akutmedizin tätigen Fachkräfte richten.
 
 > [Changelog](./CHANGELOG.md) · [Vollständige Dokumentation](./PROJECT_DOCUMENTATION.md)
 
@@ -8,13 +8,11 @@ Der SOP Editor/Generator ist ein webbasierter Block-Editor zur Erstellung von St
 
 ## 📋 Hintergrund
 
-Wer in einer Notaufnahme arbeitet, kennt das: In kritischen Momenten braucht man schnellen Zugriff auf verlässliche Handlungsanweisungen. Doch hochwertige medizinische Leitfäden sind im Netz schwer zu finden – oft versteckt hinter Paywalls, unübersichtlich formatiert oder veraltet.
-
-Als in der Notaufnahme tätige Ärztinnen und Ärzte haben wir das selbst erlebt. Deshalb haben wir [sop-notaufnahme.de](https://sop-notaufnahme.de) ins Leben gerufen: eine Plattform mit frei zugänglichen, sorgfältig recherchierten Leitfäden für die Akutmedizin.
+In kritischen Momenten braucht man schnellen Zugriff auf verlässliche Handlungsanweisungen. Doch hochwertige medizinische Leitfäden sind im Netz schwer zu finden – oft versteckt hinter Paywalls, unübersichtlich formatiert oder veraltet. Als in der Notaufnahme tätige Ärztinnen und Ärzte haben wir das selbst erlebt. Deshalb haben wir [sop-notaufnahme.de](https://sop-notaufnahme.de) ins Leben gerufen: eine Plattform mit frei zugänglichen, sorgfältig recherchierten Leitfäden für die Akutmedizin.
 
 ## 📦 Dieses Repository
 
-Der SOP Editor ist das Werkzeug, mit dem diese Leitfäden (zukünftig) entstehen – und mehr. Unsere Vision ist es, medizinischen Einrichtungen unsere SOPs über ein lizenzgestütztes Modell zur Verfügung stellen zu können. Teilnehmende Kliniken können damit künftig:
+Der SOP Editor ist Werkzeug und konsequente Erweiterungung unserer Vision. Mit ihm können wir medizinischen Einrichtungen unsere SOPs über ein lizenzgestütztes Modell zur Verfügung stellen, um damit künftig:
 
 - **eigene SOPs zu erstellen** – im einheitlichen Format der Plattform
 - **bestehende Leitfäden anzupassen** – auf hausspezifische Abläufe, Medikamente oder Protokolle
@@ -26,9 +24,9 @@ Der SOP Editor ist das Werkzeug, mit dem diese Leitfäden (zukünftig) entstehen
 
 ### Grundfunktionen
 
-- **Block-basierter Editor** mit Notion-ähnlichem "/" Slash-Kommando-System
+- **Intuitiver Block-Editor** mit Notion-ähnlichem "/" Slash-Kommando-System
 - **12 medizinische Content-Box Kategorien:** Definition, Ursachen, Symptome, Diagnostik, Therapie, Algorithmus, Merke, Disposition, Abläufe, Differenzial, Studie, Sonstiges
-- **Drag & Drop** zum Verschieben und Anordnen von Blöcken
+- **Drag & Drop** zum passgenauen Verschieben und Anordnen von Blöcken
 - **Mehrspalten-Layout** (1/2/3 Spalten) mit anpassbarem Spaltenverhältnis
 
 ### Spezialkomponenten
