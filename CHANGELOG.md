@@ -7,6 +7,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+
+## [0.6.1](///compare/v0.6.0...v0.6.1) (2025-12-05)
+
 ## [0.6.0] - 2025-12-05
 
 ### ✨ Added
@@ -473,4 +476,3 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - 🐛 **Fixed** – Bug-Fixes
 - 🔒 **Security** – Sicherheits-Updates
 - 📝 **Documentation** – Dokumentations-Updates
-
