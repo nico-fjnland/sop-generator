@@ -2,18 +2,20 @@
 
 Ein webbasierter Editor zur Erstellung von Standard Operating Procedures (SOPs) für den medizinischen Bereich.
 
-> **Version:** 0.2.0 · [Changelog](./CHANGELOG.md) · [Vollständige Dokumentation](./PROJECT_DOCUMENTATION.md)
+> **Version:** 0.6.1 · [Changelog](./CHANGELOG.md) · [Vollständige Dokumentation](./PROJECT_DOCUMENTATION.md)
 
 ## ✨ Features
 
 - **Block-basierter Editor** mit "/" Slash-Kommandos
 - **12 medizinische Content-Box Kategorien** (Definition, Ursachen, Symptome, Diagnostik, Therapie, etc.)
 - **Drag & Drop** zum Verschieben und Anordnen von Blöcken
-- **Zweispalten-Layout** mit anpassbarem Spaltenverhältnis
+- **Mehrspalten-Layout** (1/2/3 Spalten) mit anpassbarem Spaltenverhältnis
 - **Flowchart-Editor** für Algorithmen und Entscheidungsbäume
 - **Rich-Text Tabellen** mit Zellen-Merge und Hintergrundfarben
 - **Multi-Format Export:** PDF, Word (DOCX), JSON
 - **Cloud-Speicherung** via Supabase
+- **Organisations-Verwaltung** für Teams
+- **Krankenhaus-Autocomplete** aus dem Bundes-Klinik-Atlas
 - **Undo/Redo** mit lokalem History-Tracking
 - **A4-Seitenumbruch-Vorschau**
 - **Tag/Nacht Modus**
@@ -40,13 +42,29 @@ Die Anwendung läuft auf [http://localhost:3000](http://localhost:3000)
 npm run build
 ```
 
+### Release
+
+```bash
+# Interaktiver Release
+npm run release
+
+# Spezifische Versionen
+npm run release:patch   # Bug-Fix (0.6.1 → 0.6.2)
+npm run release:minor   # Feature (0.6.1 → 0.7.0)
+npm run release:major   # Breaking Change (0.6.1 → 1.0.0)
+```
+
 ### Umgebungsvariablen
 
-Erstelle eine `.env.local` Datei:
+Erstelle eine `.env` Datei:
 
 ```env
+# Supabase (erforderlich)
 REACT_APP_SUPABASE_URL=https://xxx.supabase.co
 REACT_APP_SUPABASE_ANON_KEY=eyJ...
+
+# GitHub Releases (optional)
+GITHUB_TOKEN=ghp_xxx
 ```
 
 ## 📖 Verwendung
@@ -74,14 +92,17 @@ REACT_APP_SUPABASE_ANON_KEY=eyJ...
 src/
 ├── components/        # React-Komponenten
 │   ├── blocks/        # Block-Typen (ContentBox, Table, Flowchart, etc.)
-│   ├── ui/            # Basis UI-Komponenten
+│   ├── dnd/           # Drag & Drop Komponenten (@dnd-kit)
+│   ├── ui/            # Basis UI-Komponenten (shadcn/ui)
+│   ├── icons/         # SVG-Icons für Kategorien
 │   └── extensions/    # TipTap-Erweiterungen
-├── contexts/          # React Contexts (Auth, Theme, Zoom)
-├── hooks/             # Custom Hooks
-├── pages/             # Seiten-Komponenten
-├── services/          # API-Services
-├── utils/             # Utility-Funktionen
-└── lib/               # Bibliotheks-Konfiguration
+├── contexts/          # React Contexts (Auth, Theme, Zoom, DragDrop)
+├── hooks/             # Custom Hooks (History, PageBreaks, KlinikAtlas)
+├── pages/             # Seiten-Komponenten (Account, Auth)
+├── services/          # API-Services (Documents, Organizations)
+├── utils/             # Utility-Funktionen (Export, Performance)
+├── lib/               # Bibliotheks-Konfiguration (Supabase)
+└── constants/         # Layout-Konstanten
 ```
 
 ## 🌐 Browser-Support
@@ -98,6 +119,11 @@ src/
 
 - [`PROJECT_DOCUMENTATION.md`](./PROJECT_DOCUMENTATION.md) – Vollständige technische Dokumentation
 - [`CHANGELOG.md`](./CHANGELOG.md) – Versions-Historie
+- [`AGENTS.md`](./AGENTS.md) – Regeln für KI-Agenten
+
+## 🔗 Links
+
+- [GitHub Releases](https://github.com/nico-fjnland/sop-generator/releases)
 
 ## 📝 Lizenz
 
