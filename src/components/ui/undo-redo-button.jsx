@@ -20,6 +20,9 @@ import { useTipTapFocus } from '../../contexts/TipTapFocusContext';
  * @param {function} onExecuted - Callback nach Ausführung
  * @param {string} className - Zusätzliche CSS-Klassen
  */
+// Plattform-Erkennung für korrekte Tastenkürzel-Anzeige
+const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+
 export const UndoRedoButton = ({
   onAction,
   canExecute: canExecuteGlobal,
@@ -77,7 +80,9 @@ export const UndoRedoButton = ({
   };
 
   const defaultTitle = isUndo ? 'Rückgängig' : 'Wiederherstellen';
-  const shortcut = isUndo ? 'Ctrl+Z' : 'Ctrl+Shift+Z';
+  // Plattformabhängige Tastenkürzel: ⌘ für Mac, Ctrl für Windows/Linux
+  const modifierKey = isMac ? '⌘' : 'Ctrl';
+  const shortcut = isUndo ? `${modifierKey}+Z` : `${modifierKey}+Shift+Z`;
   const title = showShortcut ? `${defaultTitle} (${shortcut})` : defaultTitle;
 
   const Icon = isUndo ? ArrowCounterClockwise : ArrowClockwise;

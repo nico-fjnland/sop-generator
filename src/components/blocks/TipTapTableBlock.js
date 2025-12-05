@@ -9,7 +9,7 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
-import { NotePencil, X, Plus, Check, Table as TableIcon, SortAscending, Infinity, DotsSixVertical } from '@phosphor-icons/react';
+import { NotePencil, X, Plus, Check, Table as TableIcon, SortAscending, Infinity } from '@phosphor-icons/react';
 import { CategoryIconComponents } from '../icons/CategoryIcons';
 import InlineTextToolbar from '../InlineTextToolbar';
 import {
@@ -137,7 +137,6 @@ const TipTapTableBlock = forwardRef(({
   usedCategories = [],
   isRightColumn = false,
   dragHandleProps, // For drag & drop functionality
-  isDragging = false,
 }, ref) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
@@ -498,23 +497,6 @@ const TipTapTableBlock = forwardRef(({
       <div 
         className={`notion-box-controls no-print ${!isRightColumn ? 'notion-box-controls-left' : ''} ${isDropdownOpen || isOptionsOpen ? 'dropdown-open' : ''}`}
       >
-        {/* Drag Handle - Only shown when dragHandleProps are provided */}
-        {dragHandleProps && (
-          <button
-            type="button"
-            className="notion-control-button drag-handle"
-            style={{ 
-              backgroundColor: tableColor,
-              cursor: 'grab',
-            }}
-            aria-label="Tabelle verschieben"
-            title="Ziehen zum Verschieben"
-            {...dragHandleProps}
-          >
-            <DotsSixVertical className="h-4 w-4 text-white" weight="bold" />
-          </button>
-        )}
-        
         {/* Settings Button with Table Options Dropdown */}
         <DropdownMenu open={isOptionsOpen} onOpenChange={setIsOptionsOpen}>
           <DropdownMenuTrigger asChild>
@@ -771,12 +753,21 @@ const TipTapTableBlock = forwardRef(({
             padding: '4px 0',
           }}
         />
-        <TableIcon 
-          className="no-print" 
-          size={16} 
-          weight="regular"
-          style={{ color: '#003366', flexShrink: 0 }}
-        />
+        {/* Table Icon - serves as drag handle */}
+        <div
+          className={`no-print flex items-center justify-center ${dragHandleProps ? 'drag-handle' : ''}`}
+          style={{
+            cursor: dragHandleProps ? 'grab' : undefined,
+            flexShrink: 0,
+          }}
+          {...(dragHandleProps || {})}
+        >
+          <TableIcon 
+            size={16} 
+            weight="regular"
+            style={{ color: '#003366' }}
+          />
+        </div>
         {/* Print version of title */}
         <div
           className="hidden print:flex w-full items-center gap-2"

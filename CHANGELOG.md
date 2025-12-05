@@ -7,6 +7,30 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.6.3] - 2025-12-05
+
+### ✨ Added
+- **Settings-Menü für Quellen-Box:** Neues "Box individualisieren" Dropdown-Menü identisch wie bei ContentBoxBlock
+  - NotePencil-Icon als erster Button in den Controls
+  - Header "Box individualisieren" mit Reset-Button (ArrowCounterClockwise)
+  - Spaltenauswahl (1, 2, 3) wobei 3 wie bei den meisten anderen Boxen deaktiviert ist
+  - **Vollständige Spaltenlogik von ContentBoxBlock übernommen:**
+    - Bei Erhöhung der Spaltenanzahl werden automatisch neue leere Blöcke hinzugefügt
+    - Bei Reduzierung werden nur leere trailing Blöcke entfernt, Inhalte bleiben erhalten
+  - CSS-Klassen für `.source-box-content.two-column` hinzugefügt (auch für Print)
+  - Plus-Dropdown zeigt nun auch die Kategorie-Nutzung (x/max) wie bei anderen Blöcken
+
+- **Drag & Drop für Tabellen:** Tabellen können jetzt per Drag & Drop verschoben werden
+  - Das Tabellen-Icon (oben rechts neben dem Titel) dient als Drag Handle
+  - Funktionalität identisch wie bei ContentBoxBlock
+
+### 🐛 Fixed
+- **Drag-Handle-Buttons bei Tabellen und Quellen-Boxen:** Die separaten Drag-Handle-Buttons wurden entfernt
+  - Behebt das Problem, dass der Delete-Button bei Tabellen nicht angezeigt wurde
+  - Controls sind jetzt konsistent: Settings → Plus → Delete
+
+---
+
 ## [0.6.2] - 2025-12-05
 
 ### ✨ Added
@@ -18,17 +42,20 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   - Sonst: Globale History (Box verschieben, Einstellungen, etc.)
   - Button-Klick verhindert Fokus-Verlust für nahtlose Bedienung
 
-### 🔄 Changed
-- **Box-Individualisierung eingeschränkt:** Die Funktion zum Ändern des Box-Namens ist jetzt nur noch für bestimmte Kategorien verfügbar:
-  - Sonstiges, Algorithmus, Differenzial, Abläufe, Studie
-  - Andere Kategorien (Definition, Ursachen, Symptome, etc.) zeigen die Namensänderung nicht mehr an
-
-### 🐛 Fixed
 - **Fehlermeldungen auf Deutsch:** Login- und Registrierungsfehlermeldungen werden jetzt vollständig auf Deutsch angezeigt
   - "Invalid login credentials" → "Bitte prüfe deine Anmeldedaten erneut."
   - "User already registered" → "Diese E-Mail-Adresse ist bereits registriert."
   - "Email not confirmed" → "Bitte bestätige zuerst deine E-Mail-Adresse."
   - Weitere Supabase-Fehlermeldungen übersetzt
+
+- **Plattformabhängige Tastenkürzel:** Undo/Redo-Tooltips zeigen jetzt die korrekten Shortcuts
+  - Mac: ⌘+Z / ⌘+Shift+Z
+  - Windows/Linux: Ctrl+Z / Ctrl+Shift+Z
+
+### 🔄 Changed
+- **Box-Individualisierung eingeschränkt:** Die Funktion zum Ändern des Box-Namens ist jetzt nur noch für bestimmte Kategorien verfügbar:
+  - Sonstiges, Algorithmus, Differenzial, Abläufe, Studie
+  - Andere Kategorien (Definition, Ursachen, Symptome, etc.) zeigen die Namensänderung nicht mehr an
 
 ### 🔧 Technical
 - **Neuer Context:** `TipTapFocusContext.js` für Tracking des aktiven TipTap-Editors

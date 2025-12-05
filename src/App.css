@@ -923,7 +923,8 @@ body.export-ready .a4-page {
 }
 
 /* Two-column layout for content box content */
-.content-box-content.two-column {
+.content-box-content.two-column,
+.source-box-content.two-column {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
@@ -938,7 +939,8 @@ body.export-ready .a4-page {
 
 /* Ensure two-column and three-column work in print */
 @media print {
-  .content-box-content.two-column {
+  .content-box-content.two-column,
+  .source-box-content.two-column {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 16px !important;
