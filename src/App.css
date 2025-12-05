@@ -929,11 +929,24 @@ body.export-ready .a4-page {
   gap: 16px;
 }
 
-/* Ensure two-column works in print */
+/* Three-column layout for content box content (Disposition only) */
+.content-box-content.three-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+/* Ensure two-column and three-column work in print */
 @media print {
   .content-box-content.two-column {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+  }
+  
+  .content-box-content.three-column {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
     gap: 16px !important;
   }
 }

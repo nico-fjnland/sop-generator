@@ -7,14 +7,20 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
-## [0.5.4] - 2025-12-05
+## [0.6.0] - 2025-12-05
 
 ### ✨ Added
-- **Automatische GitHub Releases:** Neuer GitHub Actions Workflow für vollautomatische Releases
-  - Überwacht Versionsänderungen in `package.json` auf dem `main`-Branch
-  - Extrahiert Release-Notes automatisch aus `CHANGELOG.md`
-  - Erstellt Git-Tag und GitHub Release bei neuer Version
-  - Workflow-Datei: `.github/workflows/auto-release.yml`
+- **Release-It Integration:** Automatisiertes Release-Management für GitHub Releases
+  - Neue npm Scripts: `release`, `release:patch`, `release:minor`, `release:major`, `release:dry-run`
+  - Automatisches Git-Tagging mit `v${version}` Format
+  - GitHub Release-Erstellung mit Changelog-Generierung
+  - Conventional Changelog Plugin für automatische Changelog-Updates
+
+### 🔧 Technical
+- **Neue devDependencies:**
+  - `release-it` - Release-Management-Tool
+  - `@release-it/conventional-changelog` - Plugin für Changelog-Generierung
+- **Neue Konfigurationsdatei:** `.release-it.json` für Release-Konfiguration
 
 ---
 

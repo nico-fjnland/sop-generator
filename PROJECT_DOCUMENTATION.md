@@ -22,8 +22,7 @@
 11. [UI-Komponenten](#ui-komponenten)
 12. [Routing](#routing)
 13. [Styling & Theming](#styling--theming)
-14. [CI/CD & Release-Prozess](#cicd--release-prozess)
-15. [Browserkompatibilität](#browserkompatibilität)
+14. [Browserkompatibilität](#browserkompatibilität)
 
 ---
 
@@ -95,6 +94,15 @@ Der **SOP Editor** ist eine webbasierte Anwendung zur Erstellung von Standard Op
 |-------------|---------|-------|
 | date-fns | 4.1.0 | Datumsformatierung |
 | @vercel/speed-insights | 1.2.0 | Performance-Monitoring |
+
+### DevDependencies
+| Technologie | Version | Zweck |
+|-------------|---------|-------|
+| release-it | latest | Release-Management & GitHub Releases |
+| @release-it/conventional-changelog | latest | Automatische Changelog-Generierung |
+| tailwindcss | 3.4.1 | CSS Framework |
+| autoprefixer | 10.4.16 | CSS Vendor Prefixes |
+| postcss | 8.4.32 | CSS Processing |
 
 ---
 
@@ -773,6 +781,7 @@ Basierend auf **shadcn/ui** (Radix Primitives + TailwindCSS):
 | `postcss.config.js` | PostCSS Konfiguration |
 | `jsconfig.json` | JS Pfad-Aliase |
 | `components.json` | shadcn/ui Konfiguration |
+| `.release-it.json` | Release-It Konfiguration für GitHub Releases |
 
 ### SQL-Schemas
 
@@ -822,58 +831,34 @@ npm run build
 # Erstellt optimierten Build in /build
 ```
 
+### Release
+
+```bash
+# Interaktiver Release (wählt Version)
+npm run release
+
+# Spezifische Version
+npm run release:patch   # 0.6.0 → 0.6.1
+npm run release:minor   # 0.6.0 → 0.7.0
+npm run release:major   # 0.6.0 → 1.0.0
+
+# Dry-Run (zeigt was passieren würde, ohne Änderungen)
+npm run release:dry-run
+```
+
+**Release-Prozess:**
+1. Tests werden ausgeführt
+2. Version in `package.json` wird erhöht
+3. Commit mit `chore: release v${version}`
+4. Git-Tag `v${version}` wird erstellt
+5. Push zu GitHub (Branch + Tag)
+6. GitHub Release wird erstellt
+
 ### Umgebungsvariablen
 
 ```env
 REACT_APP_SUPABASE_URL=https://xxx.supabase.co
 REACT_APP_SUPABASE_ANON_KEY=eyJ...
-```
-
----
-
-## CI/CD & Release-Prozess
-
-### Automatische Releases
-
-Das Projekt nutzt GitHub Actions für vollautomatische Releases. Der Workflow wird ausgelöst, wenn die Version in `package.json` geändert und auf den `main`-Branch gepusht wird.
-
-**Workflow-Datei:** `.github/workflows/auto-release.yml`
-
-### Release-Ablauf
-
-1. **Version ändern** in `package.json`
-2. **CHANGELOG.md aktualisieren** mit Release-Notes
-3. **Commit & Push** auf `main`
-4. **GitHub Action** erkennt die Versionsänderung automatisch:
-   - Prüft, ob Tag bereits existiert
-   - Extrahiert Release-Notes aus CHANGELOG.md
-   - Erstellt Git-Tag (z.B. `v0.5.4`)
-   - Erstellt GitHub Release mit den extrahierten Notes
-
-### Manuelles Release (Alternative)
-
-Falls ein manuelles Release gewünscht ist:
-
-```bash
-# Tag erstellen
-git tag v0.5.4
-
-# Tag pushen (löst auch den Workflow aus)
-git push origin v0.5.4
-```
-
-### CHANGELOG-Format
-
-Das CHANGELOG muss dem "Keep a Changelog" Format folgen, damit die automatische Extraktion funktioniert:
-
-```markdown
-## [0.5.4] - 2025-12-05
-
-### ✨ Added
-- Neue Funktion XYZ
-
-### 🐛 Fixed
-- Bug ABC behoben
 ```
 
 ---

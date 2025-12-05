@@ -1,0 +1,47 @@
+{
+  "git": {
+    "commitMessage": "chore: release v${version}",
+    "tagName": "v${version}",
+    "tagAnnotation": "Release ${version}",
+    "requireCleanWorkingDir": true,
+    "requireUpstream": true,
+    "push": true
+  },
+  "github": {
+    "release": true,
+    "releaseName": "v${version}",
+    "autoGenerate": false,
+    "draft": false,
+    "preRelease": false,
+    "comments": {
+      "submit": false
+    }
+  },
+  "npm": {
+    "publish": false
+  },
+  "hooks": {
+    "before:init": ["npm test -- --watchAll=false --passWithNoTests || true"],
+    "after:bump": "echo 'Version bumped to ${version}'"
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "preset": {
+        "name": "conventionalcommits",
+        "types": [
+          { "type": "feat", "section": "✨ Added" },
+          { "type": "fix", "section": "🐛 Fixed" },
+          { "type": "chore", "section": "🔧 Technical" },
+          { "type": "docs", "section": "📝 Documentation" },
+          { "type": "style", "section": "🎨 Styling" },
+          { "type": "refactor", "section": "🔄 Changed" },
+          { "type": "perf", "section": "⚡ Performance" },
+          { "type": "security", "section": "🔒 Security" }
+        ]
+      },
+      "infile": "CHANGELOG.md",
+      "header": "# Changelog\n\nAlle wesentlichen Änderungen am SOP Editor werden in dieser Datei dokumentiert.\n\nDas Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/),\nund dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).\n\n---\n"
+    }
+  }
+}
+

@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { NotePencil, X, Plus, Table, Quotes, SortAscending, Infinity, Check, ArrowCounterClockwise } from '@phosphor-icons/react';
+import { NotePencil, X, Plus, Table, Quotes, SortAscending, Infinity, ArrowCounterClockwise } from '@phosphor-icons/react';
 import Block from '../Block';
 import { CategoryIconComponents } from '../icons/CategoryIcons';
 import { Input } from '../ui/input';
-import { Switch } from '../ui/switch';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -145,12 +144,19 @@ const ContentBoxBlock = ({
 }) => {
   // Initialize content structure helper
   const getInitializedContent = (contentToInit) => {
+    // Helper to migrate isTwoColumn to columnCount
+    const getColumnCount = (content) => {
+      if (content.columnCount !== undefined) return content.columnCount;
+      if (content.isTwoColumn) return 2;
+      return 1;
+    };
+    
     if (!contentToInit || typeof contentToInit === 'string' || !contentToInit.category) {
       return {
         category: 'definition',
         blocks: [{ id: Date.now().toString(), type: 'text', content: '' }],
         customLabel: null,
-        isTwoColumn: false,
+        columnCount: 1,
         customColor: null,
       };
     }
@@ -161,7 +167,7 @@ const ContentBoxBlock = ({
         return {
           ...contentToInit,
           customLabel: contentToInit.customLabel ?? null,
-          isTwoColumn: contentToInit.isTwoColumn ?? false,
+          columnCount: getColumnCount(contentToInit),
           customColor: contentToInit.customColor ?? null,
           blocks: [{ 
             id: Date.now().toString(), 
@@ -179,7 +185,7 @@ const ContentBoxBlock = ({
     return {
       ...contentToInit,
       customLabel: contentToInit.customLabel ?? null,
-      isTwoColumn: contentToInit.isTwoColumn ?? false,
+      columnCount: getColumnCount(contentToInit),
       customColor: contentToInit.customColor ?? null,
     };
   };
@@ -198,7 +204,7 @@ const ContentBoxBlock = ({
   
   // Box settings state
   const [customLabel, setCustomLabel] = useState(initialContent.customLabel || '');
-  const [isTwoColumn, setIsTwoColumn] = useState(initialContent.isTwoColumn || false);
+  const [columnCount, setColumnCount] = useState(initialContent.columnCount || 1);
   const [customColor, setCustomColor] = useState(initialContent.customColor || '');
   
   const containerRef = useRef(null);
@@ -218,7 +224,7 @@ const ContentBoxBlock = ({
       setSelectedCategory(initialized.category || 'definition');
       setInnerBlocks(initialized.blocks || [{ id: Date.now().toString(), type: 'text', content: '' }]);
       setCustomLabel(initialized.customLabel || '');
-      setIsTwoColumn(initialized.isTwoColumn || false);
+      setColumnCount(initialized.columnCount || 1);
       setCustomColor(initialized.customColor || '');
       // Reset flag after state updates
       setTimeout(() => {
@@ -249,7 +255,7 @@ const ContentBoxBlock = ({
       category,
       blocks,
       customLabel: settings.customLabel !== undefined ? settings.customLabel : customLabel || null,
-      isTwoColumn: settings.isTwoColumn !== undefined ? settings.isTwoColumn : isTwoColumn,
+      columnCount: settings.columnCount !== undefined ? settings.columnCount : columnCount,
       customColor: settings.customColor !== undefined ? settings.customColor : customColor || null,
     };
     
@@ -259,7 +265,7 @@ const ContentBoxBlock = ({
       lastContentRef.current = newContentStr;
       onChange(newContent);
     }
-  }, [onChange, customLabel, isTwoColumn, customColor]);
+  }, [onChange, customLabel, columnCount, customColor]);
 
   const handleCategoryChange = useCallback((categoryId) => {
     setSelectedCategory(categoryId);
@@ -370,51 +376,53 @@ const ContentBoxBlock = ({
     setTimeout(() => updateContent(selectedCategory, innerBlocks, { customLabel: value || null }), 0);
   }, [selectedCategory, innerBlocks, updateContent]);
 
-  const handleTwoColumnToggle = useCallback((checked) => {
-    setIsTwoColumn(checked);
+  const handleColumnCountChange = useCallback((newColumnCount) => {
+    setColumnCount(newColumnCount);
     
-    // When enabling two-column mode, ensure there's a second block for the right column
-    if (checked && innerBlocks.length === 1) {
-      const newBlock = {
-        id: Date.now().toString(),
+    // Helper to check if a block is empty (placeholder only)
+    const isBlockEmpty = (block) => {
+      if (block.type !== 'text') return false;
+      if (!block.content) return true;
+      if (typeof block.content === 'string') {
+        // Check if content is empty or just whitespace/empty HTML tags
+        const stripped = block.content.replace(/<[^>]*>/g, '').trim();
+        return stripped === '';
+      }
+      return false;
+    };
+    
+    // When enabling multi-column mode, ensure there are enough blocks
+    if (newColumnCount > 1 && innerBlocks.length < newColumnCount) {
+      const blocksToAdd = newColumnCount - innerBlocks.length;
+      const newBlocks = Array.from({ length: blocksToAdd }, () => ({
+        id: Date.now().toString() + Math.random(),
         type: 'text',
         content: '',
-      };
-      const updatedBlocks = [...innerBlocks, newBlock];
+      }));
+      const updatedBlocks = [...innerBlocks, ...newBlocks];
       setInnerBlocks(updatedBlocks);
-      setTimeout(() => updateContent(selectedCategory, updatedBlocks, { isTwoColumn: checked }), 0);
-    } else if (!checked && innerBlocks.length > 1) {
-      // When disabling two-column mode, remove empty placeholder blocks
-      const isBlockEmpty = (block) => {
-        if (block.type !== 'text') return false;
-        if (!block.content) return true;
-        if (typeof block.content === 'string') {
-          // Check if content is empty or just whitespace/empty HTML tags
-          const stripped = block.content.replace(/<[^>]*>/g, '').trim();
-          return stripped === '';
-        }
-        return false;
-      };
-      
-      // Remove trailing empty blocks, but keep at least one block
+      setTimeout(() => updateContent(selectedCategory, updatedBlocks, { columnCount: newColumnCount }), 0);
+    } else if (innerBlocks.length > newColumnCount) {
+      // When reducing columns, remove trailing empty blocks but keep content
       let updatedBlocks = [...innerBlocks];
-      while (updatedBlocks.length > 1 && isBlockEmpty(updatedBlocks[updatedBlocks.length - 1])) {
+      
+      // Remove trailing empty blocks until we reach the target column count
+      // or until we hit a block with content
+      while (updatedBlocks.length > newColumnCount && isBlockEmpty(updatedBlocks[updatedBlocks.length - 1])) {
         updatedBlocks.pop();
       }
       
+      // Ensure at least one block remains
+      if (updatedBlocks.length === 0) {
+        updatedBlocks = [{ id: Date.now().toString(), type: 'text', content: '' }];
+      }
+      
       setInnerBlocks(updatedBlocks);
-      setTimeout(() => updateContent(selectedCategory, updatedBlocks, { isTwoColumn: checked }), 0);
+      setTimeout(() => updateContent(selectedCategory, updatedBlocks, { columnCount: newColumnCount }), 0);
     } else {
-      setTimeout(() => updateContent(selectedCategory, innerBlocks, { isTwoColumn: checked }), 0);
+      setTimeout(() => updateContent(selectedCategory, innerBlocks, { columnCount: newColumnCount }), 0);
     }
   }, [selectedCategory, innerBlocks, updateContent]);
-
-  const handleColorSelect = useCallback((color) => {
-    // If selecting the current category's default color, reset to null
-    const newColor = color === category.color ? '' : color;
-    setCustomColor(newColor);
-    setTimeout(() => updateContent(selectedCategory, innerBlocks, { customColor: newColor || null }), 0);
-  }, [selectedCategory, innerBlocks, updateContent, category.color]);
 
   // Compute the effective color (custom or category default)
   const effectiveColor = customColor || category.color;
@@ -489,11 +497,11 @@ const ContentBoxBlock = ({
                   // Reset to defaults
                   setCustomLabel('');
                   setCustomColor('');
-                  setIsTwoColumn(false);
+                  setColumnCount(1);
                   setTimeout(() => updateContent(selectedCategory, innerBlocks, { 
                     customLabel: null, 
                     customColor: null, 
-                    isTwoColumn: false 
+                    columnCount: 1 
                   }), 0);
                 }}
                 className="p-1 rounded hover:bg-muted transition-colors"
@@ -520,53 +528,54 @@ const ContentBoxBlock = ({
             
             <DropdownMenuSeparator />
             
-            {/* Two Column Toggle */}
-            <div 
-              className="flex items-center justify-between px-2 py-2 cursor-pointer hover:bg-accent rounded-sm transition-colors"
-              onClick={() => handleTwoColumnToggle(!isTwoColumn)}
-            >
-              <label className="text-xs font-medium text-muted-foreground cursor-pointer">
-                Zweispaltigkeit
-              </label>
-              <Switch 
-                checked={isTwoColumn} 
-                onCheckedChange={handleTwoColumnToggle}
-                className="data-[state=checked]:bg-primary scale-90"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-            
-            <DropdownMenuSeparator />
-            
-            {/* Color Swatches */}
+            {/* Column Count Selection */}
             <div className="px-2 py-2">
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                Farbe
+                Spalten
               </label>
-              <div className="grid grid-cols-6 gap-1.5">
-                {CATEGORIES.map((cat) => {
-                  const isSelected = effectiveColor === cat.color;
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => handleColorSelect(cat.color)}
-                      className={`w-7 h-7 rounded-md border-2 transition-all flex items-center justify-center ${
-                        isSelected 
-                          ? 'border-foreground scale-110' 
-                          : 'border-transparent hover:scale-105'
-                      }`}
-                      style={{ backgroundColor: cat.color }}
-                      title={cat.label}
-                    >
-                      {isSelected && (
-                        <Check className="h-4 w-4 text-white" weight="bold" />
-                      )}
-                    </button>
-                  );
-                })}
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleColumnCountChange(1)}
+                  className={`flex-1 flex items-center justify-center px-3 py-1.5 rounded-md border transition-all text-sm font-medium ${
+                    columnCount === 1
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border hover:bg-accent text-muted-foreground'
+                  }`}
+                  title="Einspaltig"
+                >
+                  1
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleColumnCountChange(2)}
+                  className={`flex-1 flex items-center justify-center px-3 py-1.5 rounded-md border transition-all text-sm font-medium ${
+                    columnCount === 2
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border hover:bg-accent text-muted-foreground'
+                  }`}
+                  title="Zweispaltig"
+                >
+                  2
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleColumnCountChange(3)}
+                  disabled={selectedCategory !== 'disposition'}
+                  className={`flex-1 flex items-center justify-center px-3 py-1.5 rounded-md border transition-all text-sm font-medium ${
+                    columnCount === 3
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : selectedCategory !== 'disposition'
+                        ? 'border-border/50 text-muted-foreground/40 cursor-not-allowed'
+                        : 'border-border hover:bg-accent text-muted-foreground'
+                  }`}
+                  title={selectedCategory !== 'disposition' ? 'Nur für Disposition verfügbar' : 'Dreispaltig'}
+                >
+                  3
+                </button>
               </div>
             </div>
+            
           </DropdownMenuContent>
         </DropdownMenu>
         {onAddBoxAfter && (
@@ -829,7 +838,7 @@ const ContentBoxBlock = ({
                 selectedCategory === 'algorithmus' && innerBlocks.length === 1 && innerBlocks[0].type === 'flowchart'
                   ? 'pt-0 px-0'
                   : 'pt-[24px] px-[26px]'
-              } ${isTwoColumn ? 'two-column' : 'flex flex-col gap-[8px]'}`}
+              } ${columnCount === 2 ? 'two-column' : columnCount === 3 ? 'three-column' : 'flex flex-col gap-[8px]'}`}
               style={{
                 fontFamily: "'Roboto', sans-serif",
                 fontSize: '12px',
