@@ -7,6 +7,78 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.5.2] - 2025-12-04
+
+### 🔄 Changed
+- **SOPHeader Logo-Platzhalter:** Standard-Logo durch allgemeinen Platzhalter ersetzt
+  - SOP-Wotaufnahme SVG-Logo entfernt
+  - Neuer Platzhalter mit Image-Icon im gleichen Style wie Account-Seite
+  - Verwendet Tailwind-Klassen: `bg-muted`, `border-2 border-border`, `rounded-lg`
+  - Platzhalter füllt den gesamten Container aus (100% Breite/Höhe)
+  - Im Druck wird kein Platzhalter angezeigt (nur bei vorhandenem Logo)
+
+- **ContentBoxBlock Spalten-Icons:** Icon-Größe angepasst
+  - Von `h-7 w-7` auf `h-6 w-6` reduziert für bessere Proportionen
+
+### 🔧 Technical
+- **SOPHeader.js:**
+  - `Image` Icon von `@phosphor-icons/react` importiert
+  - Platzhalter-Div mit Tailwind-Klassen statt inline Styles
+  - Print-View zeigt `null` statt Platzhalter wenn kein Logo vorhanden
+
+---
+
+## [0.5.1] - 2025-12-03
+
+### ✨ Added
+- **Manuelle Zeilenumbrüche im SOPHeader-Titel:** Nutzende können jetzt manuelle Zeilenumbrüche im Titel einfügen
+  - **Shift+Enter** erstellt einen manuellen Zeilenumbruch
+  - **Enter** (ohne Shift) beendet den Bearbeitungsmodus wie bisher
+  - Textarea ersetzt Input-Feld für mehrzeilige Titel
+  - Automatische Umbruch-Logik für lange Wörter bleibt erhalten
+  - Manuelle Umbrüche werden mit `white-space: pre-wrap` korrekt angezeigt
+
+### 🔄 Changed
+- **SOPHeader Container-Mindesthöhen:** Titel- und Stand-Container bleiben immer mindestens eine Zeile hoch
+  - Titel: Mindesthöhe 38.4px (32px × 1.2 line-height)
+  - Stand: Mindesthöhe 12px (12px × 1.0 line-height)
+  - Container bleiben auch bei leerem Text sichtbar
+  - Non-breaking space (`\u00A0`) wird angezeigt wenn Text leer ist
+
+- **Organisation-Updates erweitert:** Adresse und Webseite werden jetzt automatisch gespeichert
+  - Adresse wird aus dem ausgewählten Krankenhaus zusammengesetzt (Straße, PLZ, Stadt)
+  - Webseite wird aus dem Klinik-Atlas-Link übernommen
+  - Beide Felder werden beim Speichern der Organisation aktualisiert
+
+### 🐛 Fixed
+- **Logo-Upload Container klickbar:** Firmenlogo- und Profilbild-Container öffnen jetzt direkt den Upload-Dialog
+  - Klick auf den Container öffnet den Datei-Dialog (wie der kleine blaue Button)
+  - Verhindert Konflikte mit Delete- und Upload-Buttons durch Event-Handling
+  - Cursor-Styles und Hover-Effekte zeigen Klickbarkeit an
+
+- **RLS-Policy für Organizations-Update:** "new row violates row-level security policy" Fehler behoben
+  - UPDATE-Policy erweitert um `WITH CHECK` Klausel
+  - Migration `fix_organization_update_rls_policy` angewendet
+  - Benutzer können jetzt ihre Organisation korrekt aktualisieren
+
+- **Storage-Policy für brandmarks Bucket:** Upload-Fehler beim Firmenlogo behoben
+  - Policy prüft jetzt Organization-ID statt User-ID im Dateipfad
+  - Migration `fix_brandmarks_storage_policy_for_organizations` angewendet
+  - Benutzer können jetzt Logos für ihre Organisation hochladen
+
+### 🔧 Technical
+- **SOPHeader.js:**
+  - `input` durch `textarea` ersetzt für mehrzeilige Titel
+  - Auto-Resize-Logik für Textarea mit Mindesthöhen-Respektierung
+  - `useEffect` angepasst für korrekte Höhenberechnung beim Fokus
+
+- **Account.jsx:**
+  - `useRef` für File-Inputs hinzugefügt
+  - Click-Handler für Logo-Container implementiert
+  - Adress-Zusammenstellung aus `selectedHospital` Daten
+
+---
+
 ## [0.5.0] - 2025-12-03
 
 ### ✨ Added
