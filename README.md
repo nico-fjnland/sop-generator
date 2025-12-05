@@ -1,6 +1,6 @@
-# SOP Editor
+# SOP Editor (ALPHA)
 
-Webbasierter Block-Editor zur Erstellung von Standard Operating Procedures (SOPs) für den medizinischen Bereich.
+Der SOP Editor/Generator ist ein webbasierter Block-Editor zur Erstellung von Standard Operating Procedures (SOPs) für den medizinischen Bereich. Er folgt dem etablierten System von SOP Notaufnahme, dessen Leitfäden sich an alle in der Akutmedizin tätigen Fachkräfte richten.
 
 > [Changelog](./CHANGELOG.md) · [Vollständige Dokumentation](./PROJECT_DOCUMENTATION.md)
 
@@ -14,7 +14,7 @@ Als in der Notaufnahme tätige Ärztinnen und Ärzte haben wir das selbst erlebt
 
 ## 📦 Dieses Repository
 
-Der SOP Editor ist das Werkzeug, mit dem diese Leitfäden entstehen – und mehr. Kliniken können über ein Lizenzmodell den Editor nutzen, um:
+Der SOP Editor ist das Werkzeug, mit dem diese Leitfäden (zukünftig) entstehen – und mehr. Unsere Vision ist es, medizinischen Einrichtungen unsere SOPs über ein lizenzgestütztes Modell zur Verfügung stellen zu können. Teilnehmende Kliniken können damit künftig:
 
 - **eigene SOPs zu erstellen** – im einheitlichen Format der Plattform
 - **bestehende Leitfäden anzupassen** – auf hausspezifische Abläufe, Medikamente oder Protokolle
@@ -24,7 +24,7 @@ Der SOP Editor ist das Werkzeug, mit dem diese Leitfäden entstehen – und mehr
 
 ## ✨ Features
 
-### Editor-Kern
+### Grundfunktionen
 
 - **Block-basierter Editor** mit Notion-ähnlichem "/" Slash-Kommando-System
 - **12 medizinische Content-Box Kategorien:** Definition, Ursachen, Symptome, Diagnostik, Therapie, Algorithmus, Merke, Disposition, Abläufe, Differenzial, Studie, Sonstiges
@@ -42,12 +42,6 @@ Der SOP Editor ist das Werkzeug, mit dem diese Leitfäden entstehen – und mehr
 - **Multi-Format Export:** PDF, Word (DOCX), JSON
 - **Cloud-Speicherung** via Supabase
 - **Organisations-Verwaltung** für Teams und Krankenhäuser
-
-### Weitere Features
-
-- **Krankenhaus-Autocomplete** aus dem Bundes-Klinik-Atlas
-- **Undo/Redo** mit lokalem History-Tracking
-- **Tag/Nacht Modus**
 
 ---
 
@@ -85,8 +79,6 @@ GITHUB_TOKEN=ghp_xxx
 ```bash
 npm start
 ```
-
-Die Anwendung läuft auf [http://localhost:3000](http://localhost:3000)
 
 ### Production Build
 
