@@ -7,6 +7,41 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.6.2] - 2025-12-05
+
+### ✨ Added
+- **Export-Status-Anzeige:** Neue Statusanzeige "Exportiere ..." in der Toolbar während PDF-, Word- oder JSON-Exports
+  - Zeigt jetzt drei unterschiedliche Zustände: "Exportiere ...", "Aktualisiere ...", "Synchronisiert"
+
+- **Intelligentes Undo/Redo:** Die Toolbar-Buttons wählen automatisch zwischen Text- und Struktur-History
+  - Bei fokussiertem Textfeld/Tabelle: TipTap-History (Text-Änderungen)
+  - Sonst: Globale History (Box verschieben, Einstellungen, etc.)
+  - Button-Klick verhindert Fokus-Verlust für nahtlose Bedienung
+
+### 🔄 Changed
+- **Box-Individualisierung eingeschränkt:** Die Funktion zum Ändern des Box-Namens ist jetzt nur noch für bestimmte Kategorien verfügbar:
+  - Sonstiges, Algorithmus, Differenzial, Abläufe, Studie
+  - Andere Kategorien (Definition, Ursachen, Symptome, etc.) zeigen die Namensänderung nicht mehr an
+
+### 🐛 Fixed
+- **Fehlermeldungen auf Deutsch:** Login- und Registrierungsfehlermeldungen werden jetzt vollständig auf Deutsch angezeigt
+  - "Invalid login credentials" → "Bitte prüfe deine Anmeldedaten erneut."
+  - "User already registered" → "Diese E-Mail-Adresse ist bereits registriert."
+  - "Email not confirmed" → "Bitte bestätige zuerst deine E-Mail-Adresse."
+  - Weitere Supabase-Fehlermeldungen übersetzt
+
+### 🔧 Technical
+- **Neuer Context:** `TipTapFocusContext.js` für Tracking des aktiven TipTap-Editors
+- **TextBlock.js:** Editor-Registrierung bei Fokus für intelligentes Undo/Redo
+- **TipTapTableBlock.js:** Editor-Registrierung bei Fokus für intelligentes Undo/Redo
+- **UndoRedoButton.jsx:** Intelligente History-Auswahl, Fokus-Steal-Verhinderung
+- **App.js:** `TipTapFocusProvider` eingebunden
+- **Login.jsx:** `translateAuthError()` Funktion für Fehlerübersetzung hinzugefügt
+- **Register.jsx:** `translateAuthError()` Funktion für Fehlerübersetzung hinzugefügt
+- **Editor.js:** Statusanzeige-Logik erweitert für Export-Status
+- **ContentBoxBlock.js:** Bedingte Anzeige des customLabel-Inputs basierend auf Kategorie
+
+---
 
 ## [0.6.1](///compare/v0.6.0...v0.6.1) (2025-12-05)
 

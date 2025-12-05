@@ -171,7 +171,8 @@ src/
 │   ├── AuthContext.js        # Authentifizierung
 │   ├── ThemeContext.js       # Tag/Nacht Modus
 │   ├── ZoomContext.js        # Zoom-Level
-│   └── DragDropContext.js    # Drag & Drop State & Provider (@dnd-kit)
+│   ├── DragDropContext.js    # Drag & Drop State & Provider (@dnd-kit)
+│   └── TipTapFocusContext.js # Intelligentes Undo/Redo (TipTap vs Global)
 │
 ├── hooks/
 │   ├── useEditorHistory.js   # Undo/Redo + LocalStorage

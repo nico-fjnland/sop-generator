@@ -7,6 +7,27 @@ import { Label } from '../../components/ui/label';
 import { SignIn, ArrowLeft, Envelope, Lock, Eye, EyeSlash } from '@phosphor-icons/react';
 import { Spinner } from '../../components/ui/spinner';
 
+// Übersetzung der Supabase-Fehlermeldungen
+const translateAuthError = (message) => {
+  const translations = {
+    'Invalid login credentials': 'Bitte prüfe deine Anmeldedaten erneut.',
+    'Email not confirmed': 'Bitte bestätige zuerst deine E-Mail-Adresse.',
+    'User not found': 'Kein Konto mit dieser E-Mail-Adresse gefunden.',
+    'Invalid email or password': 'Bitte prüfe deine Anmeldedaten erneut.',
+    'Too many requests': 'Zu viele Anmeldeversuche. Bitte warte einen Moment.',
+    'Network request failed': 'Netzwerkfehler. Bitte prüfe deine Internetverbindung.',
+  };
+  
+  // Suche nach passender Übersetzung (auch Teilstring-Match)
+  for (const [key, value] of Object.entries(translations)) {
+    if (message.toLowerCase().includes(key.toLowerCase())) {
+      return value;
+    }
+  }
+  
+  return message; // Fallback auf Original
+};
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,7 +46,7 @@ export default function Login() {
       if (error) throw error;
       window.location.href = '/';
     } catch (error) {
-      setError('Fehler beim Anmelden: ' + error.message);
+      setError('Fehler beim Anmelden: ' + translateAuthError(error.message));
     } finally {
       setLoading(false);
     }

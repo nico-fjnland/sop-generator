@@ -512,21 +512,24 @@ const ContentBoxBlock = ({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             
-            {/* Custom Label Input */}
-            <div className="px-2 py-2">
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                Name
-              </label>
-              <Input
-                type="text"
-                value={customLabel}
-                onChange={(e) => handleCustomLabelChange(e.target.value)}
-                placeholder={category.label}
-                className="h-8 text-sm"
-              />
-            </div>
-            
-            <DropdownMenuSeparator />
+            {/* Custom Label Input - nur für bestimmte Kategorien */}
+            {['sonstiges', 'algorithmus', 'differenzial', 'ablaeufe', 'studie'].includes(selectedCategory) && (
+              <>
+                <div className="px-2 py-2">
+                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                    Name
+                  </label>
+                  <Input
+                    type="text"
+                    value={customLabel}
+                    onChange={(e) => handleCustomLabelChange(e.target.value)}
+                    placeholder={category.label}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <DropdownMenuSeparator />
+              </>
+            )}
             
             {/* Column Count Selection */}
             <div className="px-2 py-2">

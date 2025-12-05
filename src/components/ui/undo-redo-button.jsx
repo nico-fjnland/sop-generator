@@ -1,30 +1,28 @@
 import React from 'react';
 import { Button } from './button';
 import { ArrowCounterClockwise, ArrowClockwise } from '@phosphor-icons/react';
+import { useTipTapFocus } from '../../contexts/TipTapFocusContext';
 
 /**
- * UndoRedoButton component - works with both TipTap editor and custom history systems
- * Provides undo/redo functionality with proper disabled states
+ * UndoRedoButton component - Intelligentes Undo/Redo für TipTap und globale History
  * 
- * For TipTap editor:
- * @param {object} editor - TipTap editor instance
+ * Wählt automatisch zwischen:
+ * - TipTap History: Wenn ein TipTap-Editor fokussiert ist (Text/Tabellen)
+ * - Globale History: Wenn kein TipTap-Editor fokussiert ist (Struktur-Änderungen)
  * 
- * For custom history (e.g., useEditorHistory):
- * @param {function} onAction - Function to execute (undo/redo)
- * @param {boolean} canExecute - Whether the action can be executed
- * 
- * Common props:
- * @param {string} action - 'undo' or 'redo'
- * @param {string} text - Optional button text
- * @param {boolean} hideWhenUnavailable - Hide button when action is not available
- * @param {boolean} showShortcut - Show keyboard shortcut in title
- * @param {function} onExecuted - Callback after action is executed
- * @param {string} className - Additional CSS classes
+ * Props:
+ * @param {function} onAction - Funktion für globale History (undo/redo)
+ * @param {boolean} canExecute - Ob die globale Aktion ausgeführt werden kann
+ * @param {string} action - 'undo' oder 'redo'
+ * @param {string} text - Optionaler Button-Text
+ * @param {boolean} hideWhenUnavailable - Button verstecken wenn nicht verfügbar
+ * @param {boolean} showShortcut - Keyboard-Shortcut im Tooltip anzeigen
+ * @param {function} onExecuted - Callback nach Ausführung
+ * @param {string} className - Zusätzliche CSS-Klassen
  */
 export const UndoRedoButton = ({
-  editor,
   onAction,
-  canExecute: canExecuteProp,
+  canExecute: canExecuteGlobal,
   action = 'undo',
   text,
   hideWhenUnavailable = false,
@@ -33,36 +31,45 @@ export const UndoRedoButton = ({
   className = '',
 }) => {
   const isUndo = action === 'undo';
+  const { getActiveEditor } = useTipTapFocus();
   
-  // Determine if action can be executed
-  let canExecute;
-  if (editor) {
-    // TipTap editor mode
-    canExecute = isUndo ? editor.can().undo() : editor.can().redo();
-  } else if (canExecuteProp !== undefined) {
-    // Custom history mode
-    canExecute = canExecuteProp;
-  } else {
-    return null;
-  }
+  // Prüfe, ob ein TipTap-Editor aktiv ist und ob er undo/redo kann
+  const tipTapEditor = getActiveEditor();
+  const canExecuteTipTap = tipTapEditor 
+    ? (isUndo ? tipTapEditor.can().undo() : tipTapEditor.can().redo())
+    : false;
+  
+  // Bestimme, ob die Aktion ausgeführt werden kann (TipTap ODER global)
+  const canExecute = canExecuteTipTap || canExecuteGlobal;
 
   // Hide button if action is not available and hideWhenUnavailable is true
   if (hideWhenUnavailable && !canExecute) {
     return null;
   }
 
+  /**
+   * Verhindert, dass der Button den Fokus vom TipTap-Editor stiehlt
+   */
+  const handleMouseDown = (e) => {
+    // Wenn ein TipTap-Editor aktiv ist, verhindern wir den Fokus-Wechsel
+    if (tipTapEditor) {
+      e.preventDefault();
+    }
+  };
+
   const handleClick = () => {
     if (!canExecute) return;
     
-    if (editor) {
-      // TipTap editor mode
+    // Intelligente Entscheidung: TipTap oder global?
+    if (tipTapEditor && canExecuteTipTap) {
+      // TipTap History verwenden
       if (isUndo) {
-        editor.chain().focus().undo().run();
+        tipTapEditor.chain().focus().undo().run();
       } else {
-        editor.chain().focus().redo().run();
+        tipTapEditor.chain().focus().redo().run();
       }
-    } else if (onAction) {
-      // Custom history mode
+    } else if (onAction && canExecuteGlobal) {
+      // Globale History verwenden
       onAction();
     }
     
@@ -70,7 +77,7 @@ export const UndoRedoButton = ({
   };
 
   const defaultTitle = isUndo ? 'Rückgängig' : 'Wiederherstellen';
-  const shortcut = isUndo ? 'Ctrl+Z' : 'Ctrl+Y';
+  const shortcut = isUndo ? 'Ctrl+Z' : 'Ctrl+Shift+Z';
   const title = showShortcut ? `${defaultTitle} (${shortcut})` : defaultTitle;
 
   const Icon = isUndo ? ArrowCounterClockwise : ArrowClockwise;
@@ -79,6 +86,7 @@ export const UndoRedoButton = ({
     <Button
       variant="ghost"
       size="icon"
+      onMouseDown={handleMouseDown}
       onClick={handleClick}
       disabled={!canExecute}
       title={title}
@@ -95,4 +103,3 @@ export const UndoRedoButton = ({
     </Button>
   );
 };
-

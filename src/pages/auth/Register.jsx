@@ -20,6 +20,28 @@ import {
   EyeSlash
 } from '@phosphor-icons/react';
 
+// Übersetzung der Supabase-Fehlermeldungen
+const translateAuthError = (message) => {
+  const translations = {
+    'User already registered': 'Diese E-Mail-Adresse ist bereits registriert.',
+    'Password should be at least 6 characters': 'Das Passwort muss mindestens 6 Zeichen lang sein.',
+    'Unable to validate email address: invalid format': 'Bitte gib eine gültige E-Mail-Adresse ein.',
+    'Invalid email': 'Bitte gib eine gültige E-Mail-Adresse ein.',
+    'Signup requires a valid password': 'Bitte gib ein gültiges Passwort ein.',
+    'Email rate limit exceeded': 'Zu viele Registrierungsversuche. Bitte warte einen Moment.',
+    'Network request failed': 'Netzwerkfehler. Bitte prüfe deine Internetverbindung.',
+  };
+  
+  // Suche nach passender Übersetzung (auch Teilstring-Match)
+  for (const [key, value] of Object.entries(translations)) {
+    if (message.toLowerCase().includes(key.toLowerCase())) {
+      return value;
+    }
+  }
+  
+  return message; // Fallback auf Original
+};
+
 // Step-Konfiguration (jetzt nur noch 2 Schritte)
 const STEPS = [
   { id: 1, title: 'Account' },
@@ -356,7 +378,7 @@ export default function Register() {
       setIsComplete(true);
       
     } catch (error) {
-      setGlobalError('Fehler bei der Registrierung: ' + error.message);
+      setGlobalError('Fehler bei der Registrierung: ' + translateAuthError(error.message));
     } finally {
       setLoading(false);
     }

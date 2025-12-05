@@ -24,6 +24,7 @@ import {
   DropdownMenuSubContent,
 } from '../ui/dropdown-menu';
 import { CATEGORIES, ADDITIONAL_ELEMENTS } from './ContentBoxBlock';
+import { useTipTapFocus } from '../../contexts/TipTapFocusContext';
 import './TipTapTableBlock.css';
 
 // Custom TableCell that supports colspan/rowspan and background color
@@ -145,6 +146,9 @@ const TipTapTableBlock = forwardRef(({
   const [toolbarPosition, setToolbarPosition] = useState({ top: 0, left: 0 });
   const containerRef = useRef(null);
   const titleInputRef = useRef(null);
+  
+  // TipTap Focus Context für intelligentes Undo/Redo
+  const { registerEditor, unregisterEditor } = useTipTapFocus();
 
   // Table color (dark blue to match design)
   const tableColor = '#003366';
@@ -295,7 +299,15 @@ const TipTapTableBlock = forwardRef(({
         setShowToolbar(false);
       }
     },
-  }, []);
+    onFocus: ({ editor }) => {
+      // Registriere diesen Editor für intelligentes Undo/Redo
+      registerEditor(editor);
+    },
+    onBlur: () => {
+      // Deregistriere den Editor (mit kurzem Timeout für Button-Klicks)
+      unregisterEditor();
+    },
+  }, [registerEditor, unregisterEditor]);
 
   // Initialize title from content - only once on mount
   useEffect(() => {

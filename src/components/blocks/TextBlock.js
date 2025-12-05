@@ -13,6 +13,7 @@ import InlineTextToolbar from '../InlineTextToolbar';
 import SlashMenu from '../SlashMenu';
 import { SlashCommand } from '../extensions/SlashCommand';
 import { HighlightItem } from '../extensions/HighlightItem';
+import { useTipTapFocus } from '../../contexts/TipTapFocusContext';
 import './TextBlock.css';
 
 // Custom extension for smaller font size (10px)
@@ -44,6 +45,9 @@ const SmallFont = Mark.create({
 const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox = false, onAddAfter, blockId }, ref) => {
   // For non-content-box blocks, use simple textarea
   const textareaRef = React.useRef(null);
+  
+  // TipTap Focus Context für intelligentes Undo/Redo
+  const { registerEditor, unregisterEditor } = useTipTapFocus();
   
   // State for toolbar
   const [showToolbar, setShowToolbar] = useState(false);
@@ -185,7 +189,15 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       const cleanHtml = html === '<p></p>' ? '' : html;
       onChange(cleanHtml);
     },
-  }, [isInsideContentBox]); // Removed onChange from dependencies - it causes re-creation!
+    onFocus: ({ editor }) => {
+      // Registriere diesen Editor für intelligentes Undo/Redo
+      registerEditor(editor);
+    },
+    onBlur: () => {
+      // Deregistriere den Editor (mit kurzem Timeout für Button-Klicks)
+      unregisterEditor();
+    },
+  }, [isInsideContentBox, registerEditor, unregisterEditor]); // Removed onChange from dependencies - it causes re-creation!
 
   // Sync content from parent
   useEffect(() => {

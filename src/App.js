@@ -10,6 +10,7 @@ import PrivateRoute from './components/PrivateRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import { ZoomProvider } from './contexts/ZoomContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { TipTapFocusProvider } from './contexts/TipTapFocusContext';
 import { Toaster } from './components/ui/sonner';
 import HelpButton from './components/HelpButton';
 import AnimatedBackgroundGradient from './components/AnimatedBackgroundGradient';
@@ -66,9 +67,11 @@ function App() {
     <AuthProvider>
       <ThemeProvider>
         <ZoomProvider>
-          <Router>
-            <AppContent />
-          </Router>
+          <TipTapFocusProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </TipTapFocusProvider>
         </ZoomProvider>
       </ThemeProvider>
     </AuthProvider>

@@ -712,7 +712,12 @@ const Editor = () => {
           <div className="ml-auto flex items-center gap-2">
             <div className="h-4 w-px bg-gray-200" />
             <div className="flex items-center gap-1.5 px-2 min-w-[120px]">
-              {(isExporting || isSaving || isCloudSaving) ? (
+              {isExporting ? (
+                <>
+                  <Spinner size="sm" className="text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Exportiere ...</span>
+                </>
+              ) : (isSaving || isCloudSaving) ? (
                 <>
                   <Spinner size="sm" className="text-muted-foreground" />
                   <span className="text-xs text-muted-foreground">Aktualisiere ...</span>
