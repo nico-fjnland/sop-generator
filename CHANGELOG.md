@@ -7,6 +7,17 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+
+* Update README.md (3affccb)
+* Update README.md (37a0055)
+* docs: README überarbeitet mit Hintergrund-Story und verbesserter Struktur (7368eb6)
+* feat: detaillierte GitHub Release Notes aus CHANGELOG.md (2e45e1e)
+
+* Update README.md (3affccb)
+* Update README.md (37a0055)
+* docs: README überarbeitet mit Hintergrund-Story und verbesserter Struktur (7368eb6)
+* feat: detaillierte GitHub Release Notes aus CHANGELOG.md (2e45e1e)
+
 ## [0.6.3] - 2025-12-05
 
 ### ✨ Added

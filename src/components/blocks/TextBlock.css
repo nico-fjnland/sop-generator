@@ -55,18 +55,30 @@
 @media screen {
   .tiptap-wrapper .tiptap-editor .is-editor-empty::before {
     content: attr(data-placeholder);
-    float: left;
     color: #adb5bd;
     pointer-events: none;
-    height: 0;
+    position: absolute;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .tiptap-wrapper .tiptap-editor .is-empty::before {
     content: attr(data-placeholder);
-    float: left;
     color: #adb5bd;
     pointer-events: none;
-    height: 0;
+    position: absolute;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  /* Ensure parent has relative positioning for absolute placeholder */
+  .tiptap-wrapper .tiptap-editor .is-editor-empty,
+  .tiptap-wrapper .tiptap-editor .is-empty {
+    position: relative;
   }
 }
 
