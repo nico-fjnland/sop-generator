@@ -7,13 +7,6 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
-
-## [0.6.2](///compare/v0.6.1...v0.6.2) (2025-12-05)
-
-### Features
-
-* intelligentes Undo/Redo, Export-Status, deutsche Fehlermeldungen, Box-Namen eingeschränkt 36c18a1
-
 ## [0.6.2] - 2025-12-05
 
 ### ✨ Added
@@ -50,7 +43,12 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
-## [0.6.1](///compare/v0.6.0...v0.6.1) (2025-12-05)
+## [0.6.1] - 2025-12-05
+
+### 🔧 Technical
+- Erste Version mit automatisierten GitHub Releases via release-it
+
+---
 
 ## [0.6.0] - 2025-12-05
 

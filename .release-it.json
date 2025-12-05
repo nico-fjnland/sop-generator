@@ -10,7 +10,7 @@
   "github": {
     "release": true,
     "releaseName": "v${version}",
-    "autoGenerate": true,
+    "releaseNotes": "node scripts/extract-changelog.js ${version}",
     "draft": false,
     "preRelease": false,
     "tokenRef": "GITHUB_TOKEN",
