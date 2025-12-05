@@ -22,7 +22,8 @@
 11. [UI-Komponenten](#ui-komponenten)
 12. [Routing](#routing)
 13. [Styling & Theming](#styling--theming)
-14. [Browserkompatibilität](#browserkompatibilität)
+14. [CI/CD & Release-Prozess](#cicd--release-prozess)
+15. [Browserkompatibilität](#browserkompatibilität)
 
 ---
 
@@ -826,6 +827,53 @@ npm run build
 ```env
 REACT_APP_SUPABASE_URL=https://xxx.supabase.co
 REACT_APP_SUPABASE_ANON_KEY=eyJ...
+```
+
+---
+
+## CI/CD & Release-Prozess
+
+### Automatische Releases
+
+Das Projekt nutzt GitHub Actions für vollautomatische Releases. Der Workflow wird ausgelöst, wenn die Version in `package.json` geändert und auf den `main`-Branch gepusht wird.
+
+**Workflow-Datei:** `.github/workflows/auto-release.yml`
+
+### Release-Ablauf
+
+1. **Version ändern** in `package.json`
+2. **CHANGELOG.md aktualisieren** mit Release-Notes
+3. **Commit & Push** auf `main`
+4. **GitHub Action** erkennt die Versionsänderung automatisch:
+   - Prüft, ob Tag bereits existiert
+   - Extrahiert Release-Notes aus CHANGELOG.md
+   - Erstellt Git-Tag (z.B. `v0.5.4`)
+   - Erstellt GitHub Release mit den extrahierten Notes
+
+### Manuelles Release (Alternative)
+
+Falls ein manuelles Release gewünscht ist:
+
+```bash
+# Tag erstellen
+git tag v0.5.4
+
+# Tag pushen (löst auch den Workflow aus)
+git push origin v0.5.4
+```
+
+### CHANGELOG-Format
+
+Das CHANGELOG muss dem "Keep a Changelog" Format folgen, damit die automatische Extraktion funktioniert:
+
+```markdown
+## [0.5.4] - 2025-12-05
+
+### ✨ Added
+- Neue Funktion XYZ
+
+### 🐛 Fixed
+- Bug ABC behoben
 ```
 
 ---

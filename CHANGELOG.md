@@ -7,6 +7,43 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.5.4] - 2025-12-05
+
+### ✨ Added
+- **Automatische GitHub Releases:** Neuer GitHub Actions Workflow für vollautomatische Releases
+  - Überwacht Versionsänderungen in `package.json` auf dem `main`-Branch
+  - Extrahiert Release-Notes automatisch aus `CHANGELOG.md`
+  - Erstellt Git-Tag und GitHub Release bei neuer Version
+  - Workflow-Datei: `.github/workflows/auto-release.yml`
+
+---
+
+## [0.5.3] - 2025-12-05
+
+### 🔄 Changed
+- **Spaltenauswahl statt Toggle:** Im "Box individualisieren" Menü ersetzt eine Spaltenauswahl den bisherigen Zweispaltigkeits-Toggle
+  - Drei Buttons: **Einspaltig** (1), **Zweispaltig** (2), **Dreispaltig** (3)
+  - Dreispaltig ist nur für die Kategorie **Disposition** verfügbar
+  - Schlichte Darstellung nur mit Zahlen (1, 2, 3)
+  - Aktiver Button wird farblich hervorgehoben
+
+- **Farbauswahl entfernt:** Die manuelle Farbauswahl wurde aus dem "Box individualisieren" Menü entfernt
+  - Kategorien behalten ihre Standard-Farben
+  - Bestehende Custom-Colors werden weiterhin unterstützt (Abwärtskompatibilität)
+
+### 🔧 Technical
+- **ContentBoxBlock.js:**
+  - `isTwoColumn` (boolean) zu `columnCount` (number: 1, 2, 3) migriert
+  - Migration von alten Dokumenten mit `isTwoColumn` zu `columnCount`
+  - `Switch` Import entfernt
+  - `handleTwoColumnToggle` zu `handleColumnCountChange` umbenannt
+
+- **App.css:**
+  - Neue CSS-Klasse `.three-column` für dreispaltiges Grid-Layout
+  - Print-Styles für dreispaltiges Layout ergänzt
+
+---
+
 ## [0.5.2] - 2025-12-04
 
 ### 🔄 Changed
