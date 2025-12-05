@@ -7,6 +7,11 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+
+* feat: Mikroanimation für Undo/Redo-Buttons (157ba0a)
+* fix: Placeholder-Text einzeilig mit Truncate bei Platzmangel (766402a)
+* fix: release scripts laden .env automatisch für GITHUB_TOKEN (042d442)
+
 ## [0.6.4] - 2025-12-05
 
 ### 🔧 Improved

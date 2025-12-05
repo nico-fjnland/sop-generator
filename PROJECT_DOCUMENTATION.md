@@ -1,6 +1,6 @@
 # SOP Editor - Vollständige Projektdokumentation
 
-> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.6.1)  
+> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.6.4)  
 > **Stack:** React 18 + Supabase + TailwindCSS  
 > **Zielgruppe:** Medizinisches Personal zur Erstellung von Standard Operating Procedures (SOPs)  
 > **Changelog:** [`CHANGELOG.md`](./CHANGELOG.md)
@@ -846,8 +846,8 @@ npm run build
 # Interaktiver Release (wählt Version)
 npm run release
 
-# Spezifische Version (Beispiel ausgehend von 0.6.0)
-npm run release:patch   # → 0.6.1
+# Spezifische Version (Beispiel ausgehend von 0.6.4)
+npm run release:patch   # → 0.6.5
 npm run release:minor   # → 0.7.0
 npm run release:major   # → 1.0.0
 
