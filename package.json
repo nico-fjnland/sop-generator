@@ -66,11 +66,11 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "release": "release-it",
-    "release:patch": "release-it patch",
-    "release:minor": "release-it minor",
-    "release:major": "release-it major",
-    "release:dry-run": "release-it --dry-run"
+    "release": "export $(grep -v '^#' .env | xargs) && release-it",
+    "release:patch": "export $(grep -v '^#' .env | xargs) && release-it patch",
+    "release:minor": "export $(grep -v '^#' .env | xargs) && release-it minor",
+    "release:major": "export $(grep -v '^#' .env | xargs) && release-it major",
+    "release:dry-run": "export $(grep -v '^#' .env | xargs) && release-it --dry-run"
   },
   "eslintConfig": {
     "extends": [
