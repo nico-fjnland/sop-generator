@@ -7,16 +7,32 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.6.4] - 2025-12-05
 
-* Update README.md (3affccb)
-* Update README.md (37a0055)
-* docs: README überarbeitet mit Hintergrund-Story und verbesserter Struktur (7368eb6)
-* feat: detaillierte GitHub Release Notes aus CHANGELOG.md (2e45e1e)
+### 🔧 Improved
+- **Zoom-Funktion komplett überarbeitet:** Der Zoom-Control zoomt jetzt nur den A4-Seitencontainer und die Toolbar
+  - Verwendet jetzt CSS `zoom` statt `transform: scale()` - dadurch passt sich das Layout automatisch an
+  - Bei höheren Zoom-Stufen (150%, 175%, 200%) entsteht kein horizontales Scrolling mehr
+  - Bei niedrigeren Zoom-Stufen (50%, 75%, 90%) schrumpft der Container korrekt mit (kein Leerraum mehr)
+  - Druckfunktion bleibt unbeeinflusst - Print-Styles setzen den Zoom auf 100% zurück
+  - Hintergrund-Elemente (Gradient, Grain-Overlay) bleiben unverändert und füllen den Viewport
 
-* Update README.md (3affccb)
-* Update README.md (37a0055)
-* docs: README überarbeitet mit Hintergrund-Story und verbesserter Struktur (7368eb6)
-* feat: detaillierte GitHub Release Notes aus CHANGELOG.md (2e45e1e)
+### 🐛 Fixed
+- **DragOverlay bei Zoom korrigiert (Chrome):** Behebt das Problem, dass die Box während des Drags bei veränderten Zoom-Stufen falsche Größe und Position hatte
+  - **Ursache:** `getBoundingClientRect()` gibt bei CSS `zoom` gezoomte Werte zurück. Das DragOverlay muss im gleichen Zoom-Kontext sein.
+  - **Lösung:** 
+    - DragOverlay wird im ZoomWrapper gerendert (via `container` Prop)
+    - Breite wird durch Zoom-Faktor geteilt (Basis-Breite)
+    - Cursor-Position im Modifier wird ebenfalls zoom-korrigiert
+  - Betroffene Dateien: `DragDropContext.js`, `DropIndicator.jsx`, `Editor.js`
+
+### ⚠️ Known Issues
+- **Safari/Firefox bei Zoom ≠ 100%:** Drag & Drop zeigt falsche Box-Größe und/oder Cursor-Position
+  - Ursache: CSS `zoom` ist nicht standardisiert und wird von Browsern unterschiedlich behandelt
+  - Workaround: Bei 100% Zoom funktioniert Drag & Drop in allen Browsern korrekt
+  - Status: Wird in einer zukünftigen Version adressiert
+
+---
 
 ## [0.6.3] - 2025-12-05
 

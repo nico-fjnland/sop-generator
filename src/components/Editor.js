@@ -573,9 +573,10 @@ const Editor = () => {
 
   // Render function for drag overlay ghost
   // Shows the actual block appearance without hover controls
-  const renderDragOverlay = useCallback((block) => {
+  // Receives the measured width from the original element for accurate sizing
+  const renderDragOverlay = useCallback((block, width) => {
     return (
-      <DragGhost block={block}>
+      <DragGhost block={block} width={width}>
         <Block
           block={block}
           onUpdate={() => {}}

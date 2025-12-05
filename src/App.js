@@ -22,8 +22,11 @@ const AppContent = () => {
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-200 ${getGradientClass()}`}>
+      {/* Background elements - fixed, nicht vom Zoom betroffen */}
       <AnimatedBackgroundGradient />
       <div className="grain-overlay" />
+      
+      {/* UI-Elemente außerhalb des Zoom-Wrappers - bleiben bei fixer Größe */}
       <Toaster position="bottom-left" />
       <HelpButton />
       <ZoomControl />
@@ -45,7 +48,7 @@ const AppContent = () => {
         {/* Editor Route - With Zoom wrapper */}
         <Route path="/" element={
           <ZoomWrapper>
-            <main className="flex-grow px-6 overflow-auto no-print flex justify-center">
+            <main className="px-6 no-print flex justify-center pb-6">
               <div className="w-full flex justify-center">
                 <div
                   ref={componentRef}

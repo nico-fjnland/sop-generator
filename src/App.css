@@ -1,5 +1,10 @@
 /* Custom styles for the SOP Editor */
 
+/* Verhindert horizontales Scrolling auf der gesamten Seite */
+html, body {
+  overflow-x: hidden;
+}
+
 /* Help Scout Beacon positioning - offset to avoid overlap with custom Help button */
 .BeaconContainer,
 #BeaconContainer-root,
@@ -45,9 +50,15 @@ iframe[title*="Help Scout"] {
   }
   
   /* Zoom beim Drucken zurücksetzen - KRITISCH für korrektes Druckergebnis */
+  #zoom-wrapper-outer {
+    overflow: visible !important;
+  }
+  
   #zoom-wrapper {
-    transform: scale(1) !important;
     zoom: 1 !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
   
   /* Alle Elemente auf normalen Zoom zurücksetzen */

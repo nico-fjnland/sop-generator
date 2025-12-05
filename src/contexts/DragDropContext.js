@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -15,19 +15,26 @@ import {
   verticalListSortingStrategy,
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
+import { useZoom } from './ZoomContext';
 
 /**
- * Custom modifier: Snaps to cursor but offsets the box to the right
- * so the cursor stays at the left edge (where the icon/drag handle is).
- * Uses the same logic as snapCenterToCursor but adds 50% width offset.
+ * Factory function to create a custom modifier that snaps to cursor.
+ * 
+ * The DragOverlay is rendered inside the ZoomWrapper (via container prop).
+ * This solution works correctly in Chrome/Chromium browsers.
+ * 
+ * KNOWN LIMITATION: Safari and Firefox handle CSS `zoom` differently,
+ * causing incorrect sizing/positioning at zoom levels != 100%.
+ * This is due to non-standard CSS `zoom` behavior across browsers.
+ * 
+ * @param {number} zoomFactor - The current zoom factor (e.g., 1.25 for 125%)
  */
-const snapLeftToCursor = ({
+const createSnapLeftToCursor = (zoomFactor) => ({
   activatorEvent,
   draggingNodeRect,
   transform,
 }) => {
   if (draggingNodeRect && activatorEvent) {
-    // Get cursor coordinates from the activator event
     const activatorCoordinates = activatorEvent instanceof MouseEvent || activatorEvent instanceof PointerEvent
       ? { x: activatorEvent.clientX, y: activatorEvent.clientY }
       : activatorEvent instanceof TouchEvent && activatorEvent.touches[0]
@@ -38,11 +45,11 @@ const snapLeftToCursor = ({
       return transform;
     }
 
-    // Calculate offset to position the LEFT edge of the box at cursor
-    // (snapCenterToCursor uses width/2, we use 0 for left edge, then add small offset for icon)
-    const iconOffset = 30; // Approximate width of the icon area
-    const offsetX = activatorCoordinates.x - draggingNodeRect.left - iconOffset;
-    const offsetY = activatorCoordinates.y - draggingNodeRect.top - draggingNodeRect.height / 2;
+    const iconOffset = 30;
+    
+    // Convert to base coordinates by dividing by zoomFactor
+    const offsetX = (activatorCoordinates.x - draggingNodeRect.left) / zoomFactor - iconOffset;
+    const offsetY = (activatorCoordinates.y - draggingNodeRect.top) / zoomFactor - (draggingNodeRect.height / zoomFactor) / 2;
 
     return {
       ...transform,
@@ -155,10 +162,22 @@ export const DragDropProvider = ({
   onRowsChange,
   renderDragOverlay
 }) => {
+  const { zoom } = useZoom();
   const [activeId, setActiveId] = useState(null);
   const [activeBlock, setActiveBlock] = useState(null);
+  const [activeWidth, setActiveWidth] = useState(null);
   const [overId, setOverId] = useState(null);
   const [dropPosition, setDropPosition] = useState(null);
+  
+  // Reference to the ZoomWrapper element for rendering DragOverlay inside it
+  const [zoomWrapperEl, setZoomWrapperEl] = useState(null);
+  
+  useEffect(() => {
+    const el = document.getElementById('zoom-wrapper');
+    if (el) {
+      setZoomWrapperEl(el);
+    }
+  }, []);
 
   // Configure sensors
   const sensors = useSensors(
@@ -192,12 +211,28 @@ export const DragDropProvider = ({
     const { active } = event;
     setActiveId(active.id);
     
+    // Measure the width and divide by zoom to get BASE width
+    // The DragOverlay is inside the ZoomWrapper, so zoom will scale it back up
+    const blockElement = document.querySelector(`[data-block-id="${active.id}"]`);
+    if (blockElement) {
+      const contentBox = blockElement.querySelector('.content-box-block') || 
+                         blockElement.querySelector('.source-box-block') ||
+                         blockElement.querySelector('.tiptap-table-block') ||
+                         blockElement;
+      if (contentBox) {
+        const rect = contentBox.getBoundingClientRect();
+        const zoomFactor = zoom / 100;
+        // Divide by zoom to get base width
+        setActiveWidth(rect.width / zoomFactor);
+      }
+    }
+    
     // Find the block being dragged
     const found = findBlockById(active.id);
     if (found) {
       setActiveBlock(found.block);
     }
-  }, [findBlockById]);
+  }, [findBlockById, zoom]);
 
   // Handle drag over (for live feedback)
   const handleDragOver = useCallback((event) => {
@@ -219,6 +254,7 @@ export const DragDropProvider = ({
     // Reset state
     setActiveId(null);
     setActiveBlock(null);
+    setActiveWidth(null);
     setOverId(null);
     setDropPosition(null);
     
@@ -320,6 +356,7 @@ export const DragDropProvider = ({
   const handleDragCancel = useCallback(() => {
     setActiveId(null);
     setActiveBlock(null);
+    setActiveWidth(null);
     setOverId(null);
     setDropPosition(null);
   }, []);
@@ -331,6 +368,12 @@ export const DragDropProvider = ({
     dropPosition,
     isDragging: activeId !== null,
   }), [activeId, activeBlock, overId, dropPosition]);
+
+  // Create the snap modifier with current zoom factor
+  const snapLeftToCursorModifier = useMemo(
+    () => createSnapLeftToCursor(zoom / 100),
+    [zoom]
+  );
 
   return (
     <DragDropStateContext.Provider value={contextValue}>
@@ -346,14 +389,16 @@ export const DragDropProvider = ({
           {children}
         </SortableContext>
         
+        {/* DragOverlay renders inside ZoomWrapper for Chrome compatibility */}
         <DragOverlay 
-          modifiers={[snapLeftToCursor]}
+          modifiers={[snapLeftToCursorModifier]}
           dropAnimation={{
             duration: 200,
             easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
           }}
+          container={zoomWrapperEl || undefined}
         >
-          {activeBlock && renderDragOverlay ? renderDragOverlay(activeBlock) : null}
+          {activeBlock && renderDragOverlay ? renderDragOverlay(activeBlock, activeWidth) : null}
         </DragOverlay>
       </DndContext>
     </DragDropStateContext.Provider>

@@ -113,8 +113,18 @@ export const DropLine = ({ type = 'horizontal', position }) => {
  * Ghost overlay for the dragged block
  * No white background - shows the actual box appearance
  * Hides hover controls via CSS class
+ * 
+ * The DragOverlay is rendered inside the ZoomWrapper (via container prop).
+ * We also receive the measured width of the original element to ensure
+ * the ghost has the exact same size (the inner Block component would otherwise
+ * calculate its width based on the DragOverlay container).
+ * 
+ * @param {Object} props
+ * @param {React.ReactNode} props.children - The block content to render
+ * @param {Object} props.block - The block data
+ * @param {number} [props.width] - The measured width of the original element
  */
-export const DragGhost = ({ children, block }) => {
+export const DragGhost = ({ children, block, width }) => {
   return (
     <div 
       className="drag-ghost"
@@ -124,6 +134,13 @@ export const DragGhost = ({ children, block }) => {
         filter: 'drop-shadow(0 12px 24px rgba(0, 51, 102, 0.25))',
         cursor: 'grabbing',
         pointerEvents: 'none',
+        // Force the exact width of the original element
+        // This prevents the inner Block from expanding to the DragOverlay container width
+        ...(width ? {
+          width: `${width}px`,
+          maxWidth: `${width}px`,
+          minWidth: `${width}px`,
+        } : {}),
       }}
     >
       {children}
