@@ -7,24 +7,6 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
-
-## [0.6.5](///compare/v0.6.3...v0.6.4) (2025-12-06)
-
-### Features
-
-* Image Upload Node & ImageNodePro für erweiterte Bildbearbeitung 5b645c9
-## [0.6.4](///compare/v0.6.3...v0.6.4) (2025-12-05)
-
-### Features
-
-* Mikroanimation für Undo/Redo-Buttons 157ba0a
-* Zoom-Funktion überarbeitet (CSS zoom) + DragOverlay Fix für Chrome 1e78589
-
-### Bug Fixes
-
-* Placeholder-Text einzeilig mit Truncate bei Platzmangel 766402a
-* release scripts laden .env automatisch für GITHUB_TOKEN 042d442
-
 ## [0.6.5] - 2025-12-06
 
 ### ✨ Added
@@ -68,10 +50,6 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - `src/styles/_keyframe-animations.scss` - CSS-Animationen
 
 ---
-
-* feat: Mikroanimation für Undo/Redo-Buttons (157ba0a)
-* fix: Placeholder-Text einzeilig mit Truncate bei Platzmangel (766402a)
-* fix: release scripts laden .env automatisch für GITHUB_TOKEN (042d442)
 
 ## [0.6.4] - 2025-12-05
 
