@@ -7,6 +7,33 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.6.7] - 2025-12-06
+
+### ✨ Added
+- **Lizenzmodell-Einstellung für Organisationen:** Neue Auswahlmöglichkeit unter Account → Organisation
+  - Dropdown-Auswahl mit zwei Optionen:
+    - "Krankenhaus-Lizenz" (Proprietäre Lizenz für interne Nutzung) - **Default**
+    - "Creative Commons" (Open Source Lizenz für freie Weitergabe)
+  - Wird in Supabase unter der Organisation gespeichert
+  - Neue Spalte `license_model` in der `organizations`-Tabelle
+  - **Footer zeigt Lizenzmodell an:** Bei Krankenhaus-Lizenz wird "Krankenhaus-Lizenz" mit SealCheck-Icon angezeigt, bei Creative Commons die CC-Symbole
+- **Select UI-Komponente:** Neue wiederverwendbare Dropdown-Komponente basierend auf Radix UI
+- **Platzhalter-Logo im SOPHeader:** SVG-Logo "LOGO PLATZHALTER" wird angezeigt wenn kein Logo hinterlegt ist
+  - Nur im Editor sichtbar, nicht beim Drucken (no-print)
+  - Ersetzt das bisherige Image-Icon
+  - Verwendet muted Grautöne (`#94a3b8`, `#cbd5e1`) passend zum UI-Design
+
+### 🎨 Changed
+- **ContentBox Name-Feld immer sichtbar:** Das Name-Feld im "Box individualisieren" Dropdown ist jetzt immer sichtbar
+  - Bei nicht umbennenbaren Kategorien (Definition, Ursachen, Symptome, etc.) ist das Feld ausgegraut/deaktiviert
+  - Konsistentes UI ähnlich der Dreispaltigkeit-Option
+  - Betroffene Kategorien für Umbenennung: Sonstiges, Algorithmus, Differenzial, Abläufe, Studie
+- **Tabellen-Einstellungen UI verbessert:** "Tabelle zurücksetzen" Menüeintrag entfernt
+  - Stattdessen Reset-Icon (ArrowCounterClockwise) im Header des Dropdowns
+  - Konsistentes UI mit ContentBox "Box individualisieren" Dropdown
+
+---
+
 ## [0.6.6] - 2025-12-06
 
 ### 🎨 Changed

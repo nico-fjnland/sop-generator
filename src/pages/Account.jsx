@@ -40,7 +40,8 @@ import {
   Circle,
   CheckCircle,
   XCircle,
-  WarningCircle
+  WarningCircle,
+  Certificate
 } from '@phosphor-icons/react';
 import { getDocuments, deleteDocument, saveDocument, updateDocumentCategory } from '../services/documentService';
 import { updateOrganization } from '../services/organizationService';
@@ -49,6 +50,13 @@ import { toast } from 'sonner';
 import AccountDropdown from '../components/AccountDropdown';
 import { HospitalCombobox } from '../components/ui/hospital-combobox';
 import { PositionCombobox } from '../components/ui/position-combobox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
 import { useKlinikAtlas } from '../hooks/useKlinikAtlas';
 import {
   DropdownMenu,
@@ -381,10 +389,17 @@ const SopsView = React.memo(({
   );
 });
 
+// License Model Options
+const LICENSE_OPTIONS = [
+  { value: 'hospital_license', label: 'Krankenhaus-Lizenz', description: 'Proprietäre Lizenz für interne Nutzung' },
+  { value: 'creative_commons', label: 'Creative Commons', description: 'Open Source Lizenz für freie Weitergabe' }
+];
+
 // OrganizationView Component
 const OrganizationView = React.memo(({ 
   companyLogo, uploadingLogo, uploadCompanyLogo, removeCompanyLogo, logoQuality,
   hospitalName, setHospitalName, selectedHospital, setSelectedHospital,
+  licenseModel, setLicenseModel,
   updating, updateProfile
 }) => (
   <div className="page-container space-y-4">
@@ -567,6 +582,42 @@ const OrganizationView = React.memo(({
               </p>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* License Model Section */}
+      <div className="flex items-center gap-2 pt-4 border-t">
+        <Certificate size={20} className="text-primary" weight="duotone" />
+        <h2 className="text-xl font-semibold">Lizenzmodell</h2>
+      </div>
+
+      {/* License Model Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
+        <div className="space-y-1">
+          <Label className="text-sm font-medium">Dokumenten-Lizenz</Label>
+          <p className="text-xs text-muted-foreground">
+            Bestimmt die Nutzungsrechte für erstellte Dokumente
+          </p>
+        </div>
+        <div>
+          <Select value={licenseModel} onValueChange={setLicenseModel}>
+            <SelectTrigger className="w-full h-auto py-3">
+              <div className="flex flex-col items-start">
+                <span>{LICENSE_OPTIONS.find(o => o.value === licenseModel)?.label}</span>
+                <span className="text-xs text-muted-foreground">{LICENSE_OPTIONS.find(o => o.value === licenseModel)?.description}</span>
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {LICENSE_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value} className="py-2">
+                  <div className="flex flex-col items-start">
+                    <span>{option.label}</span>
+                    <span className="text-xs text-muted-foreground">{option.description}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -945,6 +996,7 @@ export default function Account() {
   const [selectedHospital, setSelectedHospital] = useState(null);
   const [companyLogo, setCompanyLogo] = useState(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [licenseModel, setLicenseModel] = useState('hospital_license');
   const [logoQuality, setLogoQuality] = useState({
     width: null,
     height: null,
@@ -1128,6 +1180,7 @@ export default function Account() {
         if (organization && !ignore) {
           setHospitalName(organization.name || '');
           setCompanyLogo(organization.logo_url ? `${organization.logo_url}?t=${Date.now()}` : null);
+          setLicenseModel(organization.license_model || 'hospital_license');
           
           // Try to restore selectedHospital from Klinik-Atlas
           if (organization.name) {
@@ -1203,6 +1256,7 @@ export default function Account() {
         const { error: orgError } = await updateOrganization(organizationId, {
           name: hospitalName,
           logo_url: companyLogo,
+          license_model: licenseModel,
         });
         if (orgError) throw orgError;
         await refreshOrganization();
@@ -1872,6 +1926,8 @@ export default function Account() {
             setHospitalName={setHospitalName}
             selectedHospital={selectedHospital}
             setSelectedHospital={setSelectedHospital}
+            licenseModel={licenseModel}
+            setLicenseModel={setLicenseModel}
             updating={updating}
             updateProfile={updateProfile}
           />}

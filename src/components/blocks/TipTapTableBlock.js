@@ -9,7 +9,7 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
-import { NotePencil, X, Plus, Check, Table as TableIcon, SortAscending, Infinity } from '@phosphor-icons/react';
+import { NotePencil, X, Plus, Check, Table as TableIcon, SortAscending, Infinity, ArrowCounterClockwise } from '@phosphor-icons/react';
 import { CategoryIconComponents } from '../icons/CategoryIcons';
 import InlineTextToolbar from '../InlineTextToolbar';
 import {
@@ -518,8 +518,19 @@ const TipTapTableBlock = forwardRef(({
             collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }}
             avoidCollisions={true}
           >
-            <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Tabellenoptionen
+            <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
+              <span>Tabellenoptionen</span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  resetTable();
+                }}
+                className="p-1 rounded hover:bg-muted transition-colors"
+                title="Tabelle zurücksetzen"
+              >
+                <ArrowCounterClockwise className="h-4 w-4" weight="regular" />
+              </button>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             
@@ -609,15 +620,6 @@ const TipTapTableBlock = forwardRef(({
                 </div>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
-            
-            <DropdownMenuSeparator />
-            
-            <DropdownMenuItem 
-              onClick={resetTable} 
-              className="text-destructive focus:text-destructive"
-            >
-              Tabelle zurücksetzen
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         
