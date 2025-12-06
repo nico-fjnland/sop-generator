@@ -9,6 +9,7 @@ import { Checkbox } from '../components/ui/checkbox';
 import { Spinner } from '../components/ui/spinner';
 import EmptyState from '../components/EmptyState';
 import DocumentCard, { MEDICAL_CATEGORIES } from '../components/DocumentCard';
+import DocumentCardSkeleton from '../components/DocumentCardSkeleton';
 import BulkExportDialog from '../components/BulkExportDialog';
 import { 
   User, 
@@ -69,14 +70,17 @@ import {
 } from '../components/ui/alert-dialog';
 
 // SortButton Component
-const SortButton = ({ column, sortConfig, onSort, children }) => {
+const SortButton = ({ column, sortConfig, onSort, children, disabled = false }) => {
   const isActive = sortConfig.column === column;
   const isAsc = isActive && sortConfig.direction === 'asc';
   
   return (
     <button
-      onClick={() => onSort(column)}
-      className="flex items-center gap-1.5 hover:text-gray-700 transition-colors group"
+      onClick={() => !disabled && onSort(column)}
+      disabled={disabled}
+      className={`flex items-center gap-1.5 transition-colors group ${
+        disabled ? 'opacity-50 cursor-default' : 'hover:text-gray-700'
+      }`}
     >
       <span>{children}</span>
       {isActive ? (
@@ -93,7 +97,7 @@ const SortButton = ({ column, sortConfig, onSort, children }) => {
 };
 
 // CategoryFilter Component
-const CategoryFilter = ({ categoryFilter, setCategoryFilter }) => {
+const CategoryFilter = ({ categoryFilter, setCategoryFilter, disabled = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const filterRef = React.useRef(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -109,6 +113,7 @@ const CategoryFilter = ({ categoryFilter, setCategoryFilter }) => {
   }, []);
 
   const handleOpen = () => {
+    if (disabled) return;
     if (filterRef.current) {
       const rect = filterRef.current.getBoundingClientRect();
       setPosition({ top: rect.bottom + 4, left: rect.left });
@@ -120,7 +125,10 @@ const CategoryFilter = ({ categoryFilter, setCategoryFilter }) => {
     <div className="relative" ref={filterRef}>
       <button
         onClick={handleOpen}
-        className={`flex items-center gap-1.5 hover:text-gray-700 transition-colors ${categoryFilter ? 'text-primary' : ''}`}
+        disabled={disabled}
+        className={`flex items-center gap-1.5 transition-colors ${
+          disabled ? 'opacity-50 cursor-default' : 'hover:text-gray-700'
+        } ${categoryFilter ? 'text-primary' : ''}`}
       >
         <span>Fachgebiet</span>
         <Funnel size={16} weight={categoryFilter ? 'fill' : 'regular'} />
@@ -284,85 +292,91 @@ const SopsView = React.memo(({
         )}
       </div>
 
-      {/* Documents Table */}
-      {loadingDocs ? (
-        <div className="px-8 pb-8 space-y-2">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse"></div>
-          ))}
+      {/* Documents Table - Always show structure to prevent layout shift */}
+      <div className="bg-gray-50/50">
+        {/* Table Header - Always visible */}
+        <div 
+          className="grid grid-cols-[auto_1fr_176px_124px_72px] items-center gap-4 px-8 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
+          style={{ borderBottom: '1px solid #e5e5e5' }}
+        >
+          <div className="flex items-center justify-center w-6">
+            <Checkbox
+              checked={!loadingDocs && selectedDocs.size === filteredAndSortedDocs.length && filteredAndSortedDocs.length > 0}
+              onCheckedChange={toggleSelectAll}
+              disabled={loadingDocs}
+              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            />
+          </div>
+          <SortButton column="title" sortConfig={sortConfig} onSort={handleSort} disabled={loadingDocs}>
+            Name
+          </SortButton>
+          <CategoryFilter categoryFilter={categoryFilter} setCategoryFilter={setCategoryFilter} disabled={loadingDocs} />
+          <SortButton column="updated_at" sortConfig={sortConfig} onSort={handleSort} disabled={loadingDocs}>
+            Bearbeitet
+          </SortButton>
+          <div></div>
         </div>
-      ) : documents.length === 0 ? (
-        <div className="px-8 pb-8 pt-4">
-          <EmptyState 
-            icon={FileText}
-            title="Noch keine Dokumente vorhanden"
-            description="Erstelle dein erstes SOP-Dokument oder importiere ein bestehendes."
-            action={
-              <div className="flex gap-2 justify-center">
-                <Button onClick={() => navigate('/?new=true')} variant="default" size="sm">
-                  Erstes Dokument erstellen
-                </Button>
-                <Button onClick={triggerImport} variant="outline" size="sm">
-                  Dokument importieren
-                </Button>
-              </div>
-            }
-          />
-        </div>
-      ) : (
-        <div className="bg-gray-50/50">
-          {/* Table Header */}
-          <div 
-            className="grid grid-cols-[auto_1fr_176px_124px_72px] items-center gap-4 px-8 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
-            style={{ borderBottom: '1px solid #e5e5e5' }}
-          >
-            <div className="flex items-center justify-center w-6">
-              <Checkbox
-                checked={selectedDocs.size === filteredAndSortedDocs.length && filteredAndSortedDocs.length > 0}
-                onCheckedChange={toggleSelectAll}
-                className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+
+        {/* Document Rows - Skeleton or Real Data */}
+        {/* min-height matches EmptyState height to prevent layout shift */}
+        <div className="divide-y divide-gray-100" style={{ minHeight: '400px' }}>
+          {loadingDocs ? (
+            // Skeleton Rows
+            [1, 2, 3, 4, 5].map(i => (
+              <DocumentCardSkeleton key={i} />
+            ))
+          ) : documents.length === 0 ? (
+            // Empty State - Inline
+            <div className="px-8 py-12">
+              <EmptyState 
+                icon={FileText}
+                title="Noch keine Dokumente vorhanden"
+                description="Erstelle dein erstes SOP-Dokument oder importiere ein bestehendes."
+                action={
+                  <div className="flex gap-2 justify-center">
+                    <Button onClick={() => navigate('/?new=true')} variant="default" size="sm">
+                      Erstes Dokument erstellen
+                    </Button>
+                    <Button onClick={triggerImport} variant="outline" size="sm">
+                      Dokument importieren
+                    </Button>
+                  </div>
+                }
               />
             </div>
-            <SortButton column="title" sortConfig={sortConfig} onSort={handleSort}>
-              Name
-            </SortButton>
-            <CategoryFilter categoryFilter={categoryFilter} setCategoryFilter={setCategoryFilter} />
-            <SortButton column="updated_at" sortConfig={sortConfig} onSort={handleSort}>
-              Bearbeitet
-            </SortButton>
-            <div></div>
-          </div>
-
-          {/* Document Rows */}
-          <div className="divide-y divide-gray-100">
-            {filteredAndSortedDocs.length === 0 ? (
-              <div className="px-8 py-8 text-center text-gray-500 text-sm">
-                Keine Dokumente für diesen Filter gefunden
-              </div>
-            ) : (
-              filteredAndSortedDocs.map((doc) => (
-                <DocumentCard
-                  key={doc.id} 
-                  doc={doc}
-                  onOpen={handleOpenDocument}
-                  onDelete={handleDeleteDocument}
-                  isSelected={selectedDocs.has(doc.id)}
-                  onSelectToggle={toggleDocSelection}
-                  onCategoryChange={handleCategoryChange}
-                />
-              ))
-            )}
-          </div>
-
-          {/* Footer */}
-          <div 
-            className="px-8 py-3 text-xs text-gray-400"
-            style={{ borderTop: '1px solid #e5e5e5' }}
-          >
-            {filteredAndSortedDocs.length} von {documents.length} {documents.length === 1 ? 'Dokument' : 'Dokumenten'}
-          </div>
+          ) : filteredAndSortedDocs.length === 0 ? (
+            // Filter returns no results
+            <div className="px-8 py-8 text-center text-gray-500 text-sm">
+              Keine Dokumente für diesen Filter gefunden
+            </div>
+          ) : (
+            // Real Document Rows
+            filteredAndSortedDocs.map((doc) => (
+              <DocumentCard
+                key={doc.id} 
+                doc={doc}
+                onOpen={handleOpenDocument}
+                onDelete={handleDeleteDocument}
+                isSelected={selectedDocs.has(doc.id)}
+                onSelectToggle={toggleDocSelection}
+                onCategoryChange={handleCategoryChange}
+              />
+            ))
+          )}
         </div>
-      )}
+
+        {/* Footer - Always visible */}
+        <div 
+          className="px-8 py-3 text-xs text-gray-400"
+          style={{ borderTop: '1px solid #e5e5e5' }}
+        >
+          {loadingDocs ? (
+            <span className="text-gray-300">Lade Dokumente...</span>
+          ) : (
+            <span>{filteredAndSortedDocs.length} von {documents.length} {documents.length === 1 ? 'Dokument' : 'Dokumenten'}</span>
+          )}
+        </div>
+      </div>
     </div>
   );
 });
@@ -900,7 +914,7 @@ const ProfileView = React.memo(({
 });
 
 export default function Account() {
-  const { user, signOut, organization, organizationId, refreshOrganization } = useAuth();
+  const { user, signOut, organization, organizationId, refreshOrganization, loading: authLoading, profile } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const fileInputRef = useRef(null);
@@ -1130,16 +1144,29 @@ export default function Account() {
         }
 
         // Load documents for organization (not user)
+        // Only set loadingDocs=false when we KNOW the final state:
+        // 1. User has org → load docs first, then set loading=false
+        // 2. User has no org (profile loaded but no org_id) → set loading=false (show EmptyState)
+        // 3. Profile not loaded yet → keep loading=true (show Skeletons)
+        
+        const profileFullyLoaded = !authLoading && profile !== null;
+        const noUserLoggedIn = !authLoading && !user;
+        
         if (organizationId) {
-          setLoadingDocs(true);
+          // User has an organization - load their documents FIRST
           const { data: docs } = await getDocuments(organizationId);
-          if (!ignore && docs) {
-            setDocuments(docs);
+          if (!ignore) {
+            setDocuments(docs || []);
+            setLoadingDocs(false);
           }
-          setLoadingDocs(false);
-        } else {
-          setLoadingDocs(false);
+        } else if (profileFullyLoaded || noUserLoggedIn) {
+          // Profile is loaded but user has no organization, or no user at all
+          // Safe to show EmptyState
+          if (!ignore) {
+            setLoadingDocs(false);
+          }
         }
+        // If none of the above: keep loadingDocs=true (show Skeletons)
 
       } catch (error) {
         console.error('Error loading data!', error);
@@ -1151,7 +1178,7 @@ export default function Account() {
     return () => {
       ignore = true;
     };
-  }, [user, organization, organizationId, klinikAtlasLoaded, findHospitalByName]);
+  }, [user, organization, organizationId, klinikAtlasLoaded, findHospitalByName, authLoading, profile]);
 
   async function updateProfile(event) {
     event.preventDefault();
@@ -1711,9 +1738,9 @@ export default function Account() {
         </AlertDialogContent>
       </AlertDialog>
       
-      <div className="flex flex-col items-center w-full mb-12">
+      <div className="flex flex-col items-center w-full mb-12 pt-6">
         {/* Toolbar - Aufgeteilt in zwei Teile (wie im Editor) */}
-        <div className="no-print flex items-center gap-3 mt-6 mb-4 w-full max-w-[210mm]">
+        <div className="no-print flex items-center gap-3 mb-4 w-full max-w-[210mm]">
           {/* Linke Toolbar - Navigation */}
           <div className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm border border-gray-200 flex-1">
             {/* Navigation Links */}
@@ -1722,45 +1749,46 @@ export default function Account() {
                 variant={currentTab === 'sops' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => changeTab('sops')}
-                className="h-8 text-xs px-3 relative"
+                className="h-8 text-xs px-2 gap-1 relative"
               >
-                <FileText size={16} className="mr-1.5" weight={currentTab === 'sops' ? 'fill' : 'regular'} />
+                <FileText size={16} weight={currentTab === 'sops' ? 'fill' : 'regular'} />
                 Meine Leitfäden
-                {documents.length > 0 && (
-                  <span className={`ml-2 min-w-[18px] h-[18px] px-1.5 flex items-center justify-center text-[10px] font-bold rounded-full ${
-                    currentTab === 'sops'
-                      ? 'bg-white text-primary'
-                      : 'bg-primary/20 text-primary'
-                  }`}>
-                    {documents.length}
-                  </span>
-                )}
+                {/* Always render badge to prevent layout shift, but hide when no docs */}
+                <span className={`ml-2 min-w-[18px] h-[18px] px-1.5 flex items-center justify-center text-[10px] font-bold rounded-full transition-opacity ${
+                  documents.length > 0 ? 'opacity-100' : 'opacity-0'
+                } ${
+                  currentTab === 'sops'
+                    ? 'bg-white text-primary'
+                    : 'bg-primary/20 text-primary'
+                }`}>
+                  {documents.length || '0'}
+                </span>
               </Button>
               <Button
                 variant={currentTab === 'templates' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => changeTab('templates')}
-                className="h-8 text-xs px-3"
+                className="h-8 text-xs px-2 gap-1"
               >
-                <Layout size={16} className="mr-1.5" weight={currentTab === 'templates' ? 'fill' : 'regular'} />
+                <Layout size={16} weight={currentTab === 'templates' ? 'fill' : 'regular'} />
                 SOP Templates
               </Button>
               <Button
                 variant={currentTab === 'profile' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => changeTab('profile')}
-                className="h-8 text-xs px-3"
+                className="h-8 text-xs px-2 gap-1"
               >
-                <User size={16} className="mr-1.5" weight={currentTab === 'profile' ? 'fill' : 'regular'} />
+                <User size={16} weight={currentTab === 'profile' ? 'fill' : 'regular'} />
                 Account
               </Button>
               <Button
                 variant={currentTab === 'organization' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => changeTab('organization')}
-                className="h-8 text-xs px-3"
+                className="h-8 text-xs px-2 gap-1"
               >
-                <Buildings size={16} className="mr-1.5" weight={currentTab === 'organization' ? 'fill' : 'regular'} />
+                <Buildings size={16} weight={currentTab === 'organization' ? 'fill' : 'regular'} />
                 Organisation
               </Button>
             </div>
@@ -1774,9 +1802,9 @@ export default function Account() {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/')}
-                className="h-8 text-xs px-3 text-[#003366]"
+                className="h-8 text-xs px-2 gap-1 text-[#003366]"
               >
-                <ArrowLeft size={16} className="mr-1.5" />
+                <ArrowLeft size={16} />
                 Zurück zum Editor
               </Button>
 
@@ -1796,7 +1824,8 @@ export default function Account() {
         </div>
 
         {/* Main Content - Gleiche Breite wie Toolbar */}
-        <main className="w-full max-w-[210mm]">
+        {/* min-height prevents layout shift during tab changes */}
+        <main className="w-full max-w-[210mm]" style={{ minHeight: '600px' }}>
           {currentTab === 'sops' && <SopsView 
             documents={documents}
             loadingDocs={loadingDocs}

@@ -177,14 +177,15 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                 color: '#003366',
                 letterSpacing: '2px',
                 textTransform: 'uppercase',
-                lineHeight: '1',
-                border: '1.5px solid #3399FF',
+                lineHeight: '12px',
+                border: 'none',
                 borderRadius: '4px',
                 padding: '2px 4px',
-                background: 'white',
+                background: 'transparent',
                 outline: 'none',
                 width: '120px',
-                minHeight: '12px' // fontSize 12px * lineHeight 1 = 12px
+                height: '16px', // 12px content + 4px padding
+                boxSizing: 'border-box'
               }}
             />
           ) : (
@@ -198,12 +199,12 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                 color: '#003366',
                 letterSpacing: '2px',
                 textTransform: 'uppercase',
-                lineHeight: '1',
-                border: '1.5px solid transparent',
+                lineHeight: '12px',
                 borderRadius: '4px',
                 padding: '2px 4px',
-                minHeight: '12px', // fontSize 12px * lineHeight 1 = 12px
-                display: 'inline-block'
+                height: '16px', // 12px content + 4px padding
+                display: 'inline-block',
+                boxSizing: 'border-box'
               }}
             >
               {stand || '\u00A0'} {/* Non-breaking space if empty */}
@@ -230,10 +231,10 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               textTransform: 'uppercase',
               lineHeight: '1.2',
               width: '100%',
-              border: '1.5px solid #3399FF',
+              border: 'none',
               borderRadius: '6px',
               padding: '4px 8px',
-              background: 'white',
+              background: 'transparent',
               outline: 'none',
               resize: 'none',
               overflow: 'hidden',
@@ -259,7 +260,6 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               textTransform: 'uppercase',
               lineHeight: '1.2',
               width: '100%',
-              border: '1.5px solid transparent',
               borderRadius: '6px',
               padding: '4px 8px',
               overflowWrap: 'break-word',
@@ -322,7 +322,6 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'flex-end',
-              border: '1.5px solid transparent',
               cursor: companyLogo || logo ? 'default' : 'pointer'
             }}
             title={companyLogo ? 'Firmenlogo (im Profil festgelegt)' : logo ? 'Individuelles Logo' : 'Klicken Sie, um das Logo zu ändern'}

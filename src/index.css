@@ -38,6 +38,10 @@
   * {
     @apply border-border;
   }
+  /* Prevent layout shift from scrollbar appearing/disappearing */
+  html {
+    overflow-y: scroll;
+  }
   body {
     @apply bg-background text-foreground;
     margin: 0;

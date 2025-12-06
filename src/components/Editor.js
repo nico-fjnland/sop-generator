@@ -619,7 +619,7 @@ const Editor = () => {
   }, [rows, pageBreaks]);
 
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="flex flex-col items-center w-full pt-6">
       {/* Hidden file input for import */}
       <input
         type="file"
@@ -630,9 +630,9 @@ const Editor = () => {
       />
 
       {/* Toolbar - Aufgeteilt in zwei Teile */}
-      <div className="no-print flex items-center gap-3 mt-6 mb-0 w-full max-w-[210mm]">
+      <div className="no-print flex items-center gap-3 mb-0" style={{ width: '210mm', margin: '0 auto', boxSizing: 'border-box' }}>
         {/* Linke Toolbar - Hauptfunktionen */}
-        <div className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm border border-gray-200 flex-1">
+        <div className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm border border-gray-200 flex-1 min-w-0 overflow-hidden">
         {/* History & Reset Controls */}
         <div className="flex items-center gap-0">
           <Button 
@@ -665,9 +665,9 @@ const Editor = () => {
             size="sm"
             onClick={triggerImport}
             title="Gespeicherten Stand laden"
-            className="h-8 text-xs px-2 text-[#003366]"
+            className="h-8 text-xs px-2 text-[#003366] gap-1"
           >
-            <Upload size={16} className="mr-1.5" />
+            <Upload size={16} />
             Import
           </Button>
 
@@ -679,10 +679,10 @@ const Editor = () => {
               size="sm"
               onClick={handlePdfExport}
               disabled={isExporting}
-              className="h-8 text-xs px-2 text-[#003366]"
+              className="h-8 text-xs px-2 text-[#003366] gap-1"
               title="Als PDF exportieren"
             >
-              <FilePdf size={16} className="mr-1.5" />
+              <FilePdf size={16} />
               PDF
             </Button>
             <Button
@@ -690,20 +690,20 @@ const Editor = () => {
               size="sm"
               onClick={handleWordExport}
               disabled={isExporting}
-              className="h-8 text-xs px-2 text-[#003366]"
+              className="h-8 text-xs px-2 text-[#003366] gap-1"
               title="Als Word exportieren"
             >
-              <FileDoc size={16} className="mr-1.5" />
+              <FileDoc size={16} />
               Word
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleJsonExport}
-              className="h-8 text-xs px-2 text-[#003366]"
+              className="h-8 text-xs px-2 text-[#003366] gap-1"
               title="Als JSON exportieren"
             >
-              <FileCode size={16} className="mr-1.5" />
+              <FileCode size={16} />
               JSON
             </Button>
             </div>
@@ -735,16 +735,16 @@ const Editor = () => {
 
         {/* Rechte Toolbar - Cloud & Account */}
         {user ? (
-          <div className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm border border-gray-200 flex-shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleCloudSave}
                 disabled={isCloudSaving}
                 title="In Cloud speichern"
-                className="h-8 text-xs px-2 text-[#003366]"
+                className="h-8 text-xs px-2 text-[#003366] gap-1"
               >
-                {isCloudSaving ? <Spinner size="sm" className="mr-1.5" /> : <CloudArrowUp size={16} className="mr-1.5" />}
+                {isCloudSaving ? <Spinner size="sm" /> : <CloudArrowUp size={16} />}
                 In Cloud speichern
               </Button>
 
@@ -764,7 +764,7 @@ const Editor = () => {
           <button
             type="button"
             onClick={() => { window.location.href = '/login'; }}
-            className="flex items-center justify-center gap-2 px-4 h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg shadow-sm border border-primary transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg shadow-sm border border-primary transition-colors cursor-pointer flex-shrink-0"
           >
             <User size={16} weight="bold" />
             <span className="text-xs font-medium">Anmelden</span>

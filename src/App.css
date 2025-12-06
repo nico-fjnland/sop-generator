@@ -477,12 +477,10 @@ iframe[title*="Help Scout"] {
 }
 
 .sop-header-editable:hover {
-  border: 1.5px solid #3399FF !important;
   background: white !important;
 }
 
 .sop-header-editable:active {
-  border: 1.5px solid #3399FF !important;
   background: white !important;
 }
 
@@ -493,12 +491,10 @@ iframe[title*="Help Scout"] {
 }
 
 .sop-header-title-editable:hover {
-  border: 1.5px solid #3399FF !important;
   background: white !important;
 }
 
 .sop-header-title-editable:active {
-  border: 1.5px solid #3399FF !important;
   background: white !important;
 }
 
@@ -509,12 +505,10 @@ iframe[title*="Help Scout"] {
 }
 
 .sop-header-logo-editable:hover {
-  border: 1.5px solid #3399FF !important;
   background: white !important;
 }
 
 .sop-header-logo-editable:active {
-  border: 1.5px solid #3399FF !important;
   background: white !important;
 }
 

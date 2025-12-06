@@ -7,6 +7,55 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.6.6] - 2025-12-06
+
+### 🎨 Changed
+- **SOPHeader Border komplett entfernt:** Blaue Umrandung bei allen editierbaren Elementen entfernt
+  - Betrifft: Stand-Text, Überschrift und Logo-Container
+  - Hover-States zeigen keine Border mehr
+  - Bearbeitungsmodus (Input/Textarea) zeigt keine Border mehr
+  - Der Edit-Cursor ist nun der einzige Indikator für Editierbarkeit
+  - Verhindert visuelle Ablenkung beim Bearbeiten
+
+### 🐛 Fixed
+- **Import-Pfade korrigiert:** `@/`-Alias durch relative Pfade ersetzt
+  - Betrifft: `button.jsx`, `progress.jsx`, `separator.jsx`, `card.jsx`, `file-upload-06.jsx`
+  - Create React App unterstützt keine jsconfig.json Pfad-Aliase ohne zusätzliche Konfiguration
+  - Behebt "Module not found: Error: Can't resolve '@/lib/utils'" Fehler
+
+- **Toolbar-Breite korrigiert:** Toolbar ist jetzt exakt so breit wie der A4-Container (210mm)
+  - Verwendet feste Breite statt max-width für konsistente Ausrichtung
+  - Flex-Kinder schrumpfen korrekt, um Overflow zu vermeiden
+
+- **Icon-Text-Abstände in Toolbar reduziert:** Von `gap-2` (8px) auf `gap-1` (4px)
+  - Betrifft: Import, PDF, Word, JSON, In Cloud speichern Buttons
+  - Kompaktere Darstellung der Toolbar-Elemente
+
+- **Toolbar-zu-A4-Abstand angepasst:** Von 20px auf 12px reduziert
+  - Entspricht jetzt dem Abstand zwischen linker und rechter Toolbar-Hälfte (gap-3)
+  - Konsistentere visuelle Hierarchie
+
+### ✨ Added
+- **Skeleton Loading für "Meine Leitfäden":** Bessere Lade-Animation ohne Layout-Shift
+  - Neue ShadCN Skeleton-Komponente (`src/components/ui/skeleton.jsx`)
+  - DocumentCardSkeleton-Komponente für detailliertes Skeleton-Layout
+  - **Stabile Tabellenstruktur:** Header, Rows und Footer sind immer sichtbar
+  - Tabellen-Header wird sofort angezeigt (mit deaktivierten Sortier/Filter-Buttons während Laden)
+  - Skeleton-Zeilen werden durch echte Daten ersetzt
+  - Footer zeigt "Lade Dokumente..." während des Ladens
+  - **Anti-Layout-Shift Maßnahmen:**
+    - Badge im Tab "Meine Leitfäden" ist immer vorhanden (opacity statt conditional rendering)
+    - `overflow-y: scroll` auf HTML-Element verhindert Scrollbar-bedingte Breitenänderungen
+    - SortButton und CategoryFilter unterstützen jetzt `disabled` Prop
+    - `min-height: 400px` auf dem Zeilen-Container entspricht der EmptyState-Höhe
+    - `min-height: 600px` auf dem Main-Container für Tab-Wechsel
+  - **Ladezustand-Logik verbessert:**
+    - `loadingDocs=false` wird nur gesetzt NACHDEM Dokumente geladen sind (wenn Organisation existiert)
+    - Verhindert kurzes Aufblitzen des EmptyState bevor Daten geladen sind
+    - Wartet auf vollständig geladenes Profil bevor Entscheidung getroffen wird
+
+---
+
 ## [0.6.5] - 2025-12-06
 
 ### ✨ Added

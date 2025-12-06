@@ -10,7 +10,7 @@ const Page = ({ children, pageNumber, isFirstPage = false }) => {
       style={{
         width: '210mm',
         height: '297mm', // Fixed height, not min/max
-        margin: '20px auto',
+        margin: isFirstPage ? '12px auto 20px auto' : '20px auto', // First page: 12px top (matches toolbar gap-3)
         background: 'white',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
         position: 'relative',
