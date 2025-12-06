@@ -31,6 +31,10 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - **Tabellen-Einstellungen UI verbessert:** "Tabelle zurücksetzen" Menüeintrag entfernt
   - Stattdessen Reset-Icon (ArrowCounterClockwise) im Header des Dropdowns
   - Konsistentes UI mit ContentBox "Box individualisieren" Dropdown
+- **Hover-Buttons 14px näher in zweispaltigem Layout:** ContentBox-Controls erscheinen jetzt näher an der Box
+  - Neue CSS-Klasse `in-two-column-row` identifiziert Boxen im zweispaltigen Layout
+  - `translateX` reduziert von 50px auf 36px (rechte Seite) bzw. -50px auf -36px (linke Seite)
+  - Hover-Bridge-Breite entsprechend angepasst
 
 ---
 

@@ -999,6 +999,37 @@ body.export-ready .a4-page {
   transition: opacity 0.15s ease 0s, transform 0.15s ease 0s, pointer-events 0s 0s;
 }
 
+/* Two-column layout: Buttons 14px closer to box */
+/* Right-side controls in two-column layout */
+.content-box-block:focus-within .notion-box-controls.in-two-column-row:not(.notion-box-controls-left),
+.content-box-block:hover .notion-box-controls.in-two-column-row:not(.notion-box-controls-left),
+.notion-box-controls.in-two-column-row:not(.notion-box-controls-left):hover,
+.notion-box-controls.in-two-column-row:not(.notion-box-controls-left):has([data-state="open"]),
+.content-box-block:has([data-state="open"]) .notion-box-controls.in-two-column-row:not(.notion-box-controls-left),
+.notion-box-controls.in-two-column-row:not(.notion-box-controls-left).dropdown-open {
+  transform: translateX(36px) translateY(-50%); /* 14px closer than default 50px */
+}
+
+/* Left-side controls in two-column layout */
+.content-box-block:hover .notion-box-controls-left.in-two-column-row,
+.content-box-block:focus-within .notion-box-controls-left.in-two-column-row,
+.notion-box-controls-left.in-two-column-row:hover,
+.notion-box-controls-left.in-two-column-row:focus-within,
+.notion-box-controls-left.in-two-column-row:has([data-state="open"]),
+.content-box-block:has([data-state="open"]) .notion-box-controls-left.in-two-column-row,
+.notion-box-controls-left.in-two-column-row.dropdown-open {
+  transform: translateX(-36px) translateY(-50%); /* 14px closer than default -50px */
+}
+
+/* Adjust hover bridge width for two-column layout */
+.notion-box-controls.in-two-column-row:not(.notion-box-controls-left)::before {
+  width: 36px; /* Match the smaller distance */
+}
+
+.notion-box-controls-left.in-two-column-row::before {
+  width: 36px; /* Match the smaller distance */
+}
+
 /* Button transitions are handled by individual nth-child rules for stagger effect */
 
 /* Default: Buttons on the right (for single column and right column in two-column) */

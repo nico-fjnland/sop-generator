@@ -455,7 +455,7 @@ const ContentBoxBlock = ({
     >
       {/* Hover controls similar to Notion */}
       <div 
-        className={`notion-box-controls no-print ${!isRightColumn ? 'notion-box-controls-left' : ''} ${isDropdownOpen || isSettingsDropdownOpen ? 'dropdown-open' : ''}`} 
+        className={`notion-box-controls no-print ${!isRightColumn ? 'notion-box-controls-left' : ''} ${!isRightColumn || iconOnRight ? 'in-two-column-row' : ''} ${isDropdownOpen || isSettingsDropdownOpen ? 'dropdown-open' : ''}`} 
       >
         {/* Settings Button with Dropdown */}
         <DropdownMenu open={isSettingsDropdownOpen} onOpenChange={setIsSettingsDropdownOpen}>
