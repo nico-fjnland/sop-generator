@@ -201,10 +201,46 @@
 .tiptap-wrapper .tiptap-image {
   max-width: 100%;
   height: auto;
-  display: inline-block;
-  margin: 8px 0;
-  border-radius: 4px;
+  display: block;
+  margin: 12px 0;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--border));
   cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.tiptap-wrapper .tiptap-image:hover {
+  box-shadow: 0 2px 8px rgba(0, 51, 102, 0.15);
+}
+
+/* Image Upload Node - Custom styles for better integration */
+.tiptap-wrapper .tiptap-image-upload {
+  margin: 12px 0;
+}
+
+.tiptap-wrapper .tiptap-image-upload .tiptap-image-upload-drag-area {
+  background-color: hsl(210, 40%, 98%);
+  border-color: hsl(207, 100%, 70%);
+  border-width: 2px;
+  border-radius: 8px;
+  padding: 1.5rem 1rem;
+}
+
+.tiptap-wrapper .tiptap-image-upload .tiptap-image-upload-drag-area:hover {
+  background-color: hsl(207, 100%, 97%);
+  border-color: hsl(207, 100%, 50%);
+}
+
+.tiptap-wrapper .tiptap-image-upload .tiptap-image-upload-text {
+  color: hsl(207, 100%, 20%);
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+}
+
+.tiptap-wrapper .tiptap-image-upload .tiptap-image-upload-subtext {
+  color: hsl(215, 16%, 47%);
+  font-family: 'Roboto', sans-serif;
+  font-size: 11px;
 }
 
 /* Print styles */
@@ -216,6 +252,11 @@
   .tiptap-wrapper .tiptap-image {
     max-width: 100%;
     page-break-inside: avoid;
+  }
+  
+  /* Hide image upload node in print */
+  .tiptap-wrapper .tiptap-image-upload {
+    display: none !important;
   }
   
   /* Highlight item print styles - keep the icon color */

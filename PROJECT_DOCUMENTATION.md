@@ -1,6 +1,6 @@
 # SOP Editor - Vollständige Projektdokumentation
 
-> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.6.4)  
+> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.7.0)  
 > **Stack:** React 18 + Supabase + TailwindCSS  
 > **Zielgruppe:** Medizinisches Personal zur Erstellung von Standard Operating Procedures (SOPs)  
 > **Changelog:** [`CHANGELOG.md`](./CHANGELOG.md)
@@ -59,9 +59,10 @@ Der **SOP Editor** ist eine webbasierte Anwendung zur Erstellung von Standard Op
 ### Rich-Text & Editor
 | Technologie | Version | Zweck |
 |-------------|---------|-------|
-| TipTap | 3.11.0 | Rich-Text Editor (StarterKit, Tabellen, Unterstr., Sub/Superscript) |
+| TipTap | 3.13.0 | Rich-Text Editor (StarterKit, Tabellen, Unterstr., Sub/Superscript, Image Upload) |
 | ReactFlow | 11.11.4 | Flowchart/Algorithmus-Editor |
 | tippy.js | 6.3.7 | Tooltips & Popovers (Slash-Menü) |
+| @floating-ui/react | 0.27.16 | Floating UI für TipTap Tooltips |
 
 ### Drag & Drop
 | Technologie | Version | Zweck |
@@ -153,6 +154,23 @@ src/
 │   │   ├── SlashCommand.js       # Slash-Kommando Extension
 │   │   └── HighlightItem.js      # Hervorhebung
 │   │
+│   ├── tiptap-node/          # TipTap Node-Komponenten
+│   │   ├── image-upload-node/    # Image Upload Platzhalter
+│   │   │   ├── image-upload-node.jsx
+│   │   │   ├── image-upload-node-extension.js
+│   │   │   └── image-upload-node.scss
+│   │   └── image-node-pro/       # Erweiterte Bild-Node (Ausrichtung, Caption)
+│   │       ├── image-node-pro.jsx
+│   │       ├── image-node-pro-extension.js
+│   │       └── image-node-pro.scss
+│   │
+│   ├── tiptap-ui-primitive/  # TipTap UI-Primitive (Button, Tooltip)
+│   │   ├── button/
+│   │   └── tooltip/
+│   │
+│   ├── tiptap-icons/         # TipTap Icons
+│   │   └── close-icon.jsx
+│   │
 │   ├── icons/
 │   │   └── CategoryIcons.jsx # SVG-Icons für Kategorien
 │   │
@@ -196,7 +214,12 @@ src/
 │
 ├── lib/
 │   ├── supabase.js           # Supabase Client
-│   └── utils.js              # Utility-Funktionen (cn, etc.)
+│   ├── utils.js              # Utility-Funktionen (cn, etc.)
+│   └── tiptap-utils.js       # TipTap Hilfsfunktionen (handleImageUpload, etc.)
+│
+├── styles/                   # SCSS-Variablen und Animationen
+│   ├── _variables.scss       # TipTap CSS-Variablen (Farben, Abstände)
+│   └── _keyframe-animations.scss
 │
 └── constants/
     └── layout.js             # Layout-Konstanten (Footer-Höhen, etc.)

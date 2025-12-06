@@ -13,6 +13,9 @@ import InlineTextToolbar from '../InlineTextToolbar';
 import SlashMenu from '../SlashMenu';
 import { SlashCommand } from '../extensions/SlashCommand';
 import { HighlightItem } from '../extensions/HighlightItem';
+import { ImageUploadNode } from '../tiptap-node/image-upload-node';
+import { ImageNodePro } from '../tiptap-node/image-node-pro';
+import { handleImageUpload } from '../../lib/tiptap-utils';
 import { useTipTapFocus } from '../../contexts/TipTapFocusContext';
 import './TextBlock.css';
 
@@ -105,8 +108,17 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
         HTMLAttributes: {
           class: 'tiptap-image',
         },
-        inline: true,
+        inline: false,
         allowBase64: true,
+      }),
+      ImageNodePro,
+      ImageUploadNode.configure({
+        type: 'imageNodePro',
+        accept: 'image/*',
+        limit: 1,
+        maxSize: 5 * 1024 * 1024, // 5MB
+        upload: handleImageUpload,
+        onError: (error) => console.error('Bild-Upload fehlgeschlagen:', error),
       }),
       HighlightItem,
       SlashCommand.configure({
@@ -240,10 +252,23 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
 
     const updateToolbar = () => {
       const { state } = editor;
-      const { from, to } = state.selection;
+      const { from, to, $from } = state.selection;
       
-      // Only show toolbar if there's a selection
+      // Only show toolbar if there's a text selection (not node selection)
       if (from === to) {
+        setShowToolbar(false);
+        return;
+      }
+      
+      // Hide toolbar if an image node is selected
+      const selectedNode = $from.nodeAfter;
+      if (selectedNode && (selectedNode.type.name === 'imageNodePro' || selectedNode.type.name === 'image' || selectedNode.type.name === 'imageUpload')) {
+        setShowToolbar(false);
+        return;
+      }
+      
+      // Also check if we're in a NodeSelection (selecting a block node)
+      if (state.selection.node) {
         setShowToolbar(false);
         return;
       }

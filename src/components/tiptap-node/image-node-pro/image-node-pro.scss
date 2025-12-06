@@ -1,0 +1,168 @@
+/* ImageNodePro - Enhanced Image Node for TipTap */
+
+.image-node-pro {
+  margin: 0.75rem 0;
+  position: relative;
+
+  &.is-selected .image-node-pro-figure {
+    outline: 2px solid hsl(207, 100%, 50%);
+    outline-offset: 2px;
+    border-radius: 6px;
+    
+    &[data-display-mode="full"] {
+      border-radius: 0;
+      outline-offset: 0;
+    }
+  }
+}
+
+.image-node-pro-figure {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: visible;
+
+  /* Display modes */
+  &[data-display-mode="inline"] {
+    .image-node-pro-image-wrapper {
+      width: auto;
+    }
+    .image-node-pro-image {
+      max-width: 100%;
+      width: auto;
+    }
+  }
+
+  &[data-display-mode="full"] {
+    /* Break out of ContentBox padding (26px on each side) */
+    margin-left: -26px;
+    margin-right: -26px;
+    width: calc(100% + 52px);
+    
+    .image-node-pro-image-wrapper {
+      width: 100%;
+    }
+    .image-node-pro-image {
+      width: 100%;
+      border-radius: 0; /* No rounded corners when full-width */
+      border-left: none;
+      border-right: none;
+    }
+    .image-node-pro-caption {
+      padding-left: 26px;
+      padding-right: 26px;
+    }
+  }
+}
+
+/* Toolbar - matches InlineTextToolbar styling */
+.image-node-pro-toolbar {
+  position: absolute;
+  top: -44px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  pointer-events: auto;
+
+  @media print {
+    display: none !important;
+  }
+}
+
+.image-node-pro-toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: hsl(var(--border));
+  margin: 0 2px;
+}
+
+/* Image */
+.image-node-pro-image-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.image-node-pro-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  display: block;
+  user-select: none;
+  border: 1px solid hsl(var(--border));
+}
+
+/* Caption */
+.image-node-pro-caption {
+  padding: 6px 0 0 0;
+  text-align: center;
+  width: 100%;
+}
+
+.image-node-pro-caption-text {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+  cursor: text;
+  display: inline-block;
+  font-style: italic;
+}
+
+.image-node-pro-caption-input {
+  width: 100%;
+  max-width: 100%;
+  padding: 4px 8px;
+  font-size: 11px;
+  border: 1px solid hsl(var(--ring));
+  border-radius: 4px;
+  outline: none;
+  text-align: center;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  font-style: italic;
+
+  &:focus {
+    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+  }
+
+  &::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+}
+
+/* Print styles */
+@media print {
+  .image-node-pro {
+    margin: 0.5rem 0;
+    page-break-inside: avoid;
+  }
+
+  .image-node-pro-figure {
+    background: transparent;
+    border: none;
+  }
+
+  .image-node-pro-image {
+    max-width: 100%;
+    border: none;
+  }
+
+  .image-node-pro-caption {
+    padding: 4px 0;
+  }
+
+  .image-node-pro-caption-text {
+    color: black;
+  }
+}

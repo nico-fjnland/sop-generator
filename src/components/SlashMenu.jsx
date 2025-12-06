@@ -47,27 +47,12 @@ const SLASH_COMMANDS = [
     title: 'Bild',
     icon: ImageIcon,
     command: ({ editor, range }) => {
-      // Create a hidden file input
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            const imageUrl = event.target.result;
-            editor
-              .chain()
-              .focus()
-              .deleteRange(range)
-              .setImage({ src: imageUrl })
-              .run();
-          };
-          reader.readAsDataURL(file);
-        }
-      };
-      input.click();
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .setImageUploadNode()
+        .run();
     },
   },
 ];

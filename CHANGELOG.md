@@ -7,6 +7,49 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.6.5] - 2025-12-06
+
+### ✨ Added
+- **TipTap Image Upload Node:** Neues Bild-Upload-Feature im Slash-Menü
+  - Statt direktem File-Dialog erscheint jetzt ein Upload-Platzhalter im Editor
+  - Drag & Drop Support für Bilder direkt in den Platzhalter
+  - Klick-zum-Hochladen Funktion
+  - Fortschrittsanzeige während des Uploads
+  - Deutsche Lokalisierung ("Klicken zum Hochladen oder Bild hierher ziehen")
+  - Bilder werden als Base64 gespeichert (kein externer Upload-Service nötig)
+
+- **ImageNodePro:** Erweiterte Bild-Darstellung nach Upload
+  - **Display-Modus:** "Inline" (Textbreite) oder "Full" (volle Box-Breite)
+  - **Bildunterschrift:** Klick zum Bearbeiten, Enter zum Speichern
+  - **Download-Button:** Bild als Datei herunterladen
+  - **Löschen-Button:** Bild entfernen (rot hervorgehoben)
+  - **Toolbar-Styling:** Identisch zur Text-Toolbar (Toggle-Buttons, gleiche Icons-Größe)
+  - Toolbar erscheint nur bei Selektion des Bildes **UND** wenn Editor fokussiert
+  - Toolbar verschwindet automatisch bei Klick in andere ContentBox
+  - Text-Toolbar wird ausgeblendet wenn Bild selektiert ist
+  - Print-optimierte Darstellung
+
+### 🐛 Fixed
+- **SOPHeader Layout-Shift behoben:** Kein Springen mehr beim Klicken auf Überschrift/Stand
+  - Padding und Border-Radius jetzt in beiden Modi (Anzeige/Bearbeitung) identisch
+  - Nur die Border-Farbe ändert sich (transparent → blau)
+
+### 📦 Dependencies
+- **Hinzugefügt:** `@floating-ui/react@0.27.16` - Für TipTap Tooltip-Komponenten
+- **Hinzugefügt:** `sass@1.94.2`, `sass-embedded@1.93.3` - SCSS-Support für TipTap UI-Komponenten
+- **Aktualisiert:** `@tiptap/pm@3.13.0`, `@tiptap/react@3.13.0` - TipTap Core aktualisiert
+
+### 📁 Neue Dateien
+- `src/components/tiptap-node/image-upload-node/` - TipTap Image Upload Node Extension
+- `src/components/tiptap-node/image-node-pro/` - Erweiterte Bild-Node mit Toolbar
+- `src/components/tiptap-ui-primitive/button/` - TipTap Button UI-Primitiv
+- `src/components/tiptap-ui-primitive/tooltip/` - TipTap Tooltip UI-Primitiv
+- `src/components/tiptap-icons/close-icon.jsx` - Close-Icon Komponente
+- `src/lib/tiptap-utils.js` - TipTap Hilfsfunktionen
+- `src/styles/_variables.scss` - TipTap CSS-Variablen
+- `src/styles/_keyframe-animations.scss` - CSS-Animationen
+
+---
 
 * feat: Mikroanimation für Undo/Redo-Buttons (157ba0a)
 * fix: Placeholder-Text einzeilig mit Truncate bei Platzmangel (766402a)
