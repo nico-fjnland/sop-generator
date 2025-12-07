@@ -7,9 +7,12 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
-## [0.6.7] - 2025-12-06
+## [0.6.7] - 2025-12-07
 
 ### ✨ Added
+- **Signature Footer-Variante:** Neuer Footer-Typ mit Unterschriftsfeldern
+  - Felder: Erstellt, Modifiziert/Geprüft, Freigegeben, Gültig ab
+  - 4-spaltiges Grid-Layout mit Unterschriftslinien
 - **Lizenzmodell-Einstellung für Organisationen:** Neue Auswahlmöglichkeit unter Account → Organisation
   - Dropdown-Auswahl mit zwei Optionen:
     - "Krankenhaus-Lizenz" (Proprietäre Lizenz für interne Nutzung) - **Default**
@@ -35,6 +38,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   - Neue CSS-Klasse `in-two-column-row` identifiziert Boxen im zweispaltigen Layout
   - `translateX` reduziert von 50px auf 36px (rechte Seite) bzw. -50px auf -36px (linke Seite)
   - Hover-Bridge-Breite entsprechend angepasst
+- **Lizenzmodell-Dropdown mit Icons:** SealCheck-Icon für Krankenhaus-Lizenz, Copyright-Icon für Creative Commons
+- **Select-Komponente:** Checkmark-Indikator von links nach rechts verschoben
+- **HospitalLicenseBadge Styling:** Quicksand-Font und angepasste Farben
 
 ---
 
