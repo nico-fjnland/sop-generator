@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 const FOOTER_VARIANTS = [
   { id: 'tiny', label: 'Tiny' },
   { id: 'small', label: 'Small' },
+  { id: 'signature', label: 'Signature' },
 ];
 
 /* ============================================
@@ -41,19 +42,56 @@ const SealCheckIcon = () => (
   </svg>
 );
 
+// Signature Fields Component
+const SignatureFields = () => {
+  const fields = ['Erstellt:', 'Modifiziert/Geprüft:', 'Freigegeben:', 'Gültig ab:'];
+  
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(4, 1fr)',
+      gap: '16px',
+      width: '100%'
+    }}>
+      {fields.map((label) => (
+        <div key={label} style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px'
+        }}>
+          <span style={{
+            fontFamily: "'Inter', sans-serif",
+            fontWeight: 500,
+            fontSize: '10px',
+            color: '#003366',
+            whiteSpace: 'nowrap'
+          }}>
+            {label}
+          </span>
+          <div style={{
+            borderBottom: '1px solid #003366',
+            width: '100%',
+            minHeight: '1px'
+          }} />
+        </div>
+      ))}
+    </div>
+  );
+};
+
 // Hospital License Badge
 const HospitalLicenseBadge = () => (
   <div style={{
     display: 'flex',
     alignItems: 'center',
-    gap: '4px'
+    gap: '6px'
   }}>
     <SealCheckIcon />
     <span style={{
-      fontFamily: "'Roboto', sans-serif",
-      fontWeight: 500,
+      fontFamily: "'Quicksand', sans-serif",
+      fontWeight: 600,
       fontSize: '10px',
-      color: '#004D99',
+      color: '#003366',
       letterSpacing: '0.5px',
       whiteSpace: 'nowrap'
     }}>
@@ -83,6 +121,7 @@ const SOPFooter = ({ variant: initialVariant = 'tiny', onVariantChange }) => {
 
   const renderFooterContent = () => {
     const hasDisclaimer = variant === 'small';
+    const hasSignature = variant === 'signature';
 
     return (
       <div style={{
@@ -100,42 +139,32 @@ const SOPFooter = ({ variant: initialVariant = 'tiny', onVariantChange }) => {
           width: '100%'
         }}>
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'max-content',
-            gridTemplateRows: 'max-content',
-            alignItems: 'start',
-            lineHeight: 0,
-            position: 'relative',
-            overflow: 'visible',
-            zIndex: 1
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
           }}>
             <div style={{
-              gridArea: '1 / 1',
-              width: '12px',
+              width: '14px',
               height: '18px',
-              marginTop: '0.5px'
+              flexShrink: 0
             }}>
               <VectorIcon />
             </div>
-            <p
+            <span
               style={{
-                gridArea: '1 / 1',
-                fontFamily: "'Roboto', sans-serif",
+                fontFamily: "'Inter', sans-serif",
                 fontWeight: 600,
                 fontStyle: 'italic',
                 fontSize: '10px',
-                lineHeight: 1.5,
                 color: '#004D99',
                 letterSpacing: '1.5px',
                 textTransform: 'uppercase',
-                marginLeft: '20px',
-                marginTop: 0,
                 whiteSpace: 'nowrap',
                 userSelect: 'none'
               }}
             >
               sop-notaufnahme.de
-            </p>
+            </span>
           </div>
           <div style={{
             minWidth: '100px',
@@ -162,6 +191,13 @@ const SOPFooter = ({ variant: initialVariant = 'tiny', onVariantChange }) => {
           }}>
             Unsere Leitfäden sollen dich in deinem medizinischen Alltag unterstützen. Sie erheben jedoch keinen Anspruch auf Richtigkeit sowie Vollständigkeit und sind daher ohne Gewähr. Insbesondere sind sie in keiner Weise ein Ersatz für professionelle Diagnosen, Beratungen oder Behandlungen durch approbierte ÄrztInnen & dürfen deshalb nicht als Grundlage für eigenständige Diagnosen sowie Behandlungen oder Änderungen an einer bereits empfohlenen Behandlung herangezogen werden.
           </p>
+        )}
+
+        {/* Signature Fields */}
+        {hasSignature && (
+          <div style={{ paddingTop: '8px', paddingBottom: '12px', width: '100%' }}>
+            <SignatureFields />
+          </div>
         )}
       </div>
     );

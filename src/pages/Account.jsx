@@ -41,7 +41,9 @@ import {
   CheckCircle,
   XCircle,
   WarningCircle,
-  Certificate
+  Certificate,
+  SealCheck,
+  Copyright
 } from '@phosphor-icons/react';
 import { getDocuments, deleteDocument, saveDocument, updateDocumentCategory } from '../services/documentService';
 import { updateOrganization } from '../services/organizationService';
@@ -391,8 +393,8 @@ const SopsView = React.memo(({
 
 // License Model Options
 const LICENSE_OPTIONS = [
-  { value: 'hospital_license', label: 'Krankenhaus-Lizenz', description: 'Proprietäre Lizenz für interne Nutzung' },
-  { value: 'creative_commons', label: 'Creative Commons', description: 'Open Source Lizenz für freie Weitergabe' }
+  { value: 'hospital_license', label: 'Krankenhaus-Lizenz', description: 'Proprietäre Lizenz für interne Nutzung', icon: SealCheck, iconWeight: 'fill' },
+  { value: 'creative_commons', label: 'Creative Commons', description: 'Open Source Lizenz für freie Weitergabe', icon: Copyright, iconWeight: 'regular' }
 ];
 
 // OrganizationView Component
@@ -602,20 +604,35 @@ const OrganizationView = React.memo(({
         <div>
           <Select value={licenseModel} onValueChange={setLicenseModel}>
             <SelectTrigger className="w-full h-auto py-3">
-              <div className="flex flex-col items-start">
-                <span>{LICENSE_OPTIONS.find(o => o.value === licenseModel)?.label}</span>
-                <span className="text-xs text-muted-foreground">{LICENSE_OPTIONS.find(o => o.value === licenseModel)?.description}</span>
-              </div>
+              {(() => {
+                const selected = LICENSE_OPTIONS.find(o => o.value === licenseModel);
+                const IconComponent = selected?.icon;
+                return (
+                  <div className="flex items-center gap-3">
+                    {IconComponent && <IconComponent size={24} weight={selected.iconWeight} color="#3399FF" className="flex-shrink-0" />}
+                    <div className="flex flex-col items-start">
+                      <span>{selected?.label}</span>
+                      <span className="text-xs text-muted-foreground">{selected?.description}</span>
+                    </div>
+                  </div>
+                );
+              })()}
             </SelectTrigger>
             <SelectContent>
-              {LICENSE_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value} className="py-2">
-                  <div className="flex flex-col items-start">
-                    <span>{option.label}</span>
-                    <span className="text-xs text-muted-foreground">{option.description}</span>
-                  </div>
-                </SelectItem>
-              ))}
+              {LICENSE_OPTIONS.map((option) => {
+                const IconComponent = option.icon;
+                return (
+                  <SelectItem key={option.value} value={option.value} className="py-2">
+                    <div className="flex items-center gap-3">
+                      {IconComponent && <IconComponent size={24} weight={option.iconWeight} color="#3399FF" className="flex-shrink-0" />}
+                      <div className="flex flex-col items-start">
+                        <span>{option.label}</span>
+                        <span className="text-xs text-muted-foreground">{option.description}</span>
+                      </div>
+                    </div>
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
