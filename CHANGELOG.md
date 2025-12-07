@@ -7,6 +7,17 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.6.8] - 2025-12-07
+
+### 🔄 Changed
+- **Schriftgröße im Editor reduziert:** Von 12px auf 11px für kompaktere Darstellung
+  - Betrifft: Tabellen-Zellen (td/th), TextBlöcke, ContentBox-Inhalte
+  - Kleine Schrift (`.small-font`): Von 10px auf 9px reduziert
+  - Responsive Anpassung: Mobile (< 640px) jetzt 10px statt 11px
+  - Druckausgabe verwendet ebenfalls 11px
+
+---
+
 ## [0.6.7] - 2025-12-07
 
 ### ✨ Added

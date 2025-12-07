@@ -95,7 +95,7 @@
   box-sizing: border-box;
   position: relative;
   font-family: 'Roboto', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.5;
   font-weight: 400;
   transition: background-color 0.15s ease;
@@ -240,7 +240,7 @@
 
 /* Small font size */
 .tiptap-table-editor .small-font {
-  font-size: 10px;
+  font-size: 9px;
 }
 
 /* Bullet lists inside tables */
@@ -393,7 +393,7 @@
 @media (max-width: 640px) {
   .tiptap-table-editor td,
   .tiptap-table-editor th {
-    font-size: 11px;
+    font-size: 10px;
   }
   
   .tiptap-table-editor th {

@@ -849,7 +849,7 @@ const ContentBoxBlock = ({
               } ${columnCount === 2 ? 'two-column' : columnCount === 3 ? 'three-column' : 'flex flex-col gap-[8px]'}`}
               style={{
                 fontFamily: "'Roboto', sans-serif",
-                fontSize: '12px',
+                fontSize: '11px',
                 lineHeight: 1.5,
                 fontWeight: 400,
                 '--content-box-color': effectiveColor,
