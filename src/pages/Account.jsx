@@ -1534,55 +1534,76 @@ export default function Account() {
   };
 
   const handleImportJson = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
 
     if (!organizationId) {
       toast.error('Keine Organisation gefunden.');
       return;
     }
 
-    try {
-      const text = await file.text();
-      const importedState = JSON.parse(text);
-      
-      if (!importedState || !Array.isArray(importedState.rows)) {
-        toast.error('Ungültige JSON-Datei');
-        return;
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const file of files) {
+      try {
+        const text = await file.text();
+        const importedState = JSON.parse(text);
+        
+        if (!importedState || !Array.isArray(importedState.rows)) {
+          console.error(`Ungültige JSON-Datei: ${file.name}`);
+          errorCount++;
+          continue;
+        }
+
+        const contentToSave = {
+          rows: importedState.rows || [],
+          headerLogo: importedState.headerLogo || null,
+          footerVariant: importedState.footerVariant || 'tiny'
+        };
+
+        const { error } = await saveDocument(
+          organizationId,
+          user.id,
+          importedState.headerTitle || 'Importiertes Dokument',
+          importedState.headerStand || 'STAND',
+          contentToSave
+        );
+
+        if (error) {
+          console.error(`Fehler beim Import von ${file.name}:`, error);
+          errorCount++;
+        } else {
+          successCount++;
+        }
+      } catch (err) {
+        console.error(`Fehler beim Verarbeiten von ${file.name}:`, err);
+        errorCount++;
       }
+    }
 
-      const contentToSave = {
-        rows: importedState.rows || [],
-        headerLogo: importedState.headerLogo || null,
-        footerVariant: importedState.footerVariant || 'tiny'
-      };
+    // Dokumente neu laden
+    const { data: docs } = await getDocuments(organizationId);
+    if (docs) {
+      setDocuments(docs);
+    }
 
-      const { error } = await saveDocument(
-        organizationId,
-        user.id,
-        importedState.headerTitle || 'Importiertes Dokument',
-        importedState.headerStand || 'STAND',
-        contentToSave
+    // Feedback
+    if (successCount > 0 && errorCount === 0) {
+      toast.success(
+        successCount === 1 
+          ? 'Dokument erfolgreich importiert!' 
+          : `${successCount} Dokumente erfolgreich importiert!`
       );
+    } else if (successCount > 0 && errorCount > 0) {
+      toast.warning(`${successCount} importiert, ${errorCount} fehlgeschlagen`);
+    } else {
+      toast.error('Import fehlgeschlagen');
+    }
 
-      if (error) {
-        toast.error('Fehler beim Speichern des importierten Dokuments');
-        return;
-      }
-
-      const { data: docs } = await getDocuments(organizationId);
-      if (docs) {
-        setDocuments(docs);
-      }
-
-      toast.success('Dokument erfolgreich importiert!');
-    } catch (error) {
-      console.error('Import error:', error);
-      toast.error('Fehler beim Importieren der Datei');
-    } finally {
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+    // Input zurücksetzen
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -1726,7 +1747,12 @@ export default function Account() {
         }
       );
 
-      toast.success(`${selectedDocs.size} Dokument(e) erfolgreich exportiert`);
+      // Erfolgsmeldung
+      if (selectedDocs.size === 1) {
+        toast.success('Dokument als JSON exportiert');
+      } else {
+        toast.success(`${selectedDocs.size} Dokumente als ZIP-Archiv exportiert`);
+      }
       
       // Wait a moment before closing to show completion
       setTimeout(() => {
@@ -1755,6 +1781,7 @@ export default function Account() {
         onChange={handleImportJson}
         className="hidden"
         accept=".json"
+        multiple
       />
       
       {/* Bulk Export Dialog */}

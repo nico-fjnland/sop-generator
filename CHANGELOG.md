@@ -7,6 +7,32 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.6.9] - 2025-12-08
+
+### ✨ Added
+- **Bulk-Export als JSON:** Unter "Meine Leitfäden" können mehrere Dokumente gleichzeitig als JSON exportiert werden
+- **ZIP-Archiv für Bulk-Export:** Bei Export von mehreren Dokumenten wird automatisch ein ZIP-Archiv erstellt
+  - Einzelnes Dokument → Einzelne JSON-Datei (`titel-stand.json`)
+  - Mehrere Dokumente → ZIP-Archiv (`sop-export-YYYY-MM-DD.zip`)
+- **Bulk-Import für JSON:** Mehrere JSON-Dateien können gleichzeitig importiert werden
+  - File-Dialog erlaubt Mehrfachauswahl
+  - Fortschrittsanzeige und zusammenfassende Erfolgsmeldung
+- **JSZip Dependency:** Neue Abhängigkeit für ZIP-Archiv-Erstellung
+
+### ℹ️ Hinweis
+- **PDF/Word Bulk-Export nicht verfügbar:** Für originalgetreue PDF/Word-Exporte muss das Dokument im Editor geöffnet werden, da nur dort die vollständig gerenderten React-Komponenten (Flowcharts, Tabellen etc.) erfasst werden können
+
+### 🔄 Changed
+- **Einheitliche Dateinamen bei Export:** Alle exportierten Dateien verwenden jetzt das Format `titel-stand.dateiformat`
+  - JSON Export: Verwendet nun `headerTitle` und `headerStand` aus dem Editor-State statt generischem Datumsstempel
+  - PDF/Word Export: Verwendet weiterhin Titel und Stand, aber mit vollständigem Stand-String
+  - Bulk JSON Export: Verwendet ebenfalls das einheitliche Format
+  - Beispiel: "SOP Einarbeitung" mit "STAND 12/22" → `sop-einarbeitung-stand-12-22.pdf`
+  - Alle Sonderzeichen werden entfernt, Leerzeichen durch Bindestriche ersetzt
+- **Verbesserte Export-Erfolgsmeldungen:** Toast-Nachrichten zeigen jetzt das Format und bei mehreren Dokumenten den Hinweis auf das ZIP-Archiv
+
+---
+
 ## [0.6.8] - 2025-12-08
 
 ### ✨ Added

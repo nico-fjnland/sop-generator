@@ -2,6 +2,7 @@ import { Document, Packer, Paragraph, ImageRun } from 'docx';
 import jsPDF from 'jspdf';
 import { toPng, toJpeg } from 'html-to-image';
 import { getDocument } from '../services/documentService';
+import JSZip from 'jszip';
 
 /**
  * Fetches and prepares font CSS for html-to-image.
@@ -142,11 +143,14 @@ const downloadBlob = (blob, filename) => {
 /**
  * Exports the current editor state as a JSON file.
  * Preserves all formatting including line breaks and bullet points.
+ * Filename format: titel-stand.json
  * @param {Object} state - The editor state object.
  */
 export const exportAsJson = (state) => {
-  const date = new Date().toISOString().split('T')[0];
-  const fileName = `sop-state-${date}.json`;
+  // Generate filename from state's title and stand
+  const title = state.headerTitle || 'SOP Überschrift';
+  const stand = state.headerStand || 'STAND';
+  const filename = generateFilename(title, stand);
   
   // Deep clone state to avoid mutations
   const stateToExport = JSON.parse(JSON.stringify(state));
@@ -160,7 +164,7 @@ export const exportAsJson = (state) => {
   
   const jsonString = JSON.stringify(stateToExport, null, 2);
   const blob = new Blob([jsonString], { type: 'application/json' });
-  downloadBlob(blob, fileName);
+  downloadBlob(blob, `${filename}.json`);
 };
 
 /**
@@ -583,26 +587,36 @@ const removePrintClone = ({ clone, styleElement }) => {
 };
 
 /**
- * Generates a filename from title and stand (date).
- * Format: "title-mm-yy"
- * @param {string} title - The SOP title
+ * Sanitizes a string for use in filenames.
+ * Converts to lowercase, replaces special chars, normalizes whitespace and hyphens.
+ * @param {string} str - The string to sanitize
+ * @returns {string} Sanitized string safe for filenames
+ */
+const sanitizeForFilename = (str) => {
+  if (!str || typeof str !== 'string') return '';
+  
+  return str
+    .toLowerCase()
+    .replace(/\//g, '-')        // Replace slashes with hyphens (e.g. 12/22 -> 12-22)
+    .replace(/[^a-z0-9äöüß\s-]/g, '')  // Remove special chars except German umlauts
+    .replace(/\s+/g, '-')       // Replace spaces with hyphens
+    .replace(/-+/g, '-')        // Collapse multiple hyphens
+    .replace(/^-|-$/g, '')      // Remove leading/trailing hyphens
+    .trim();
+};
+
+/**
+ * Generates a filename from title and stand.
+ * Format: "titel-stand" (without file extension)
+ * @param {string} title - The SOP title (e.g. "Einarbeitung Mitarbeiter")
  * @param {string} stand - The stand/version string (e.g. "STAND 12/22")
- * @returns {string} Sanitized filename
+ * @returns {string} Sanitized filename without extension
  */
 const generateFilename = (title, stand) => {
-  // Extract date from stand (e.g. "STAND 12/22" -> "12-22")
-  const dateMatch = stand.match(/(\d{1,2})\/(\d{2})/);
-  const dateSuffix = dateMatch ? `${dateMatch[1]}-${dateMatch[2]}` : 'export';
+  const sanitizedTitle = sanitizeForFilename(title) || 'dokument';
+  const sanitizedStand = sanitizeForFilename(stand) || 'export';
   
-  // Sanitize title: remove special chars, replace spaces with hyphens
-  const sanitizedTitle = title
-    .toLowerCase()
-    .replace(/[^a-z0-9äöüß\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .trim();
-  
-  return `${sanitizedTitle}-${dateSuffix}`;
+  return `${sanitizedTitle}-${sanitizedStand}`;
 };
 
 /**
@@ -754,135 +768,50 @@ export const exportAsPdf = async (containerRef, title = 'SOP Überschrift', stan
 };
 
 /**
- * Exports multiple documents in bulk
- * @param {Array<string>} documentIds - Array of document IDs to export
- * @param {string} format - Export format ('word' or 'pdf')
- * @param {Function} onProgress - Progress callback function(current, total)
- * @returns {Promise<void>}
+ * Creates a JSON export state from a document object.
+ * @param {Object} doc - The document from database
+ * @returns {Object} Export state object
  */
-export const exportMultipleDocuments = async (documentIds, format = 'pdf', onProgress = null) => {
-  const total = documentIds.length;
-  let current = 0;
-
-  for (const docId of documentIds) {
-    try {
-      // Load document from database
-      const { data: doc, error } = await getDocument(docId);
-      
-      if (error || !doc) {
-        console.error(`Failed to load document ${docId}:`, error);
-        current++;
-        if (onProgress) onProgress(current, total, false);
-        continue;
-      }
-
-      // Create a temporary container to render the document
-      const tempContainer = document.createElement('div');
-      tempContainer.style.position = 'fixed';
-      tempContainer.style.top = '-9999px';
-      tempContainer.style.left = '-9999px';
-      tempContainer.style.width = '210mm';
-      tempContainer.style.minHeight = '297mm';
-      tempContainer.style.background = 'white';
-      tempContainer.style.zIndex = '-1';
-      tempContainer.className = 'a4-page';
-      
-      // Build the document HTML structure
-      // Note: This is a simplified version. For full rendering with all features,
-      // you would need to use React to render the actual Editor component
-      const content = doc.content || {};
-      const rows = content.rows || [];
-      
-      // Create a simple HTML representation
-      // In a real implementation, you'd want to use React to render the full Editor
-      let html = `
-        <div class="sop-document" style="padding: 20px; font-family: Arial, sans-serif;">
-          <div class="sop-header" style="margin-bottom: 20px; border-bottom: 2px solid #003366;">
-            <h1 style="color: #003366; font-size: 24px; margin: 0;">${doc.title || 'Unbenanntes Dokument'}</h1>
-            <p style="color: #666; font-size: 14px; margin: 5px 0;">${doc.version || 'v1.0'}</p>
-          </div>
-          <div class="sop-content">
-      `;
-      
-      // Add rows (simplified - just basic text content)
-      rows.forEach((row, index) => {
-        if (row.columns) {
-          row.columns.forEach(col => {
-            if (col.blocks) {
-              col.blocks.forEach(block => {
-                if (block.type === 'contentbox' && block.content) {
-                  html += `<div style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">`;
-                  if (block.content.blocks) {
-                    block.content.blocks.forEach(innerBlock => {
-                      if (innerBlock.content) {
-                        html += `<p style="margin: 10px 0;">${innerBlock.content}</p>`;
-                      }
-                    });
-                  }
-                  html += `</div>`;
-                }
-              });
-            }
-          });
-        }
-      });
-      
-      html += `
-          </div>
-        </div>
-      `;
-      
-      tempContainer.innerHTML = html;
-      document.body.appendChild(tempContainer);
-      
-      // Wait for content to render
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Export based on format
-      const title = doc.title || 'Dokument';
-      const stand = doc.version || 'v1.0';
-      
-      try {
-        if (format === 'word') {
-          await exportAsWord(tempContainer, title, stand);
-        } else {
-          await exportAsPdf(tempContainer, title, stand);
-        }
-      } catch (exportError) {
-        console.error(`Failed to export document ${docId}:`, exportError);
-      }
-      
-      // Clean up
-      document.body.removeChild(tempContainer);
-      
-      // Update progress
-      current++;
-      if (onProgress) onProgress(current, total, false);
-      
-      // Small delay between exports to prevent overwhelming the browser
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-    } catch (err) {
-      console.error(`Error processing document ${docId}:`, err);
-      current++;
-      if (onProgress) onProgress(current, total, false);
+const createExportState = (doc) => {
+  return {
+    headerTitle: doc.title || 'SOP Überschrift',
+    headerStand: doc.version || 'STAND',
+    headerLogo: doc.content?.headerLogo || null,
+    footerVariant: doc.content?.footerVariant || 'tiny',
+    rows: doc.content?.rows || [],
+    _exportMetadata: {
+      version: '1.0',
+      exportDate: new Date().toISOString(),
+      editorVersion: '2.0'
     }
-  }
-  
-  // Signal completion
-  if (onProgress) onProgress(current, total, true);
+  };
 };
 
 /**
- * Simplified bulk export that exports documents as JSON files in a zip
- * This is a fallback for when full rendering is not feasible
+ * Exports multiple documents in bulk as JSON.
+ * - Single document: Downloads as single JSON file
+ * - Multiple documents: Downloads as ZIP archive containing JSON files
+ * 
+ * Note: PDF/Word export requires the document to be open in the editor
+ * to capture the fully rendered React components. Use the editor's
+ * export function for pixel-perfect PDF/Word output.
+ * 
  * @param {Array<string>} documentIds - Array of document IDs to export
+ * @param {string} format - Export format (only 'json' supported for bulk)
  * @param {Function} onProgress - Progress callback function(current, total, completed)
  * @returns {Promise<void>}
  */
-export const exportMultipleDocumentsAsJson = async (documentIds, onProgress = null) => {
+export const exportMultipleDocuments = async (documentIds, format = 'json', onProgress = null) => {
   const total = documentIds.length;
-
+  const useZip = total > 1;
+  
+  let zip = null;
+  if (useZip) {
+    zip = new JSZip();
+  }
+  
+  const exportedFiles = [];
+  
   for (let i = 0; i < documentIds.length; i++) {
     const docId = documentIds[i];
     
@@ -895,27 +824,27 @@ export const exportMultipleDocumentsAsJson = async (documentIds, onProgress = nu
         if (onProgress) onProgress(i + 1, total, false);
         continue;
       }
-
-      // Create export state
-      const exportState = {
-        headerTitle: doc.title || 'SOP Überschrift',
-        headerStand: doc.version || 'STAND',
-        headerLogo: doc.content?.headerLogo || null,
-        footerVariant: doc.content?.footerVariant || 'tiny',
-        rows: doc.content?.rows || []
-      };
-
-      // Export as JSON
-      const fileName = `${doc.title || 'document'}-${doc.version || 'v1'}.json`;
+      
+      const title = doc.title || 'SOP Überschrift';
+      const stand = doc.version || 'STAND';
+      const baseFilename = generateFilename(title, stand);
+      
+      // JSON Export (only format supported for bulk)
+      const exportState = createExportState(doc);
       const jsonString = JSON.stringify(exportState, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
-      downloadBlob(blob, fileName);
-
+      const filename = `${baseFilename}.json`;
+      
+      if (useZip) {
+        zip.file(filename, jsonString);
+        exportedFiles.push(filename);
+      } else {
+        // Single file - download directly
+        downloadBlob(blob, filename);
+      }
+      
       // Update progress
       if (onProgress) onProgress(i + 1, total, false);
-      
-      // Small delay between exports
-      await new Promise(resolve => setTimeout(resolve, 300));
       
     } catch (err) {
       console.error(`Error exporting document ${docId}:`, err);
@@ -923,6 +852,33 @@ export const exportMultipleDocumentsAsJson = async (documentIds, onProgress = nu
     }
   }
   
+  // If using ZIP, generate and download the archive
+  if (useZip && exportedFiles.length > 0) {
+    try {
+      const zipBlob = await zip.generateAsync({ 
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 6 }
+      });
+      
+      // Generate ZIP filename with date
+      const date = new Date().toISOString().split('T')[0];
+      const zipFilename = `sop-export-${date}.zip`;
+      
+      downloadBlob(zipBlob, zipFilename);
+    } catch (err) {
+      console.error('Error creating ZIP archive:', err);
+    }
+  }
+  
   // Signal completion
   if (onProgress) onProgress(total, total, true);
+};
+
+/**
+ * @deprecated Use exportMultipleDocuments with format='json' instead
+ * Kept for backwards compatibility
+ */
+export const exportMultipleDocumentsAsJson = async (documentIds, onProgress = null) => {
+  return exportMultipleDocuments(documentIds, 'json', onProgress);
 };

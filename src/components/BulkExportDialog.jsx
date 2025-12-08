@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,9 +9,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from './ui/alert-dialog';
-import { Label } from './ui/label';
 import { Spinner } from './ui/spinner';
-import { FileDoc, FilePdf, CheckCircle } from '@phosphor-icons/react';
+import { FileJs, CheckCircle, Info } from '@phosphor-icons/react';
 
 const BulkExportDialog = ({ 
   open, 
@@ -21,10 +20,8 @@ const BulkExportDialog = ({
   isExporting = false,
   progress = null
 }) => {
-  const [format, setFormat] = useState('pdf');
-
   const handleExport = () => {
-    onExport(format);
+    onExport('json');
   };
 
   return (
@@ -41,49 +38,23 @@ const BulkExportDialog = ({
 
         {!isExporting ? (
           <div className="space-y-4 py-4">
-            <div className="space-y-3">
-              <Label>Format auswählen</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setFormat('word')}
-                  className={`flex flex-col items-center gap-3 p-4 rounded-lg border-2 transition-all ${
-                    format === 'word'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  <FileDoc 
-                    size={32} 
-                    weight={format === 'word' ? 'fill' : 'regular'}
-                    className={format === 'word' ? 'text-primary' : 'text-muted-foreground'}
-                  />
-                  <div className="text-center">
-                    <div className="font-medium text-sm">Word</div>
-                    <div className="text-xs text-muted-foreground">.docx</div>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setFormat('pdf')}
-                  className={`flex flex-col items-center gap-3 p-4 rounded-lg border-2 transition-all ${
-                    format === 'pdf'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  <FilePdf 
-                    size={32} 
-                    weight={format === 'pdf' ? 'fill' : 'regular'}
-                    className={format === 'pdf' ? 'text-primary' : 'text-muted-foreground'}
-                  />
-                  <div className="text-center">
-                    <div className="font-medium text-sm">PDF</div>
-                    <div className="text-xs text-muted-foreground">.pdf</div>
-                  </div>
-                </button>
+            {/* JSON Export Info */}
+            <div className="flex items-start gap-3 p-4 rounded-lg border-2 border-primary bg-primary/5">
+              <FileJs size={32} weight="fill" className="text-primary flex-shrink-0" />
+              <div>
+                <div className="font-medium text-sm">JSON-Export</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Exportiert alle Dokumentdaten vollständig. JSON-Dateien können jederzeit wieder importiert werden.
+                </p>
               </div>
+            </div>
+            
+            {/* Info Box */}
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
+              <Info size={16} className="flex-shrink-0 mt-0.5" />
+              <p>
+                <strong>PDF/Word-Export:</strong> Für originalgetreue PDF- oder Word-Dateien öffne das Dokument im Editor und nutze dort die Export-Funktion.
+              </p>
             </div>
           </div>
         ) : (
@@ -121,7 +92,7 @@ const BulkExportDialog = ({
             <>
               <AlertDialogCancel>Abbrechen</AlertDialogCancel>
               <AlertDialogAction onClick={handleExport}>
-                Exportieren
+                Als JSON exportieren
               </AlertDialogAction>
             </>
           ) : progress?.completed ? (

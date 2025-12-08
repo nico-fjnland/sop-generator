@@ -90,6 +90,7 @@ Der **SOP Editor** ist eine webbasierte Anwendung zur Erstellung von Standard Op
 | jsPDF | 3.0.3 | PDF-Generierung |
 | docx | 9.5.1 | Word-Dokument-Generierung |
 | html-to-image | 1.11.13 | HTML zu Bild-Konvertierung |
+| JSZip | 3.x | ZIP-Archiv-Erstellung für Bulk-Export |
 
 ### Sonstige
 | Technologie | Version | Zweck |
@@ -511,11 +512,25 @@ CREATE TABLE documents (
 
 ## Export-Funktionen
 
+### Einheitliches Dateinamensformat
+
+Alle Exporte verwenden das Format: **`titel-stand.dateiformat`**
+
+Beispiel: "SOP Einarbeitung" mit "STAND 12/22" → `sop-einarbeitung-stand-12-22.pdf`
+
+**Sanitierung:**
+- Kleinschreibung
+- Sonderzeichen werden entfernt (außer ä, ö, ü, ß)
+- Leerzeichen → Bindestriche
+- Schrägstriche → Bindestriche (z.B. 12/22 → 12-22)
+- Mehrfache Bindestriche werden zusammengefasst
+
 ### JSON Export
 
 ```javascript
 exportAsJson(state)
-// Erstellt: sop-state-YYYY-MM-DD.json
+// Erstellt: titel-stand.json
+// z.B.: sop-einarbeitung-stand-12-22.json
 ```
 
 Enthält Metadaten:
@@ -536,6 +551,7 @@ Enthält Metadaten:
 
 ### JSON Import
 
+**Im Editor (einzelne Datei):**
 ```javascript
 const newState = await importFromJson(file)
 ```
@@ -544,10 +560,21 @@ const newState = await importFromJson(file)
 - Sanitiert Block-Inhalte
 - Konvertiert Legacy-Formate
 
+**In "Meine Leitfäden" (Bulk-Import):**
+```javascript
+// File-Input mit multiple-Attribut
+<input type="file" accept=".json" multiple onChange={handleImportJson} />
+```
+
+- Mehrere JSON-Dateien gleichzeitig auswählbar
+- Jede Datei wird als neues Dokument gespeichert
+- Zusammenfassende Erfolgsmeldung (X importiert, Y fehlgeschlagen)
+
 ### PDF Export
 
 ```javascript
 await exportAsPdf(containerRef, title, stand)
+// Erstellt: titel-stand.pdf
 ```
 
 - Hochauflösend (476 DPI, pixelRatio 6)
@@ -558,6 +585,7 @@ await exportAsPdf(containerRef, title, stand)
 
 ```javascript
 await exportAsWord(containerRef, title, stand)
+// Erstellt: titel-stand.docx
 ```
 
 - Hochauflösend (476 DPI)
@@ -567,11 +595,20 @@ await exportAsWord(containerRef, title, stand)
 ### Bulk Export
 
 ```javascript
-await exportMultipleDocuments(documentIds, format, onProgress)
-await exportMultipleDocumentsAsJson(documentIds, onProgress)
+await exportMultipleDocuments(documentIds, 'json', onProgress)
 ```
 
-Für mehrere Dokumente gleichzeitig.
+**Verhalten:**
+- **1 Dokument:** Einzelne JSON-Datei wird heruntergeladen (`titel-stand.json`)
+- **Mehrere Dokumente:** ZIP-Archiv wird erstellt (`sop-export-YYYY-MM-DD.zip`)
+
+**Wichtig:** Bulk-Export unterstützt nur JSON-Format. Für originalgetreue PDF/Word-Exporte muss das Dokument im Editor geöffnet werden, da nur dort die vollständig gerenderten React-Komponenten (Flowcharts, TipTap-Tabellen, etc.) als Bild erfasst werden können.
+
+**BulkExportDialog:**
+- Nur JSON-Export verfügbar
+- Hinweis zu PDF/Word im Dialog integriert
+- Progress-Anzeige während des Exports
+- Automatische ZIP-Erstellung bei mehreren Dokumenten
 
 ---
 
