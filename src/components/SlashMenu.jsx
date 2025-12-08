@@ -1,10 +1,11 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle, useMemo } from 'react';
 import { ListBullets, TextT, Image as ImageIcon, ArrowCircleRight } from '@phosphor-icons/react';
 
 const SLASH_COMMANDS = [
   {
     id: 'paragraph',
     title: 'Text',
+    keywords: ['text', 'paragraph', 'absatz'],
     icon: TextT,
     command: ({ editor, range }) => {
       editor
@@ -18,6 +19,7 @@ const SLASH_COMMANDS = [
   {
     id: 'bulletList',
     title: 'Aufzählung',
+    keywords: ['liste', 'list', 'aufzählung', 'bullet', 'punkte'],
     icon: ListBullets,
     command: ({ editor, range }) => {
       editor
@@ -31,6 +33,7 @@ const SLASH_COMMANDS = [
   {
     id: 'highlightItem',
     title: 'Auszeichnung',
+    keywords: ['auszeichnung', 'highlight', 'pfeil', 'arrow', 'wichtig'],
     icon: ArrowCircleRight,
     iconWeight: 'fill',
     command: ({ editor, range }) => {
@@ -45,6 +48,7 @@ const SLASH_COMMANDS = [
   {
     id: 'image',
     title: 'Bild',
+    keywords: ['bild', 'image', 'foto', 'photo', 'grafik'],
     icon: ImageIcon,
     command: ({ editor, range }) => {
       editor
@@ -58,28 +62,46 @@ const SLASH_COMMANDS = [
 ];
 
 const SlashMenu = forwardRef((props, ref) => {
+  const { query } = props;
   const [selectedIndex, setSelectedIndex] = useState(0);
 
+  // Filter commands based on query
+  const filteredCommands = useMemo(() => {
+    if (!query) return SLASH_COMMANDS;
+    
+    const lowerQuery = query.toLowerCase();
+    return SLASH_COMMANDS.filter((item) => {
+      // Match against title
+      if (item.title.toLowerCase().includes(lowerQuery)) return true;
+      // Match against keywords
+      if (item.keywords?.some(keyword => keyword.includes(lowerQuery))) return true;
+      return false;
+    });
+  }, [query]);
+
   const selectItem = (index) => {
-    const item = SLASH_COMMANDS[index];
+    const item = filteredCommands[index];
     if (item) {
       item.command({ ...props, onAddFlowchart: props.onAddFlowchart });
     }
   };
 
   const upHandler = () => {
-    setSelectedIndex((selectedIndex + SLASH_COMMANDS.length - 1) % SLASH_COMMANDS.length);
+    setSelectedIndex((selectedIndex + filteredCommands.length - 1) % filteredCommands.length);
   };
 
   const downHandler = () => {
-    setSelectedIndex((selectedIndex + 1) % SLASH_COMMANDS.length);
+    setSelectedIndex((selectedIndex + 1) % filteredCommands.length);
   };
 
   const enterHandler = () => {
     selectItem(selectedIndex);
   };
 
-  useEffect(() => setSelectedIndex(0), []);
+  // Reset selected index when query changes or when filtered results change
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [query]);
 
   useImperativeHandle(ref, () => ({
     onKeyDown: ({ event }) => {
@@ -102,9 +124,20 @@ const SlashMenu = forwardRef((props, ref) => {
     },
   }));
 
+  // Don't render if no matches
+  if (filteredCommands.length === 0) {
+    return (
+      <div className="slash-menu">
+        <div className="slash-menu-item" style={{ opacity: 0.5, cursor: 'default' }}>
+          <span className="slash-menu-title">Keine Ergebnisse</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="slash-menu">
-      {SLASH_COMMANDS.map((item, index) => {
+      {filteredCommands.map((item, index) => {
         const Icon = item.icon;
         return (
           <button

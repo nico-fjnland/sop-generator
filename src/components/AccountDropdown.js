@@ -22,6 +22,8 @@ const AccountDropdown = ({
   displayName, 
   avatarUrl, 
   documentsCount = 0,
+  organization = null,
+  profile = null,
   onTabChange // Optional: (tab) => void. If not provided, uses window.location
 }) => {
   const navigate = useNavigate();
@@ -125,6 +127,18 @@ const AccountDropdown = ({
         <DropdownMenuGroup>
           <DropdownMenuItem onSelect={() => {
             if (window.Beacon) {
+              // Pre-fill user data in the feedback form
+              window.Beacon('identify', {
+                name: displayName || '',
+                email: user?.email || '',
+                company: organization?.name || '',
+                avatar: avatarUrl || '',
+                jobTitle: profile?.position || '',
+                // Custom attributes for additional context
+                'Dokumente': documentsCount,
+                'Organisation ID': organization?.id || '',
+                'Lizenzmodell': organization?.license_model || '',
+              });
               window.Beacon('open');
               window.Beacon('navigate', '/ask/');
             }

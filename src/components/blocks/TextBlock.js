@@ -102,7 +102,14 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       Superscript,
       SmallFont,
       Placeholder.configure({
-        placeholder: 'Schreibe oder gib "/" für Befehle ein',
+        placeholder: ({ editor }) => {
+          // Only show placeholder when the entire editor is empty
+          if (editor.isEmpty) {
+            return 'Schreibe oder gib "/" für Befehle ein';
+          }
+          return '';
+        },
+        showOnlyWhenEditable: true,
       }),
       Image.configure({
         HTMLAttributes: {

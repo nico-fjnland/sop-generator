@@ -28,9 +28,22 @@ export const getInitialState = () => ({
   footerVariant: 'tiny'
 });
 
-export const useEditorHistory = () => {
+/**
+ * @param {Object} options - Hook options
+ * @param {boolean} options.skipLocalStorage - If true, don't load from or save to localStorage (for DB documents)
+ */
+export const useEditorHistory = ({ skipLocalStorage = false } = {}) => {
   // State to hold the history
   const [history, setHistory] = useState(() => {
+    // Skip localStorage for DB documents
+    if (skipLocalStorage) {
+      return {
+        past: [],
+        present: getInitialState(),
+        future: []
+      };
+    }
+    
     // Try to load from local storage
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -62,8 +75,13 @@ export const useEditorHistory = () => {
   const [isSaving, setIsSaving] = useState(false);
   const isFirstRender = useRef(true);
 
-  // Save to local storage whenever present state changes
+  // Save to local storage whenever present state changes (only for non-DB documents)
   useEffect(() => {
+    // Skip localStorage saving for DB documents
+    if (skipLocalStorage) {
+      return;
+    }
+    
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
@@ -90,7 +108,7 @@ export const useEditorHistory = () => {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [history.present]);
+  }, [history.present, skipLocalStorage]);
 
   // Undo function
   const undo = useCallback(() => {

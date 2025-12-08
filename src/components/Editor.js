@@ -25,7 +25,7 @@ import DraggableBlock from './dnd/DraggableBlock';
 import { DragGhost } from './dnd/DropIndicator';
 
 const Editor = () => {
-  const { user, signOut, organizationId } = useAuth();
+  const { user, signOut, organizationId, organization, profile } = useAuth();
   const { timeOfDay, toggleTime } = useTheme();
   const navigate = useNavigate();
   const containerRef = useRef(null);
@@ -41,7 +41,10 @@ const Editor = () => {
   const isNewDoc = searchParams.get('new') === 'true';
   
   // Use Unified History Hook
-  const { state, undo, redo, canUndo, canRedo, setEditorState, reset, isSaving } = useEditorHistory();
+  // Skip localStorage for DB documents to prevent state mixing
+  const { state, undo, redo, canUndo, canRedo, setEditorState, reset, isSaving } = useEditorHistory({
+    skipLocalStorage: !!documentId
+  });
   const { rows, headerTitle, headerStand, headerLogo, footerVariant } = state;
 
   // Load user profile data for Account Button
@@ -168,7 +171,7 @@ const Editor = () => {
               headerTitle: data.title || 'SOP Überschrift',
               headerStand: data.version || 'STAND 12/22',
               headerLogo: content.headerLogo || null,
-              footerVariant: content.footerVariant || 'default'
+              footerVariant: content.footerVariant || 'tiny'
             }, { history: 'replace' }); // Don't add initial load to history
           }
         } catch (error) {
@@ -757,6 +760,8 @@ const Editor = () => {
               displayName={getDisplayName()}
               avatarUrl={avatarUrl}
               documentsCount={documentsCount}
+              organization={organization}
+              profile={profile}
             />
         </div>
         ) : (

@@ -7,7 +7,25 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
-## [0.6.8] - 2025-12-07
+## [0.6.8] - 2025-12-08
+
+### ✨ Added
+- **Slash-Menü Filterung:** Eingabe nach `/` filtert die verfügbaren Befehle
+  - Sucht in Titel und Keywords (z.B. `/auf` zeigt "Aufzählung", `/liste` findet ebenfalls "Aufzählung")
+  - Zeigt "Keine Ergebnisse" wenn nichts passt
+  - Auswahl wird bei Filteränderung auf erstes Ergebnis zurückgesetzt
+- **HelpScout Feedback mit Nutzerdaten:** Beim Klick auf "Feedback geben" werden Nutzerdaten automatisch vorausgefüllt
+  - Name, E-Mail, Organisation, Profilbild, Position
+  - Custom Attributes: Dokumentenanzahl, Organisation-ID, Lizenzmodell
+  - Ermöglicht schnelleren Support ohne Nachfragen
+
+### 🐛 Fixed
+- **Race Condition in useKlinikAtlas behoben:** Globale Fetch-Sperre verhindert jetzt doppelte API-Requests wenn mehrere Hook-Instanzen gleichzeitig `loadData()` aufrufen
+- **Footer-Variante wechselt nicht mehr bei Reload:** Alle `footerVariant`-Fallback-Werte auf `'tiny'` vereinheitlicht (war inkonsistent `'default'` vs `'tiny'`)
+- **Zwischenspeicher-Probleme bei DB-Dokumenten behoben:** localStorage wird nicht mehr überschrieben wenn ein Dokument aus der Datenbank geladen wird (`?id=xxx`). Dies verhindert das Erscheinen falscher Zwischenstände bei Reload.
+- **Platzhalter in leeren ContentBoxen:** Platzhaltertext erscheint jetzt korrekt in leeren Boxen, aber nicht mehr bei einzelnen leeren Paragraphen wenn bereits Inhalt vorhanden ist
+  - TipTap Placeholder mit `editor.isEmpty` Prüfung
+  - CSS-Selektoren für `.is-editor-empty` korrigiert
 
 ### 🔄 Changed
 - **Schriftgröße im Editor reduziert:** Von 12px auf 11px für kompaktere Darstellung
@@ -15,6 +33,8 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   - Kleine Schrift (`.small-font`): Von 10px auf 9px reduziert
   - Responsive Anpassung: Mobile (< 640px) jetzt 10px statt 11px
   - Druckausgabe verwendet ebenfalls 11px
+- **useEditorHistory Hook:** Neuer Parameter `skipLocalStorage` zur Steuerung der localStorage-Nutzung
+- **Editor.js:** Übergibt `skipLocalStorage: true` wenn ein DB-Dokument geladen wird
 
 ---
 

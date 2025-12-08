@@ -1554,7 +1554,7 @@ export default function Account() {
       const contentToSave = {
         rows: importedState.rows || [],
         headerLogo: importedState.headerLogo || null,
-        footerVariant: importedState.footerVariant || 'default'
+        footerVariant: importedState.footerVariant || 'tiny'
       };
 
       const { error } = await saveDocument(

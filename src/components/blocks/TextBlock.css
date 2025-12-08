@@ -53,22 +53,14 @@
 
 /* Placeholder styling - TipTap Placeholder Extension */
 @media screen {
-  .tiptap-wrapper .tiptap-editor .is-editor-empty::before {
+  .tiptap-wrapper .tiptap-editor p.is-editor-empty:first-child::before,
+  .tiptap-wrapper .tiptap-editor p.is-empty:first-child::before {
     content: attr(data-placeholder);
     color: #adb5bd;
     pointer-events: none;
     position: absolute;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-  }
-
-  .tiptap-wrapper .tiptap-editor .is-empty::before {
-    content: attr(data-placeholder);
-    color: #adb5bd;
-    pointer-events: none;
-    position: absolute;
+    left: 0;
+    top: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -76,16 +68,16 @@
   }
 
   /* Ensure parent has relative positioning for absolute placeholder */
-  .tiptap-wrapper .tiptap-editor .is-editor-empty,
-  .tiptap-wrapper .tiptap-editor .is-empty {
+  .tiptap-wrapper .tiptap-editor p.is-editor-empty:first-child,
+  .tiptap-wrapper .tiptap-editor p.is-empty:first-child {
     position: relative;
   }
 }
 
 /* Hide placeholder in print */
 @media print {
-  .tiptap-wrapper .tiptap-editor .is-editor-empty::before,
-  .tiptap-wrapper .tiptap-editor .is-empty::before {
+  .tiptap-wrapper .tiptap-editor p.is-editor-empty:first-child::before,
+  .tiptap-wrapper .tiptap-editor p.is-empty:first-child::before {
     content: none !important;
     display: none !important;
   }

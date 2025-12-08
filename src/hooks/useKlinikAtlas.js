@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from '../lib/supabase';
 
 // Use Supabase Edge Function as proxy to avoid CORS issues
@@ -9,6 +9,9 @@ const CACHE_EXPIRY_HOURS = 24;
 // In-memory cache for the current session
 let memoryCache = null;
 
+// Global fetch lock to prevent race conditions across hook instances
+let isFetching = false;
+
 /**
  * Hook to fetch and filter hospitals from the Bundes-Klinik-Atlas API
  * Data is cached in memory and optionally in localStorage
@@ -18,12 +21,11 @@ export function useKlinikAtlas() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const fetchingRef = useRef(false);
 
   // Load data from cache or API
   const loadData = useCallback(async () => {
-    // Prevent multiple simultaneous fetches
-    if (fetchingRef.current) return;
+    // Prevent multiple simultaneous fetches (global lock)
+    if (isFetching) return;
     
     // Return memory cache if available
     if (memoryCache) {
@@ -51,7 +53,7 @@ export function useKlinikAtlas() {
     }
 
     // Fetch from Edge Function proxy
-    fetchingRef.current = true;
+    isFetching = true;
     setLoading(true);
     setError(null);
 
@@ -110,7 +112,7 @@ export function useKlinikAtlas() {
       setError(err.message || 'Fehler beim Laden der Krankenhausdaten');
     } finally {
       setLoading(false);
-      fetchingRef.current = false;
+      isFetching = false;
     }
   }, []);
 

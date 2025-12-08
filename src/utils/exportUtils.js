@@ -236,7 +236,7 @@ export const importFromJson = (file) => {
           headerTitle: json.headerTitle || 'SOP Überschrift',
           headerStand: json.headerStand || 'STAND 12/22',
           headerLogo: json.headerLogo || null,
-          footerVariant: json.footerVariant || 'default',
+          footerVariant: json.footerVariant || 'tiny',
           rows: json.rows.map(row => {
             if (!row || typeof row !== 'object' || !Array.isArray(row.blocks)) {
               return {
@@ -901,7 +901,7 @@ export const exportMultipleDocumentsAsJson = async (documentIds, onProgress = nu
         headerTitle: doc.title || 'SOP Überschrift',
         headerStand: doc.version || 'STAND',
         headerLogo: doc.content?.headerLogo || null,
-        footerVariant: doc.content?.footerVariant || 'default',
+        footerVariant: doc.content?.footerVariant || 'tiny',
         rows: doc.content?.rows || []
       };
 
