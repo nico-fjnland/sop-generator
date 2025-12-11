@@ -84,6 +84,10 @@ const SortableRow = ({
   // Check if this row is being dragged (any of its blocks)
   const isBeingDragged = blockIds.includes(activeId);
   
+  // For two-column rows: when dragging ONE block out, the row stays (with remaining block)
+  // So we should still show the after drop zone to allow dropping below the row
+  const isTwoColumnWithDraggedBlock = row.blocks.length === 2 && isBeingDragged;
+  
   // Check if drop indicators should show
   const showBeforeIndicator = dropPosition?.rowId === row.id && dropPosition?.type === 'before';
   const showAfterIndicator = dropPosition?.rowId === row.id && dropPosition?.type === 'after';
@@ -112,12 +116,22 @@ const SortableRow = ({
       className={`block-row ${row.blocks.length === 2 ? 'two-columns' : 'single-column'} ${isBeingDragged ? 'is-dragging' : ''}`}
       data-row-id={row.id}
     >
-      {/* Before drop zone */}
+      {/* Before drop zone - show for rows that aren't being dragged */}
       {isDragging && !isBeingDragged && (
         <DropZone 
           id={`${row.id}-drop-before`} 
           type="before"
           isActive={showBeforeIndicator}
+        />
+      )}
+      
+      {/* After drop zone for two-column rows when one block is being dragged out */}
+      {/* This allows dropping below the row even when dragging from it */}
+      {isTwoColumnWithDraggedBlock && (
+        <DropZone 
+          id={`${row.id}-drop-after`} 
+          type="after"
+          isActive={showAfterIndicator}
         />
       )}
       

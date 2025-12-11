@@ -7,6 +7,23 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.6.10] - 2025-12-11
+
+### 🐛 Fixed
+- **TipTapTableBlock Spaltenbreiten:** Tabellen passen sich jetzt automatisch an die Container-Breite an
+  - Spalten werden proportional skaliert, wenn die Gesamtbreite den Container überschreitet
+  - Verhindert, dass die letzte Spalte abgeschnitten wird
+  - Resize-Funktionalität bleibt vollständig erhalten
+  - MutationObserver überwacht Änderungen und korrigiert automatisch
+- **Dropdown-Menü z-index:** Tabellenoptionen-Dropdown liegt jetzt korrekt über den Hover-Buttons
+  - z-index von 50 auf 200 erhöht für `DropdownMenuContent` und `DropdownMenuSubContent`
+  - Portal für Submenüs hinzugefügt, um korrektes Stacking zu gewährleisten
+- **Drag & Drop aus Zwei-Spalten-Layout:** Drop-Indikator erscheint jetzt korrekt beim Ziehen einer Box aus einem Zwei-Spalten-Layout
+  - `after` Drop-Zone wird für Zwei-Spalten-Zeilen angezeigt, wenn ein Block herausgezogen wird
+  - Ermöglicht das Platzieren von Blöcken unterhalb der ursprünglichen Zeile
+
+---
+
 ## [0.6.9] - 2025-12-08
 
 ### ✨ Added

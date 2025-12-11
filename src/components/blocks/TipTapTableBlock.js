@@ -479,6 +479,78 @@ const TipTapTableBlock = forwardRef(({
     setIsDropdownOpen(false);
   };
 
+  // Force table to respect container width by scaling columns proportionally
+  const tableWrapperRef = useRef(null);
+  
+  useEffect(() => {
+    if (!editor || !tableWrapperRef.current) return;
+    
+    const enforceTableWidth = () => {
+      const wrapper = tableWrapperRef.current;
+      if (!wrapper) return;
+      
+      const table = wrapper.querySelector('table');
+      if (!table) return;
+      
+      const wrapperWidth = wrapper.getBoundingClientRect().width;
+      const cols = table.querySelectorAll('colgroup col');
+      
+      // Calculate total column width
+      let totalColWidth = 0;
+      cols.forEach(col => {
+        totalColWidth += parseInt(col.style.width, 10) || 0;
+      });
+      
+      // If columns are wider than container, scale them down proportionally
+      if (totalColWidth > wrapperWidth && totalColWidth > 0) {
+        const scale = (wrapperWidth - 2) / totalColWidth; // -2 for border
+        
+        cols.forEach(col => {
+          const currentWidth = parseInt(col.style.width, 10) || 0;
+          const newWidth = Math.floor(currentWidth * scale);
+          col.style.width = `${newWidth}px`;
+        });
+        
+        // Remove table inline width - let it be 100% via CSS
+        table.style.removeProperty('width');
+      }
+    };
+    
+    // Run after initial render
+    const timeoutId = setTimeout(enforceTableWidth, 300);
+    
+    // Observe DOM changes to re-enforce when TipTap updates
+    const observer = new MutationObserver((mutations) => {
+      const relevantMutation = mutations.some(m => 
+        m.type === 'attributes' && 
+        m.attributeName === 'style' &&
+        (m.target.tagName === 'TABLE' || m.target.tagName === 'COL')
+      );
+      
+      if (relevantMutation) {
+        requestAnimationFrame(enforceTableWidth);
+      }
+    });
+    
+    observer.observe(tableWrapperRef.current, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style']
+    });
+    
+    // Also run on window resize
+    const handleResize = () => {
+      requestAnimationFrame(enforceTableWidth);
+    };
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      observer.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [editor, blockId]);
+
   if (!editor) {
     return <div className="tiptap-table-loading">Tabelle wird geladen...</div>;
   }
@@ -807,7 +879,10 @@ const TipTapTableBlock = forwardRef(({
 
       {/* Table */}
       <div className="flex items-start w-full" style={{ paddingLeft: '14px', paddingRight: '14px' }}>
-        <div className="tiptap-table-wrapper flex-1 relative">
+        <div 
+          ref={tableWrapperRef}
+          className="tiptap-table-wrapper flex-1 relative"
+        >
           <EditorContent editor={editor} />
         </div>
       </div>
