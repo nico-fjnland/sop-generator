@@ -6,7 +6,7 @@ import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
-import { Mark, mergeAttributes } from '@tiptap/core';
+import { Extension, Mark, mergeAttributes } from '@tiptap/core';
 import { ReactRenderer } from '@tiptap/react';
 import tippy from 'tippy.js';
 import InlineTextToolbar from '../InlineTextToolbar';
@@ -18,6 +18,51 @@ import { ImageNodePro } from '../tiptap-node/image-node-pro';
 import { handleImageUpload } from '../../lib/tiptap-utils';
 import { useTipTapFocus } from '../../contexts/TipTapFocusContext';
 import './TextBlock.css';
+
+// Extension to handle trailing empty paragraph behavior
+const TrailingParagraph = Extension.create({
+  name: 'trailingParagraph',
+  
+  addKeyboardShortcuts() {
+    return {
+      Backspace: ({ editor }) => {
+        const { state } = editor;
+        const { doc, selection } = state;
+        
+        // Check if cursor is at the very end of the document
+        const isAtEnd = selection.from === doc.content.size - 1;
+        if (!isAtEnd) return false;
+        
+        // Check if the last node is an empty paragraph
+        const lastNode = doc.lastChild;
+        const isLastNodeEmpty = lastNode && 
+          lastNode.type.name === 'paragraph' && 
+          lastNode.content.size === 0;
+        
+        if (isLastNodeEmpty && doc.childCount > 1) {
+          // Move cursor to end of previous node instead of deleting
+          let targetPos = 0;
+          let nodeCount = 0;
+          doc.descendants((node, pos) => {
+            nodeCount++;
+            if (nodeCount === doc.childCount) {
+              targetPos = pos - 1;
+              return false;
+            }
+            return true;
+          });
+          
+          if (targetPos > 0) {
+            editor.commands.setTextSelection(targetPos);
+            return true; // Prevent default backspace
+          }
+        }
+        
+        return false; // Let default behavior handle it
+      },
+    };
+  },
+});
 
 // Custom extension for smaller font size (9px, also parses legacy 10px/8px/7px)
 const SmallFont = Mark.create({
@@ -128,6 +173,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
         onError: (error) => console.error('Bild-Upload fehlgeschlagen:', error),
       }),
       HighlightItem,
+      TrailingParagraph,
       SlashCommand.configure({
         suggestion: {
           items: () => {
@@ -246,57 +292,6 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       unregisterEditor();
     },
   }, [isInsideContentBox, registerEditor, unregisterEditor]); // Removed onChange from dependencies - it causes re-creation!
-
-  // Handle Backspace in trailing empty paragraph - move cursor up instead of deleting
-  useEffect(() => {
-    if (!editor || !isInsideContentBox) return;
-    
-    const handleKeyDown = (event) => {
-      if (event.key !== 'Backspace') return;
-      
-      const { state } = editor;
-      const { doc, selection } = state;
-      const { $from } = selection;
-      
-      // Check if cursor is at the very end of the document
-      const isAtEnd = selection.from === doc.content.size - 1;
-      if (!isAtEnd) return;
-      
-      // Check if the last node is an empty paragraph
-      const lastNode = doc.lastChild;
-      const isLastNodeEmpty = lastNode && 
-        lastNode.type.name === 'paragraph' && 
-        lastNode.content.size === 0;
-      
-      if (isLastNodeEmpty) {
-        // Prevent default backspace and move cursor to end of previous node
-        event.preventDefault();
-        
-        // Find the position at the end of the second-to-last node
-        let targetPos = 0;
-        let nodeCount = 0;
-        doc.descendants((node, pos) => {
-          nodeCount++;
-          if (nodeCount === doc.childCount) {
-            // This is the last node, set position to just before it
-            targetPos = pos - 1;
-            return false;
-          }
-          return true;
-        });
-        
-        if (targetPos > 0) {
-          editor.commands.setTextSelection(targetPos);
-        }
-      }
-    };
-    
-    editor.view.dom.addEventListener('keydown', handleKeyDown);
-    
-    return () => {
-      editor.view.dom.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [editor, isInsideContentBox]);
 
   // Sync content from parent
   useEffect(() => {
