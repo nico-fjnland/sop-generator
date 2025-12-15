@@ -204,11 +204,38 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
         spellcheck: 'true',
       },
     },
+    onCreate: ({ editor }) => {
+      // Ensure trailing empty paragraph exists for consistent UX
+      const { doc } = editor.state;
+      const lastNode = doc.lastChild;
+      const isEmptyParagraph = lastNode && 
+        lastNode.type.name === 'paragraph' && 
+        lastNode.content.size === 0;
+      
+      if (!isEmptyParagraph) {
+        const endPos = doc.content.size;
+        const emptyParagraph = editor.schema.nodes.paragraph.create();
+        editor.view.dispatch(editor.state.tr.insert(endPos, emptyParagraph));
+      }
+    },
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
       // Convert empty paragraph to empty string
       const cleanHtml = html === '<p></p>' ? '' : html;
       onChange(cleanHtml);
+      
+      // Ensure trailing empty paragraph exists
+      const { doc } = editor.state;
+      const lastNode = doc.lastChild;
+      const isEmptyParagraph = lastNode && 
+        lastNode.type.name === 'paragraph' && 
+        lastNode.content.size === 0;
+      
+      if (!isEmptyParagraph) {
+        const endPos = doc.content.size;
+        const emptyParagraph = editor.schema.nodes.paragraph.create();
+        editor.view.dispatch(editor.state.tr.insert(endPos, emptyParagraph));
+      }
     },
     onFocus: ({ editor }) => {
       // Registriere diesen Editor für intelligentes Undo/Redo
@@ -219,6 +246,57 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       unregisterEditor();
     },
   }, [isInsideContentBox, registerEditor, unregisterEditor]); // Removed onChange from dependencies - it causes re-creation!
+
+  // Handle Backspace in trailing empty paragraph - move cursor up instead of deleting
+  useEffect(() => {
+    if (!editor || !isInsideContentBox) return;
+    
+    const handleKeyDown = (event) => {
+      if (event.key !== 'Backspace') return;
+      
+      const { state } = editor;
+      const { doc, selection } = state;
+      const { $from } = selection;
+      
+      // Check if cursor is at the very end of the document
+      const isAtEnd = selection.from === doc.content.size - 1;
+      if (!isAtEnd) return;
+      
+      // Check if the last node is an empty paragraph
+      const lastNode = doc.lastChild;
+      const isLastNodeEmpty = lastNode && 
+        lastNode.type.name === 'paragraph' && 
+        lastNode.content.size === 0;
+      
+      if (isLastNodeEmpty) {
+        // Prevent default backspace and move cursor to end of previous node
+        event.preventDefault();
+        
+        // Find the position at the end of the second-to-last node
+        let targetPos = 0;
+        let nodeCount = 0;
+        doc.descendants((node, pos) => {
+          nodeCount++;
+          if (nodeCount === doc.childCount) {
+            // This is the last node, set position to just before it
+            targetPos = pos - 1;
+            return false;
+          }
+          return true;
+        });
+        
+        if (targetPos > 0) {
+          editor.commands.setTextSelection(targetPos);
+        }
+      }
+    };
+    
+    editor.view.dom.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      editor.view.dom.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [editor, isInsideContentBox]);
 
   // Sync content from parent
   useEffect(() => {

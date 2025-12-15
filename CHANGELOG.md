@@ -16,6 +16,10 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   - Abwärtskompatibilität: Bestehender Content mit 10px/8px/7px wird automatisch als 9px angezeigt
 
 ### 🐛 Fixed
+- **Definition-Box Trailing Paragraph:** Konsistentes Verhalten bei allen Content-Boxen
+  - Definition-Box hat jetzt wie alle anderen Boxen eine leere Zeile am Ende
+  - Benutzer können am Ende klicken und weiterschreiben
+  - Backspace in der leeren Zeile bewegt Cursor nach oben (ohne die Zeile zu löschen)
 - **Tabellen Hover-Buttons:** Abstand der Hover-Buttons zur Tabellen-Box korrigiert
   - Buttons sind jetzt gleich weit von der Tabelle entfernt wie bei ContentBoxBlock
   - Anpassung der CSS-Positionierung ohne Änderung der Tabellenbreite
