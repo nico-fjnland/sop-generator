@@ -421,3 +421,13 @@
 .tiptap-table-block-wrapper.dragging-box {
   opacity: 0.5;
 }
+
+/* Position hover buttons closer to table to match ContentBoxBlock spacing */
+/* Table has 14px padding, so buttons need to move 14px inward */
+.tiptap-table-block-wrapper > .notion-box-controls {
+  right: 4px; /* Standard is -10px, +14px to compensate for table padding */
+}
+
+.tiptap-table-block-wrapper > .notion-box-controls-left {
+  left: 4px; /* Same adjustment for left-positioned buttons */
+}

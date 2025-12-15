@@ -261,6 +261,8 @@ const TipTapTableBlock = forwardRef(({
     editorProps: {
       attributes: {
         class: 'tiptap-table-editor',
+        lang: 'de',
+        spellcheck: 'true',
       },
     },
     onUpdate: ({ editor }) => {

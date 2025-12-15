@@ -7,6 +7,30 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.6.13] - 2025-12-15
+
+### 🎨 Changed
+- **Small Text Schriftgröße:** Von 10px auf 9px reduziert
+  - SmallFont Extension in TextBlock und TipTapTableBlock
+  - Entsprechende Print- und Screen-Styles in App.css angepasst
+  - Abwärtskompatibilität: Bestehender Content mit 10px/8px/7px wird automatisch als 9px angezeigt
+
+---
+
+## [0.6.12] - 2025-12-15
+
+### 🐛 Fixed
+- **Tabellen Hover-Buttons:** Abstand der Hover-Buttons zur Tabellen-Box korrigiert
+  - Buttons sind jetzt gleich weit von der Tabelle entfernt wie bei ContentBoxBlock
+  - Anpassung der CSS-Positionierung ohne Änderung der Tabellenbreite
+
+### ✨ Added
+- **Deutsche Rechtschreibprüfung:** Spellcheck funktioniert jetzt auf Deutsch
+  - `lang="de"` und `spellcheck="true"` Attribute in allen TipTap-Editoren
+  - Funktioniert auch wenn die Browsersprache Englisch ist
+
+---
+
 ## [0.6.11] - 2025-12-15
 
 ### ✨ Added

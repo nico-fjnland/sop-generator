@@ -401,11 +401,17 @@ iframe[title*="Help Scout"] {
     overflow: visible !important;
   }
   
-  /* Support for smaller font size (10px) in content boxes */
+  /* Support for smaller font size (9px, also legacy 10px/8px/7px) in content boxes */
+  .content-box-block span[style*="font-size: 9px"],
+  .content-box-block span[style*="font-size:9px"],
+  .content-box-block span[style*="font-size: 8px"],
+  .content-box-block span[style*="font-size:8px"],
+  .content-box-block span[style*="font-size: 7px"],
+  .content-box-block span[style*="font-size:7px"],
   .content-box-block span[style*="font-size: 10px"],
   .content-box-block span[style*="font-size:10px"] {
-    font-size: 10px !important;
-    line-height: 15px !important;
+    font-size: 9px !important;
+    line-height: 14px !important;
   }
   
   /* Support for superscript and subscript in content boxes */
@@ -882,11 +888,17 @@ body.export-ready .a4-page {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Support for smaller font size (10px) in content boxes - screen mode */
+/* Support for smaller font size (9px, also legacy 10px/8px/7px) in content boxes - screen mode */
+.content-box-block span[style*="font-size: 9px"],
+.content-box-block span[style*="font-size:9px"],
+.content-box-block span[style*="font-size: 8px"],
+.content-box-block span[style*="font-size:8px"],
+.content-box-block span[style*="font-size: 7px"],
+.content-box-block span[style*="font-size:7px"],
 .content-box-block span[style*="font-size: 10px"],
 .content-box-block span[style*="font-size:10px"] {
-  font-size: 10px;
-  line-height: 15px;
+  font-size: 9px;
+  line-height: 14px;
 }
 
 /* Support for superscript and subscript in content boxes - screen mode */

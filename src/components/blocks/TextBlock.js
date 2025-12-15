@@ -19,7 +19,7 @@ import { handleImageUpload } from '../../lib/tiptap-utils';
 import { useTipTapFocus } from '../../contexts/TipTapFocusContext';
 import './TextBlock.css';
 
-// Custom extension for smaller font size (10px)
+// Custom extension for smaller font size (9px, also parses legacy 10px/8px/7px)
 const SmallFont = Mark.create({
   name: 'smallFont',
   
@@ -27,13 +27,13 @@ const SmallFont = Mark.create({
     return [
       {
         tag: 'span',
-        getAttrs: node => node.style.fontSize === '10px' && null,
+        getAttrs: node => (node.style.fontSize === '9px' || node.style.fontSize === '8px' || node.style.fontSize === '7px' || node.style.fontSize === '10px') && null,
       },
     ];
   },
   
   renderHTML({ HTMLAttributes }) {
-    return ['span', mergeAttributes(HTMLAttributes, { style: 'font-size: 10px' }), 0];
+    return ['span', mergeAttributes(HTMLAttributes, { style: 'font-size: 9px' }), 0];
   },
   
   addCommands() {
@@ -200,6 +200,8 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     editorProps: {
       attributes: {
         class: 'tiptap-editor',
+        lang: 'de',
+        spellcheck: 'true',
       },
     },
     onUpdate: ({ editor }) => {
