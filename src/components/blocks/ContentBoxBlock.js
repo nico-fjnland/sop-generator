@@ -31,7 +31,7 @@ export const ADDITIONAL_ELEMENTS = [
 ];
 
 // Category configurations based on Figma design
-// Order: Definition, Ursachen, Symptome, Diagnostik, Differenzial, Therapie, Algorithmus, Merke, Disposition, Sonstiges, Abläufe, Studie
+// Order: Definition, Ursachen, Symptome, Diagnostik, Differenzialdiagnosen, Therapie, Algorithmus, Merke, Disposition, Sonstiges, Abläufe, Studie
 export const CATEGORIES = [
   { 
     id: 'definition', 
@@ -63,7 +63,8 @@ export const CATEGORIES = [
   },
   { 
     id: 'differenzial', 
-    label: 'Differenzial', 
+    label: 'Differenzialdiagnosen',
+    shortLabel: 'Differenzialdiag.',
     color: '#9254DE', 
     bgColor: '#F5ECFE',
     maxUsage: 1
@@ -652,7 +653,7 @@ const ContentBoxBlock = ({
                     >
                       {getIconWithColors(cat.id, isMaxed ? '#9CA3AF' : cat.color, isMaxed ? '#F3F4F6' : cat.bgColor)}
                     </span>
-                    <span className="flex-1">{cat.label}</span>
+                    <span className="flex-1">{cat.shortLabel || cat.label}</span>
                     <span className="text-[10px] tabular-nums">
                       {usageCount}/{maxUsage}
                     </span>
@@ -807,7 +808,7 @@ const ContentBoxBlock = ({
                           >
                             {getIconWithColors(cat.id, isMaxed ? '#9CA3AF' : cat.color, isMaxed ? '#F3F4F6' : cat.bgColor)}
                           </span>
-                          <span className="flex-1">{cat.label}</span>
+                          <span className="flex-1">{cat.shortLabel || cat.label}</span>
                           <span className="text-[10px] tabular-nums">
                             {usageCount}/{maxUsage}
                           </span>

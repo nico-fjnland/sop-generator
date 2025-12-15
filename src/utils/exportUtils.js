@@ -184,13 +184,27 @@ const validateAndSanitizeBlock = (block) => {
     content: block.content !== undefined ? block.content : ''
   };
   
-  // For contentbox blocks, validate nested structure
+  // For contentbox blocks, validate nested structure and preserve all settings
   if (sanitized.type === 'contentbox' && typeof sanitized.content === 'object') {
     sanitized.content = {
       category: sanitized.content.category || 'definition',
       blocks: Array.isArray(sanitized.content.blocks) 
         ? sanitized.content.blocks.map(validateAndSanitizeBlock)
-        : [{ id: Date.now().toString(), type: 'text', content: '' }]
+        : [{ id: Date.now().toString(), type: 'text', content: '' }],
+      // Preserve box settings
+      columnCount: sanitized.content.columnCount || 1,
+      customLabel: sanitized.content.customLabel || null,
+      customColor: sanitized.content.customColor || null,
+    };
+  }
+  
+  // For source blocks, validate nested structure and preserve settings
+  if (sanitized.type === 'source' && typeof sanitized.content === 'object') {
+    sanitized.content = {
+      blocks: Array.isArray(sanitized.content.blocks) 
+        ? sanitized.content.blocks.map(validateAndSanitizeBlock)
+        : [{ id: Date.now().toString(), type: 'text', content: '' }],
+      columnCount: sanitized.content.columnCount || 1,
     };
   }
   

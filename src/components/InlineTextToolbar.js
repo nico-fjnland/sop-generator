@@ -3,15 +3,19 @@ import { createPortal } from 'react-dom';
 import { TextB, TextItalic, TextUnderline, TextTSlash, TextSuperscript, TextSubscript, TextAa, ListBullets } from '@phosphor-icons/react';
 import { Toggle } from './ui/toggle';
 
+// Plattform-Erkennung für korrekte Tastenkürzel-Anzeige
+const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+const mod = isMac ? '⌘' : 'Ctrl';
+
 const TOOLBAR_BUTTONS = [
-  { id: 'bold', icon: TextB, label: 'Fett', command: 'bold' },
-  { id: 'italic', icon: TextItalic, label: 'Kursiv', command: 'italic' },
-  { id: 'underline', icon: TextUnderline, label: 'Unterstreichen', command: 'underline' },
-  { id: 'fontSize', icon: TextAa, label: 'Kleinere Schrift', command: 'fontSize' },
-  { id: 'superscript', icon: TextSuperscript, label: 'Hochgestellt', command: 'superscript' },
-  { id: 'subscript', icon: TextSubscript, label: 'Tiefgestellt', command: 'subscript' },
-  { id: 'bulletList', icon: ListBullets, label: 'Aufzählungsliste', command: 'bulletList' },
-  { id: 'clear', icon: TextTSlash, label: 'Formatierung entfernen', command: 'removeFormat' },
+  { id: 'bold', icon: TextB, label: 'Fett', shortcut: `${mod}+B`, command: 'bold' },
+  { id: 'italic', icon: TextItalic, label: 'Kursiv', shortcut: `${mod}+I`, command: 'italic' },
+  { id: 'underline', icon: TextUnderline, label: 'Unterstreichen', shortcut: `${mod}+U`, command: 'underline' },
+  { id: 'fontSize', icon: TextAa, label: 'Kleinere Schrift', shortcut: null, command: 'fontSize' },
+  { id: 'superscript', icon: TextSuperscript, label: 'Hochgestellt', shortcut: `${mod}+.`, command: 'superscript' },
+  { id: 'subscript', icon: TextSubscript, label: 'Tiefgestellt', shortcut: `${mod}+,`, command: 'subscript' },
+  { id: 'bulletList', icon: ListBullets, label: 'Aufzählungsliste', shortcut: `${mod}+Shift+8`, command: 'bulletList' },
+  { id: 'clear', icon: TextTSlash, label: 'Formatierung entfernen', shortcut: null, command: 'removeFormat' },
 ];
 
 const InlineTextToolbar = ({
@@ -37,12 +41,14 @@ const InlineTextToolbar = ({
         const Icon = button.icon;
         const isActive = activeStates[button.id];
         const isClearButton = button.id === 'clear';
+        const tooltip = button.shortcut ? `${button.label} (${button.shortcut})` : button.label;
         return (
           <Toggle
             key={button.id}
             size="sm"
             pressed={isActive}
             aria-label={button.label}
+            title={tooltip}
             onMouseDown={(event) => {
               event.preventDefault();
               onCommand(button.command);

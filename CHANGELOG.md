@@ -7,6 +7,35 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.6.11] - 2025-12-15
+
+### ✨ Added
+- **Tooltips mit Tastaturkürzeln:** Inline-Textformatiertungs-Toolbar zeigt jetzt Shortcuts an
+  - Fett (⌘/Ctrl+B), Kursiv (⌘/Ctrl+I), Unterstreichen (⌘/Ctrl+U)
+  - Hochgestellt (⌘/Ctrl+.), Tiefgestellt (⌘/Ctrl+,)
+  - Aufzählungsliste (⌘/Ctrl+Shift+8)
+  - Plattform-spezifische Anzeige (⌘ für Mac, Ctrl für Windows/Linux)
+- **Auszeichnung-Element Abstand:** 8px vertikaler Abstand zwischen Auszeichnungen für bessere Lesbarkeit
+  - Kein zusätzlicher Abstand am Anfang/Ende des Containers (`:first-child`/`:last-child`)
+  - Konsistentes Verhalten in Screen und Print
+
+### 🐛 Fixed
+- **JSON-Export/Import:** Box-Einstellungen werden jetzt korrekt beim Export/Import beibehalten
+  - `columnCount` (Spaltenanzahl) bleibt erhalten
+  - `customLabel` (benutzerdefiniertes Label) bleibt erhalten
+  - `customColor` (benutzerdefinierte Farbe) bleibt erhalten
+  - Auch SourceBlock-Spalteneinstellungen werden korrekt übernommen
+
+### 🔄 Changed
+- **Kategorie umbenannt:** "Differenzial" → "Differenzialdiagnosen" für bessere Klarheit
+  - Dropdown-Menüs zeigen die Kurzform "Differenzialdiag."
+  - Caption der Box zeigt den vollen Namen "Differenzialdiagnosen"
+- **Tabellen-Kopfzellen:** Neuer Default-Stil mit Dunkelblau (#003366) und weißer Schrift
+  - Ersetzt das vorherige Hellgrau (`hsl(var(--muted))`)
+  - Konsistentes Aussehen in Screen und Print
+
+---
+
 ## [0.6.10] - 2025-12-11
 
 ### 🐛 Fixed
