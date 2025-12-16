@@ -78,10 +78,12 @@ export const CATEGORIES = [
   },
   { 
     id: 'algorithmus', 
-    label: 'Algorithmus', 
+    label: 'Diagnostischer Algorithmus',
+    shortLabel: 'Diag. Algorithmus',
     color: '#47D1C6', 
     bgColor: '#E8FAF9',
-    maxUsage: 1
+    maxUsage: 1,
+    hideFromCategoryChange: true // Only addable via "Inhalt hinzufügen", not changeable
   },
   { 
     id: 'merke', 
@@ -790,7 +792,7 @@ const ContentBoxBlock = ({
                       )}
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    {CATEGORIES.map((cat) => {
+                    {CATEGORIES.filter(cat => !cat.hideFromCategoryChange).map((cat) => {
                       const usageCount = categoryUsageCount[cat.id] || 0;
                       const maxUsage = cat.maxUsage || 1;
                       // For category change: allow selecting current category, but check max for others

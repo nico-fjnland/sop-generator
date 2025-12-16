@@ -21,6 +21,7 @@
 .tiptap-wrapper .tiptap-heading {
   font-size: 12px;
   font-weight: 500;
+  line-height: 1.8;
 }
 
 .tiptap-wrapper .tiptap-editor:focus {
@@ -265,6 +266,7 @@
   .tiptap-wrapper .tiptap-heading {
     font-size: 12px !important;
     font-weight: 500 !important;
+    line-height: 1.8 !important;
   }
   
   .tiptap-wrapper .tiptap-image {

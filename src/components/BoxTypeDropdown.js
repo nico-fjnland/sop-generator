@@ -98,7 +98,7 @@ const BoxTypeDropdown = ({ onSelect, onAddBlock, onSortBlocks, usedCategories = 
                 >
                   {cat.iconComponent}
                 </span>
-              <span className="flex-1">{cat.label}</span>
+              <span className="flex-1">{cat.shortLabel || cat.label}</span>
                 <span className="text-[10px] tabular-nums">
                   {usageCount}/{maxUsage}
                 </span>

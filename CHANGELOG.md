@@ -47,6 +47,16 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - Verhindert Überlappung von Toolbar/Navigation mit Seiteninhalt beim Scrollen
 - Print-Modus unberührt (Editor-Wrapper hat `no-print`)
 
+#### Algorithmus-Kategorie umbenannt
+- **Caption:** "Algorithmus" → "Diagnostischer Algorithmus"
+- **Dropdown-Label:** "Diag. Algorithmus" (kurze Variante)
+- **Nur in "Inhalt hinzufügen":** Algorithmus wurde aus dem "Kategorie ändern"-Dropdown entfernt
+  - Verhindert versehentliches Umwandeln anderer Boxen in Algorithmus-Boxen
+
+#### Headline-Formatierung angepasst
+- **Line-Height erhöht:** Von `1.5` (geerbt) auf `1.8` für bessere Lesbarkeit
+- Gilt für Screen- und Print-Modus
+
 ---
 
 ## [0.7.0] - 2025-12-16

@@ -751,7 +751,7 @@ const TipTapTableBlock = forwardRef(({
                     >
                       {getIconWithColors(cat.id, isMaxed ? '#9CA3AF' : cat.color, isMaxed ? '#F3F4F6' : cat.bgColor)}
                     </span>
-                    <span className="flex-1">{cat.label}</span>
+                    <span className="flex-1">{cat.shortLabel || cat.label}</span>
                     <span className="text-[10px] tabular-nums">
                       {usageCount}/{maxUsage}
                     </span>
