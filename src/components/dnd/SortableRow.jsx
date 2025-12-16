@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { useDragDropState } from '../../contexts/DragDropContext';
 import { DropLine } from './DropIndicator';
+import useHeightEqualization from '../../hooks/useHeightEqualization';
 
 /**
  * Drop zone component for between-row and column positioning
@@ -63,11 +64,17 @@ const SortableRow = ({
   rowRefCallback,
   resizingRowId,
   onResizeStart,
+  onAutoEqualizeColumns,
 }) => {
   const { activeId, dropPosition, isDragging } = useDragDropState();
+  const containerRef = useRef(null);
   
   // Get the block ID from this row for sortable
   const blockIds = useMemo(() => row.blocks.map(b => b.id), [row.blocks]);
+  
+  // Check if heights should be equalized for two-column layouts (auto-detection)
+  const isTwoColumn = row.blocks.length === 2;
+  const shouldEqualizeHeights = useHeightEqualization(containerRef, isTwoColumn);
   
   const {
     setNodeRef,
@@ -108,12 +115,13 @@ const SortableRow = ({
     <div
       ref={(element) => {
         setNodeRef(element);
+        containerRef.current = element;
         if (rowRefCallback) {
           rowRefCallback(row.id)(element);
         }
       }}
       style={style}
-      className={`block-row ${row.blocks.length === 2 ? 'two-columns' : 'single-column'} ${isBeingDragged ? 'is-dragging' : ''}`}
+      className={`block-row ${row.blocks.length === 2 ? 'two-columns' : 'single-column'} ${isBeingDragged ? 'is-dragging' : ''} ${shouldEqualizeHeights ? 'height-equalized' : ''}`}
       data-row-id={row.id}
     >
       {/* Before drop zone - show for rows that aren't being dragged */}
@@ -160,6 +168,11 @@ const SortableRow = ({
           className={`column-resizer ${resizingRowId === row.id ? 'resizing' : ''}`}
           style={{ left: `${(row.columnRatio || 0.5) * 100}%` }}
           onMouseDown={(e) => onResizeStart && onResizeStart(e, row.id, row.columnRatio)}
+          onDoubleClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onAutoEqualizeColumns && onAutoEqualizeColumns(row.id, containerRef.current);
+          }}
         />
       )}
       

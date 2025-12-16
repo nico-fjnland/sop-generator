@@ -1873,27 +1873,21 @@ export default function Account() {
           <StatusIndicator>
             <div className="flex items-center gap-0.5 py-1.5 pl-1.5 pr-2 bg-popover rounded-xl border border-border shadow-lg">
               <Button
-                variant={currentTab === 'sops' ? 'default' : 'ghost'}
+                variant="ghost"
                 onClick={() => changeTab('sops')}
-                className="h-9 px-3 gap-1.5 relative"
+                className={`h-9 px-3 gap-1.5 relative ${currentTab === 'sops' ? 'bg-accent' : ''}`}
               >
                 <FileText size={18} weight={currentTab === 'sops' ? 'fill' : 'regular'} />
                 <span className="text-sm">Leitfäden</span>
-                {/* Badge for document count */}
-                {documents.length > 0 && (
-                  <span className={`ml-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-bold rounded-full ${
-                    currentTab === 'sops'
-                      ? 'bg-white/20 text-white'
-                      : 'bg-primary/20 text-primary'
-                  }`}>
-                    {documents.length}
-                  </span>
-                )}
+                {/* Badge for document count - always visible to prevent layout shift */}
+                <span className="ml-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-bold rounded-full bg-foreground/10 text-foreground">
+                  {documents.length}
+                </span>
               </Button>
               <Button
-                variant={currentTab === 'templates' ? 'default' : 'ghost'}
+                variant="ghost"
                 onClick={() => changeTab('templates')}
-                className="h-9 px-3 gap-1.5"
+                className={`h-9 px-3 gap-1.5 ${currentTab === 'templates' ? 'bg-accent' : ''}`}
               >
                 <Layout size={18} weight={currentTab === 'templates' ? 'fill' : 'regular'} />
                 <span className="text-sm">Templates</span>
@@ -1902,17 +1896,17 @@ export default function Account() {
               <div className="h-5 w-px bg-border mx-1" />
               
               <Button
-                variant={currentTab === 'profile' ? 'default' : 'ghost'}
+                variant="ghost"
                 onClick={() => changeTab('profile')}
-                className="h-9 px-3 gap-1.5"
+                className={`h-9 px-3 gap-1.5 ${currentTab === 'profile' ? 'bg-accent' : ''}`}
               >
                 <User size={18} weight={currentTab === 'profile' ? 'fill' : 'regular'} />
                 <span className="text-sm">Account</span>
               </Button>
               <Button
-                variant={currentTab === 'organization' ? 'default' : 'ghost'}
+                variant="ghost"
                 onClick={() => changeTab('organization')}
-                className="h-9 px-3 gap-1.5"
+                className={`h-9 px-3 gap-1.5 ${currentTab === 'organization' ? 'bg-accent' : ''}`}
               >
                 <Buildings size={18} weight={currentTab === 'organization' ? 'fill' : 'regular'} />
                 <span className="text-sm">Organisation</span>
@@ -1923,7 +1917,7 @@ export default function Account() {
         document.body
       )}
 
-      <div className="flex flex-col items-center w-full pt-7">
+      <div className="flex flex-col items-center w-full pt-7 pb-24">
         {/* Main Content */}
         {/* min-height prevents layout shift during tab changes */}
         <main className="w-full max-w-[210mm]" style={{ minHeight: '600px' }}>

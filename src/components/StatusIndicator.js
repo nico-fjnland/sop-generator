@@ -18,18 +18,18 @@ const StatusIndicator = ({ children }) => {
     switch (currentStatus.type) {
       case 'success':
       case 'synced':
-        return <Check size={14} weight="bold" />;
+        return <Check size={16} weight="bold" />;
       case 'error':
-        return <X size={14} weight="bold" />;
+        return <X size={16} weight="bold" />;
       case 'warning':
-        return <Warning size={14} weight="bold" />;
+        return <Warning size={16} weight="bold" />;
       case 'info':
-        return <Info size={14} weight="bold" />;
+        return <Info size={16} weight="bold" />;
       case 'saving':
       case 'exporting':
         return <Spinner size="sm" />;
       default:
-        return <Check size={14} weight="bold" />;
+        return <Check size={16} weight="bold" />;
     }
   };
 

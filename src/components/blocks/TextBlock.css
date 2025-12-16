@@ -10,6 +10,17 @@
   margin: 0;
   padding: 0;
   outline: none;
+  /* Explicitly set language for spellcheck - helps Firefox */
+  -webkit-locale: "de";
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+}
+
+/* Heading style (12px) */
+.tiptap-wrapper .tiptap-heading {
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .tiptap-wrapper .tiptap-editor:focus {
@@ -248,6 +259,12 @@
 @media print {
   .tiptap-wrapper .tiptap-editor {
     color: black;
+  }
+  
+  /* Heading print styles */
+  .tiptap-wrapper .tiptap-heading {
+    font-size: 12px !important;
+    font-weight: 500 !important;
   }
   
   .tiptap-wrapper .tiptap-image {

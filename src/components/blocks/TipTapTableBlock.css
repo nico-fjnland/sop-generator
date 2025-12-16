@@ -35,6 +35,8 @@
 /* Table Editor */
 .tiptap-table-editor {
   min-width: 100%;
+  /* Explicitly set language for spellcheck - helps Firefox */
+  -webkit-locale: "de";
 }
 
 .tiptap-table-editor:focus {
@@ -107,12 +109,8 @@
   overflow: hidden; /* Clip any remaining overflow */
 }
 
-/* Header cells keep larger padding */
-.tiptap-table-editor th {
-  padding: 0.625rem 0.875rem;
-}
-
-/* Data cells have reduced vertical padding */
+/* All cells have same padding - only color differs */
+.tiptap-table-editor th,
 .tiptap-table-editor td {
   padding: 0.375rem 0.875rem;
 }
@@ -406,13 +404,6 @@
   .tiptap-table-editor td,
   .tiptap-table-editor th {
     font-size: 10px;
-  }
-  
-  .tiptap-table-editor th {
-    padding: 0.5rem 0.625rem;
-  }
-  
-  .tiptap-table-editor td {
     padding: 0.3125rem 0.625rem;
   }
 }

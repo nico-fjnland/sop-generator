@@ -707,10 +707,10 @@ const ContentBoxBlock = ({
       </div>
 
       {/* Content Box - Figma Structure: Icon left (or right for right column in two-column layout), Box, Caption on top border */}
-      <div className={`flex items-center mb-[-7px] relative w-full ${iconOnRight ? 'flex-row-reverse' : ''}`} style={{ overflow: 'visible' }}>
+      <div className={`content-box-wrapper flex items-center mb-[-7px] relative w-full ${iconOnRight ? 'flex-row-reverse' : ''}`} style={{ overflow: 'visible' }}>
         {/* Icon - Oval (Editor only) - Also serves as drag handle */}
         <div 
-          className={`icon-container flex items-center justify-center ${iconOnRight ? 'ml-[-14px]' : 'mr-[-14px]'} relative shrink-0 z-10 no-print ${dragHandleProps ? 'drag-handle' : ''}`} 
+          className={`icon-container flex items-center justify-center ${iconOnRight ? 'ml-[-14px]' : 'mr-[-14px]'} relative shrink-0 no-print ${dragHandleProps ? 'drag-handle' : ''}`} 
           style={{ 
             overflow: 'visible',
             cursor: dragHandleProps ? 'grab' : undefined,
@@ -736,7 +736,7 @@ const ContentBoxBlock = ({
         </div>
         
         {/* Text container - Box with colored border */}
-        <div className="relative flex-1 min-w-0">
+        <div className="content-box-container relative flex-1 min-w-0">
           <div 
             className="bg-white border-[1.8px] border-solid relative rounded-[6px] min-h-[50px] w-full notion-box-shell"
             style={{

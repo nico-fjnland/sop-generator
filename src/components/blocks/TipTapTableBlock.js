@@ -884,6 +884,7 @@ const TipTapTableBlock = forwardRef(({
         <div 
           ref={tableWrapperRef}
           className="tiptap-table-wrapper flex-1 relative"
+          lang="de"
         >
           <EditorContent editor={editor} />
         </div>

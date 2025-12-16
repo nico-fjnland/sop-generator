@@ -199,6 +199,7 @@ iframe[title*="Help Scout"] {
     overflow: visible !important;
     clip-path: none !important;
     clip: auto !important;
+    z-index: 50 !important; /* Ensure icons are above content boxes in print */
   }
   
   /* Ensure negative margins are preserved */
@@ -332,6 +333,48 @@ iframe[title*="Help Scout"] {
   
   .block-row.two-columns {
     gap: 16px !important;
+  }
+  
+  /* Height equalization for two-column layouts in print */
+  .block-row.two-columns.height-equalized {
+    align-items: stretch !important;
+  }
+  
+  /* Make draggable wrapper stretch its content - preserve inline flex-basis/maxWidth */
+  .block-row.two-columns.height-equalized > .draggable-block {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* Make content-box fill available height */
+  .block-row.two-columns.height-equalized .content-box-block {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* The icon+box wrapper needs to stretch */
+  .block-row.two-columns.height-equalized .content-box-wrapper {
+    flex: 1 !important;
+    align-items: stretch !important;
+  }
+  
+  /* The box container (not the icon) needs to stretch */
+  .block-row.two-columns.height-equalized .content-box-container {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* The bordered box shell needs to fill height */
+  .block-row.two-columns.height-equalized .notion-box-shell {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* Content area fills remaining space */
+  .block-row.two-columns.height-equalized .content-box-content {
+    flex: 1 !important;
   }
   
   .block-row.single-column {
@@ -775,7 +818,7 @@ body.export-ready .a4-page {
   .icon-container {
     pointer-events: auto !important;
     user-select: none;
-    z-index: 50 !important;
+    z-index: 10 !important;
     position: relative;
   }
   
@@ -785,7 +828,7 @@ body.export-ready .a4-page {
   }
   
   .content-box-block > div.flex-row-reverse .icon-container {
-    z-index: 50 !important;
+    z-index: 10 !important;
   }
   
   /* Page break styles for screen mode - now visible */
@@ -872,6 +915,48 @@ body.export-ready .a4-page {
 
 .block-row.two-columns {
   gap: 20px;
+}
+
+/* Height equalization for two-column layouts when boxes are similar in height */
+.block-row.two-columns.height-equalized {
+  align-items: stretch;
+}
+
+/* Make draggable wrapper stretch its content - but preserve its inline flex-basis/maxWidth */
+.block-row.two-columns.height-equalized > .draggable-block {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Make content-box fill available height */
+.block-row.two-columns.height-equalized .content-box-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The icon+box wrapper needs to stretch */
+.block-row.two-columns.height-equalized .content-box-wrapper {
+  flex: 1;
+  align-items: stretch;
+}
+
+/* The box container (not the icon) needs to stretch */
+.block-row.two-columns.height-equalized .content-box-container {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The bordered box shell needs to fill height */
+.block-row.two-columns.height-equalized .notion-box-shell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Content area fills remaining space */
+.block-row.two-columns.height-equalized .content-box-content {
+  flex: 1;
 }
 
 .block-row.single-column {

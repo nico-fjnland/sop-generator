@@ -7,7 +7,88 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.7.2] - 2025-12-16
+
+### ✨ Features
+
+#### Smart Height Equalization für zweispaltige Layouts
+- **Intelligente Höhenangleichung:** Boxen in zweispaltigen Layouts werden automatisch auf gleiche Höhe gebracht, wenn der Höhenunterschied gering ist
+  - Vermeidet unschöne "Treppen" bei nahezu gleich hohen Boxen
+  - Aktiviert sich nur wenn: Unterschied < 40px ODER Unterschied < 15% der größeren Box
+  - Bei großen Unterschieden behalten Boxen ihre natürliche Höhe
+- **Doppelklick auf Column Resizer:** Passt die Spaltenbreiten automatisch an, um die Box-Höhen anzugleichen
+  - Ein Doppelklick genügt - iteriert automatisch bis zu 4x im Hintergrund
+  - Verwendet gedämpfte Höhen-basierte Formel (70%) zur Vermeidung von Oszillation
+  - Stoppt automatisch wenn Höhen angeglichen sind (Differenz < 15px)
+- **Neuer Hook `useHeightEqualization`:** Verwendet ResizeObserver zur Höhenmessung
+- **CSS-Klasse `height-equalized`:** Wird automatisch auf `.block-row.two-columns` angewendet wenn passend
+- **Print-Unterstützung:** Funktioniert sowohl im Screen- als auch im Print-Modus
+
+---
+
+## [0.7.1] - 2025-12-16
+
+### 🐛 Bugfixes
+
+#### Firefox Rechtschreibprüfung verbessert
+- **Sprach-Attribute ergänzt:** `lang="de"` auf Editor-Wrapper-Elementen hinzugefügt
+  - `TextBlock.js`: tiptap-wrapper erhält jetzt `lang="de"`
+  - `TipTapTableBlock.js`: tiptap-table-wrapper erhält jetzt `lang="de"`
+- **Content-Language Meta-Tag:** Neues `<meta http-equiv="Content-Language" content="de">` in index.html
+- **CSS-Unterstützung:** `-webkit-locale: "de"` und `hyphens: auto` für bessere Sprach-Erkennung
+- Firefox verwendet diese Attribute für die korrekte Wörterbuch-Auswahl bei der Rechtschreibprüfung
+
+#### ContentBox Icon z-index im Print-Modus
+- **Print z-index wiederhergestellt:** Print-Icon hat wieder `z-10` Klasse (wie ursprünglich)
+  - Da das Element `hidden print:flex` hat, wirkt `z-10` nur im Print-Modus
+  - Screen-Modus: `.icon-container` hat `z-index: 10` via CSS
+
+### 🎨 UI/UX
+
+#### Bottom-Spacing für Toolbar
+- **Editor:** Bottom-Padding von `pb-6` (24px) auf `pb-24` (96px) erhöht
+- **Account-Seite:** `pb-24` zum Content-Wrapper hinzugefügt
+- Verhindert Überlappung von Toolbar/Navigation mit Seiteninhalt beim Scrollen
+- Print-Modus unberührt (Editor-Wrapper hat `no-print`)
+
+---
+
 ## [0.7.0] - 2025-12-16
+
+### 🎨 Styling
+
+#### Account-Navigation Toolbar
+- **Active State angepasst:** Aktive Tab-Buttons verwenden jetzt denselben Grauton (`bg-accent`) wie der Hover-State der Ghost-Buttons
+  - Icons und Text bleiben dunkel (foreground color) statt weiß
+  - Einheitlicheres Design mit der restlichen Toolbar
+- **Dokument-Badge überarbeitet:**
+  - Farbe von blau (`bg-primary/20 text-primary`) zu dunkel (`bg-foreground/10 text-foreground`) geändert
+  - Badge ist jetzt immer sichtbar (zeigt "0" wenn keine Dokumente) um Layout-Sprünge beim Laden zu vermeiden
+
+#### StatusIndicator
+- **Schriftgröße erhöht:** Von 11px auf 13px für bessere Lesbarkeit
+- **Padding angepasst:** Größeres Padding (16px statt 14px) und Gap (8px statt 6px)
+- **Icon-Größe angepasst:** Von 14px auf 16px
+- **Fixe Höhe:** Frame verwendet jetzt `height` statt `top` für konsistente Expansion (+40px wenn aktiv)
+
+#### TextEditor (InlineTextToolbar)
+- **Neue "Überschrift"-Funktion:** Vergrößert Text auf 12px mit font-weight 500
+  - Neues `TextH` Icon aus Phosphor
+  - Erscheint vor der Bold-Option in der Toolbar
+  - Korrekte Darstellung im Print-Modus
+- **HeadingFont Mark Extension:** Neue TipTap-Extension für Überschriften-Formatierung
+
+### 🐛 Bugfixes
+
+#### Z-Index ContentBox Icons
+- **Icon z-index reduziert:** Von `z-50` auf `z-10` um Überlappung mit der Bottom-Toolbar zu verhindern
+  - Icons erscheinen nicht mehr über dem Gradient/UI am unteren Viewport-Rand
+
+#### Tabellen-Styling
+- **Header-Padding angepasst:** Kopfzeilen haben jetzt dasselbe Padding wie normale Zellen
+  - Vorher: th `0.625rem 0.875rem`, td `0.375rem 0.875rem`
+  - Nachher: beide `0.375rem 0.875rem`
+  - Header unterscheiden sich nur noch farblich (dunkelblauer Hintergrund)
 
 ### ✨ Neue Features
 

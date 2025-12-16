@@ -58,7 +58,7 @@ const AppContent = () => {
         {/* Editor Route - With Zoom wrapper */}
         <Route path="/" element={
           <ZoomWrapper>
-            <main className="px-6 no-print flex justify-center pb-6">
+            <main className="px-6 no-print flex justify-center pb-24">
               <div className="w-full flex justify-center">
                 <div
                   ref={componentRef}

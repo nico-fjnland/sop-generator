@@ -553,6 +553,59 @@ const Editor = () => {
     document.body.style.userSelect = 'none';
   }, [handleResizeMoveStable, handleResizeEnd]);
 
+  // Auto-equalize column widths to match box heights (double-click on column resizer)
+  // Automatically iterates up to 4 times for single-click convergence
+  const autoEqualizeColumns = useCallback((rowId, rowElement, iteration = 0, lastAppliedRatio = null) => {
+    if (!rowElement) return;
+    const maxIterations = 4;
+    
+    // Find columns and sort by horizontal position (left to right)
+    const columns = Array.from(rowElement.querySelectorAll(':scope > .draggable-block'));
+    if (columns.length !== 2) return;
+    
+    columns.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+    const [leftCol, rightCol] = columns;
+    
+    // Get the actual bordered boxes for accurate height measurement
+    const leftBox = leftCol.querySelector('.notion-box-shell');
+    const rightBox = rightCol.querySelector('.notion-box-shell');
+    if (!leftBox || !rightBox) return;
+    
+    const leftHeight = leftBox.getBoundingClientRect().height;
+    const rightHeight = rightBox.getBoundingClientRect().height;
+    
+    // Get current ratio - use lastAppliedRatio if available (for iterations), otherwise read from state
+    const currentRow = rows.find(r => r.id === rowId);
+    const currentRatio = lastAppliedRatio !== null ? lastAppliedRatio : (currentRow?.columnRatio || 0.5);
+    
+    // If heights are already very close, stop iterating
+    if (Math.abs(leftHeight - rightHeight) < 15) {
+      return;
+    }
+    
+    // Height-based formula with 70% damping to prevent oscillation
+    const targetRatio = leftHeight / (leftHeight + rightHeight);
+    let newRatio = currentRatio + (targetRatio - currentRatio) * 0.7;
+    newRatio = Math.max(0.33, Math.min(0.67, newRatio));
+    newRatio = Math.round(newRatio * 100) / 100;
+    
+    // Apply the new ratio
+    setRows(prevRows => 
+      prevRows.map(row => row.id === rowId ? { ...row, columnRatio: newRatio } : row)
+    );
+    
+    // Schedule next iteration after DOM updates (if not at max iterations)
+    if (iteration < maxIterations - 1) {
+      requestAnimationFrame(() => {
+        // Wait one more frame to ensure layout is updated
+        requestAnimationFrame(() => {
+          // Pass newRatio as lastAppliedRatio to avoid stale state issue
+          autoEqualizeColumns(rowId, rowElement, iteration + 1, newRatio);
+        });
+      });
+    }
+  }, [setRows, rows]);
+
 
   // Stable ref callback for rows - never recreated
   const rowRefCallback = useCallback((rowId) => {
@@ -792,6 +845,7 @@ const Editor = () => {
                       rowRefCallback={rowRefCallback}
                       resizingRowId={resizingRowId}
                       onResizeStart={onResizeStart}
+                      onAutoEqualizeColumns={autoEqualizeColumns}
                   >
                     {row.blocks.map((block, blockIndex) => {
                       const isRightColumn = row.blocks.length !== 2 || blockIndex === 1;

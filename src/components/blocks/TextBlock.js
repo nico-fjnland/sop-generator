@@ -90,6 +90,33 @@ const SmallFont = Mark.create({
   },
 });
 
+// Custom extension for heading font size (12px)
+const HeadingFont = Mark.create({
+  name: 'headingFont',
+  
+  parseHTML() {
+    return [
+      {
+        tag: 'span',
+        // Parse both 12px and legacy 13px
+        getAttrs: node => (node.style.fontSize === '12px' || node.style.fontSize === '13px') && null,
+      },
+    ];
+  },
+  
+  renderHTML({ HTMLAttributes }) {
+    return ['span', mergeAttributes(HTMLAttributes, { class: 'tiptap-heading', style: 'font-size: 12px' }), 0];
+  },
+  
+  addCommands() {
+    return {
+      toggleHeadingFont: () => ({ commands }) => {
+        return commands.toggleMark(this.name);
+      },
+    };
+  },
+});
+
 const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox = false, onAddAfter, blockId }, ref) => {
   // For non-content-box blocks, use simple textarea
   const textareaRef = React.useRef(null);
@@ -146,6 +173,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       Subscript,
       Superscript,
       SmallFont,
+      HeadingFont,
       Placeholder.configure({
         placeholder: ({ editor }) => {
           // Only show placeholder when the entire editor is empty
@@ -422,6 +450,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
   const getActiveFormats = () => {
     if (!editor) return {};
     return {
+      heading: editor.isActive('headingFont'),
       bold: editor.isActive('bold'),
       italic: editor.isActive('italic'),
       underline: editor.isActive('underline'),
@@ -437,6 +466,9 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
     if (!editor) return;
     
     switch (command) {
+      case 'heading':
+        editor.chain().focus().toggleHeadingFont().run();
+        break;
       case 'bold':
         editor.chain().focus().toggleBold().run();
         break;
@@ -474,7 +506,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
 
     return (
       <>
-        <div className="tiptap-wrapper relative w-full">
+        <div className="tiptap-wrapper relative w-full" lang="de">
           <EditorContent editor={editor} />
         </div>
         <InlineTextToolbar

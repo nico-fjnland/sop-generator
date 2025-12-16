@@ -198,6 +198,7 @@ src/
 │   ├── useEditorHistory.js   # Undo/Redo + LocalStorage
 │   ├── usePageBreaks.js      # A4 Seitenumbruch-Berechnung
 │   ├── useKlinikAtlas.js     # Bundes-Klinik-Atlas API Hook
+│   ├── useHeightEqualization.js # Smart Height Equalization für 2-Spalten
 │   └── use-debounced-dimensions.js
 │
 ├── pages/

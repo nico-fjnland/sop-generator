@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { TextB, TextItalic, TextUnderline, TextTSlash, TextSuperscript, TextSubscript, TextAa, ListBullets } from '@phosphor-icons/react';
+import { TextB, TextItalic, TextUnderline, TextTSlash, TextSuperscript, TextSubscript, TextAa, TextH, ListBullets } from '@phosphor-icons/react';
 import { Toggle } from './ui/toggle';
 
 // Plattform-Erkennung für korrekte Tastenkürzel-Anzeige
@@ -8,6 +8,7 @@ const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(na
 const mod = isMac ? '⌘' : 'Ctrl';
 
 const TOOLBAR_BUTTONS = [
+  { id: 'heading', icon: TextH, label: 'Überschrift', shortcut: null, command: 'heading' },
   { id: 'bold', icon: TextB, label: 'Fett', shortcut: `${mod}+B`, command: 'bold' },
   { id: 'italic', icon: TextItalic, label: 'Kursiv', shortcut: `${mod}+I`, command: 'italic' },
   { id: 'underline', icon: TextUnderline, label: 'Unterstreichen', shortcut: `${mod}+U`, command: 'underline' },
