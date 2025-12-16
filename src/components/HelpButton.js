@@ -119,7 +119,7 @@ const HelpButton = () => {
       className="fixed bottom-6 left-6 z-50 no-print flex items-center gap-3"
     >
       {/* Help Button - matches ZoomControl styling */}
-      <div className="bg-popover rounded-lg border border-border p-1 relative">
+      <div className="bg-popover rounded-lg border border-border p-1 shadow-lg relative">
         <Button
           variant="ghost"
           size="icon"

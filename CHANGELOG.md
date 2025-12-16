@@ -7,6 +7,44 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.7.0] - 2025-12-16
+
+### 🎨 UI/UX Überarbeitung
+
+#### Editor-Toolbars
+- **Toolbar aufgeteilt:** Zwei separate Toolbars für bessere Übersichtlichkeit
+  - **Bottom-Toolbar** (zentriert unten): History, Export/Import, Status
+  - **Top-Right-Toolbar** (oben rechts, 24px Abstand): Speichern-Button + Account-Avatar
+- Speichern-Button als blauer Primary-Button (`variant="default"`)
+- Account-Avatar vergrößert (`h-12 w-12`), Dropdown öffnet nach unten
+- Kompakteres Design mit Icon-Only Buttons für Export/Import
+- Status-Anzeige mit fixer Breite (`w-[120px]`) verhindert Layout-Springen
+- "Gespeichert" umbenannt zu "Synchronisiert"
+
+#### A4-Seiten-Layout
+- **Seiten-Ausrichtung:** Erste A4-Seite beginnt auf gleicher Höhe wie Top-Right-Toolbar
+  - `margin-top: 6px` für optimales visuelles Alignment
+
+#### Account-Seite
+- **Navigation-Bar:** Neu positioniert oberhalb des Contents
+  - Gleiche Breite wie Content (`max-w-[210mm]`)
+  - Styling konsistent mit Zoombar (`p-1`, `gap-1`, `h-8` Buttons)
+  - Icons auf 16px reduziert für einheitliches Erscheinungsbild
+- "Zum Editor" Button + Account-Avatar weiterhin oben rechts (fixed)
+
+#### Steuerelemente
+- **Bottom-Gradient:** Dezenter Verlauf am unteren Viewport-Rand
+  - 144px hoch (`h-36`), weicher 5-stufiger Verlauf
+  - Tagmodus: Weißer Verlauf / Nachtmodus: Dunkler Verlauf
+- **Zoom-Control:** Prozent-Feld jetzt gleiche Höhe wie +/- Buttons (`h-8`)
+- **Einheitliche Schatten:** Alle Bottom-Controls mit `shadow-lg`
+
+### 🔄 Changed
+- AccountDropdown: Neue Props `size` und `dropdownPosition`
+- UndoRedoButton: Neue `size` Prop für größere Variante
+
+---
+
 ## [0.6.12] - 2025-12-15
 
 ### 🎨 Changed

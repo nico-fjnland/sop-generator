@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect, memo, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Block from './Block';
 import SOPHeader from './SOPHeader';
@@ -621,6 +622,141 @@ const Editor = () => {
     return groupedPages;
   }, [rows, pageBreaks]);
 
+  // Bottom Toolbar (zentriert am unteren Rand)
+  const bottomToolbar = (
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 no-print">
+      <div className="flex items-center gap-1.5 py-1.5 pl-1.5 pr-3 bg-popover rounded-xl border border-border shadow-lg">
+        {/* History & Reset Controls */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={reset} 
+          title="Reset"
+          className="h-9 w-9 text-red-500 hover:text-red-600 hover:bg-red-50"
+        >
+          <Trash size={20} />
+        </Button>
+        <UndoRedoButton
+          action="undo"
+          onAction={undo}
+          canExecute={canUndo}
+          size="lg"
+        />
+        <UndoRedoButton
+          action="redo"
+          onAction={redo}
+          canExecute={canRedo}
+          size="lg"
+        />
+        
+        <div className="h-5 w-px bg-border mx-1" />
+        
+        {/* Export / Import Controls */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={triggerImport}
+          title="Import (JSON)"
+          className="h-9 w-9"
+        >
+          <Upload size={18} />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handlePdfExport}
+          disabled={isExporting}
+          title="Export als PDF"
+          className="h-9 w-9"
+        >
+          <FilePdf size={18} />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleWordExport}
+          disabled={isExporting}
+          title="Export als Word"
+          className="h-9 w-9"
+        >
+          <FileDoc size={18} />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleJsonExport}
+          title="Export als JSON"
+          className="h-9 w-9"
+        >
+          <FileCode size={18} />
+        </Button>
+          
+        <div className="h-5 w-px bg-border mx-1" />
+          
+        {/* Status Indicator - fixe Breite um Springen zu vermeiden */}
+        <div className="flex items-center justify-center gap-2 w-[120px]">
+          {isExporting ? (
+            <>
+              <Spinner size="sm" className="text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Exportiere...</span>
+            </>
+          ) : (isSaving || isCloudSaving) ? (
+            <>
+              <Spinner size="sm" className="text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Speichern...</span>
+            </>
+          ) : (
+            <>
+              <Check size={18} weight="bold" className="text-emerald-500" />
+              <span className="text-sm text-muted-foreground">Synchronisiert</span>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Top-Right Toolbar (Speichern & Account)
+  const topRightToolbar = (
+    <div className="fixed top-6 right-6 z-50 no-print flex items-center gap-2">
+      {user ? (
+        <>
+          {/* Speichern Button - gleiche Höhe wie Zoombar, primary Farbe */}
+          <Button
+            onClick={handleCloudSave}
+            disabled={isCloudSaving}
+            title="In Cloud speichern"
+            className="h-10 px-3 gap-1.5"
+          >
+            {isCloudSaving ? <Spinner size="sm" /> : <CloudArrowUp size={18} />}
+            <span className="text-sm">Speichern</span>
+          </Button>
+          
+          {/* Account Avatar - gleiche Höhe wie Button */}
+          <AccountDropdown 
+            user={user} 
+            signOut={signOut}
+            displayName={getDisplayName()}
+            avatarUrl={avatarUrl}
+            documentsCount={documentsCount}
+            organization={organization}
+            profile={profile}
+            dropdownPosition="bottom"
+            size="lg"
+          />
+        </>
+      ) : (
+        <Button
+          onClick={() => { window.location.href = '/login'; }}
+          className="h-10 px-3"
+        >
+          <User size={18} weight="bold" />
+          <span className="ml-1.5">Anmelden</span>
+        </Button>
+      )}
+    </div>
+  );
+
   return (
     <div className="flex flex-col items-center w-full pt-6">
       {/* Hidden file input for import */}
@@ -632,150 +768,9 @@ const Editor = () => {
         accept=".json"
       />
 
-      {/* Toolbar - Aufgeteilt in zwei Teile */}
-      <div className="no-print flex items-center gap-3 mb-0" style={{ width: '210mm', margin: '0 auto', boxSizing: 'border-box' }}>
-        {/* Linke Toolbar - Hauptfunktionen */}
-        <div className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm border border-gray-200 flex-1 min-w-0 overflow-hidden">
-        {/* History & Reset Controls */}
-        <div className="flex items-center gap-0">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={reset} 
-            title="Reset"
-            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
-          >
-            <Trash size={18} />
-          </Button>
-          <UndoRedoButton
-            action="undo"
-            onAction={undo}
-            canExecute={canUndo}
-          />
-          <UndoRedoButton
-            action="redo"
-            onAction={redo}
-            canExecute={canRedo}
-          />
-        </div>
-        
-        <div className="h-4 w-px bg-gray-200 mx-2" />
-        
-        {/* Export / Import Controls */}
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={triggerImport}
-            title="Gespeicherten Stand laden"
-            className="h-8 text-xs px-2 text-[#003366] gap-1"
-          >
-            <Upload size={16} />
-            Import
-          </Button>
-
-            <div className="h-4 w-px bg-gray-200 mx-1" />
-
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handlePdfExport}
-              disabled={isExporting}
-              className="h-8 text-xs px-2 text-[#003366] gap-1"
-              title="Als PDF exportieren"
-            >
-              <FilePdf size={16} />
-              PDF
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleWordExport}
-              disabled={isExporting}
-              className="h-8 text-xs px-2 text-[#003366] gap-1"
-              title="Als Word exportieren"
-            >
-              <FileDoc size={16} />
-              Word
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleJsonExport}
-              className="h-8 text-xs px-2 text-[#003366] gap-1"
-              title="Als JSON exportieren"
-            >
-              <FileCode size={16} />
-              JSON
-            </Button>
-            </div>
-          </div>
-          
-          {/* Status Indicator */}
-          <div className="ml-auto flex items-center gap-2">
-            <div className="h-4 w-px bg-gray-200" />
-            <div className="flex items-center gap-1.5 px-2 min-w-[120px]">
-              {isExporting ? (
-                <>
-                  <Spinner size="sm" className="text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Exportiere ...</span>
-                </>
-              ) : (isSaving || isCloudSaving) ? (
-                <>
-                  <Spinner size="sm" className="text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Aktualisiere ...</span>
-                </>
-              ) : (
-                <>
-                  <Check size={16} weight="bold" className="text-[#3399FF]" />
-                  <span className="text-xs text-[#3399FF] font-medium">Synchronisiert</span>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Rechte Toolbar - Cloud & Account */}
-        {user ? (
-          <div className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm border border-gray-200 flex-shrink-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCloudSave}
-                disabled={isCloudSaving}
-                title="In Cloud speichern"
-                className="h-8 text-xs px-2 text-[#003366] gap-1"
-              >
-                {isCloudSaving ? <Spinner size="sm" /> : <CloudArrowUp size={16} />}
-                In Cloud speichern
-              </Button>
-
-          <div className="h-4 w-px bg-gray-200" />
-            
-            {/* Account Button - Eingeloggt */}
-            <AccountDropdown 
-              user={user} 
-              signOut={signOut}
-              displayName={getDisplayName()}
-              avatarUrl={avatarUrl}
-              documentsCount={documentsCount}
-              organization={organization}
-              profile={profile}
-            />
-        </div>
-        ) : (
-          /* Anmelden CTA - Gesamter rechter Teil als Button */
-          <button
-            type="button"
-            onClick={() => { window.location.href = '/login'; }}
-            className="flex items-center justify-center gap-2 px-4 h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg shadow-sm border border-primary transition-colors cursor-pointer flex-shrink-0"
-          >
-            <User size={16} weight="bold" />
-            <span className="text-xs font-medium">Anmelden</span>
-          </button>
-        )}
-      </div>
+      {/* Toolbars als Portale zum body (außerhalb ZoomWrapper) */}
+      {createPortal(bottomToolbar, document.body)}
+      {createPortal(topRightToolbar, document.body)}
 
       <DragDropProvider 
         rows={rows} 

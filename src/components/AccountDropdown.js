@@ -24,7 +24,9 @@ const AccountDropdown = ({
   documentsCount = 0,
   organization = null,
   profile = null,
-  onTabChange // Optional: (tab) => void. If not provided, uses window.location
+  onTabChange, // Optional: (tab) => void. If not provided, uses window.location
+  dropdownPosition = 'right', // 'right' oder 'bottom'
+  size = 'default' // 'default' (h-8) oder 'lg' (h-10)
 }) => {
   const navigate = useNavigate();
   const { timeOfDay, toggleTime } = useTheme();
@@ -55,7 +57,7 @@ const AccountDropdown = ({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-full p-0 transition-all bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center overflow-hidden"
+          className={`rounded-full p-0 transition-all bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center overflow-hidden ${size === 'lg' ? 'h-12 w-12' : 'h-8 w-8'}`}
           title="Mein Konto"
         >
           {avatarUrl ? (
@@ -65,16 +67,16 @@ const AccountDropdown = ({
               className="w-full h-full object-cover"
             />
           ) : (
-            <User size={16} weight="bold" />
+            <User size={size === 'lg' ? 24 : 16} weight="bold" />
           )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         className="w-64" 
-        side="right" 
-        align="start" 
-        sideOffset={16}
-        alignOffset={-8}
+        side={dropdownPosition === 'bottom' ? 'bottom' : 'right'}
+        align={dropdownPosition === 'bottom' ? 'end' : 'start'}
+        sideOffset={dropdownPosition === 'bottom' ? 8 : 16}
+        alignOffset={dropdownPosition === 'bottom' ? 0 : -8}
         collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }} 
         avoidCollisions={true}
       >

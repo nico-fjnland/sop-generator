@@ -18,7 +18,12 @@ import './App.css';
 
 const AppContent = () => {
   const componentRef = useRef();
-  const { getGradientClass } = useTheme();
+  const { getGradientClass, timeOfDay } = useTheme();
+  
+  // Gradient für Tag/Nacht-Modus (schwächer/transparenter)
+  const bottomGradient = timeOfDay === 'night'
+    ? 'linear-gradient(to top, rgba(10, 15, 25, 0.5) 0%, rgba(10, 15, 25, 0.25) 35%, rgba(10, 15, 25, 0.1) 60%, rgba(10, 15, 25, 0.02) 85%, transparent 100%)'
+    : 'linear-gradient(to top, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.25) 35%, rgba(255, 255, 255, 0.1) 60%, rgba(255, 255, 255, 0.02) 85%, transparent 100%)';
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-200 ${getGradientClass()}`}>
@@ -30,6 +35,12 @@ const AppContent = () => {
       <Toaster position="bottom-left" />
       <HelpButton />
       <ZoomControl />
+      
+      {/* Bottom gradient für bessere Sichtbarkeit der Steuerungselemente */}
+      <div 
+        className="fixed bottom-0 left-0 right-0 h-36 pointer-events-none z-40 no-print transition-all duration-300"
+        style={{ background: bottomGradient }}
+      />
       
       <Routes>
         {/* Auth Routes - No Zoom, No FloatingButton constraints */}

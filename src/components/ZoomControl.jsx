@@ -61,7 +61,7 @@ const ZoomControl = () => {
       className="fixed bottom-6 right-6 z-50 no-print"
     >
       {/* Horizontal Zoom Bar */}
-      <div className="bg-popover rounded-lg border border-border p-1 flex items-center gap-1">
+      <div className="bg-popover rounded-lg border border-border p-1 shadow-lg flex items-center gap-1">
         {/* Zoom Out (Minus) */}
         <Button
           variant="ghost"
@@ -77,7 +77,7 @@ const ZoomControl = () => {
         {/* Zoom Level Display (Center) */}
         <button
           onClick={handleReset}
-          className="px-3 py-1 min-w-[60px] text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+          className="h-8 w-12 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors flex items-center justify-center"
           title="Zurücksetzen (⌘0)"
         >
           {zoom}%

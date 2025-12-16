@@ -32,6 +32,7 @@ export const UndoRedoButton = ({
   showShortcut = true,
   onExecuted,
   className = '',
+  size = 'default', // 'default' (h-8) oder 'lg' (h-9)
 }) => {
   const isUndo = action === 'undo';
   const { getActiveEditor } = useTipTapFocus();
@@ -101,6 +102,9 @@ export const UndoRedoButton = ({
     transition: 'transform 0.15s ease-out',
   };
 
+  const buttonSize = size === 'lg' ? 'h-9 w-9' : 'h-8 w-8';
+  const iconSize = size === 'lg' ? 20 : 18;
+
   return (
     <Button
       variant="ghost"
@@ -109,15 +113,15 @@ export const UndoRedoButton = ({
       onClick={handleClick}
       disabled={!canExecute}
       title={title}
-      className={`h-8 w-8 text-[#003366] ${className}`}
+      className={`${buttonSize} text-[#003366] ${className}`}
     >
       {text ? (
         <>
-          <Icon size={18} className="mr-1" style={animationStyle} />
+          <Icon size={iconSize} className="mr-1" style={animationStyle} />
           {text}
         </>
       ) : (
-        <Icon size={18} style={animationStyle} />
+        <Icon size={iconSize} style={animationStyle} />
       )}
     </Button>
   );

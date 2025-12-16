@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -1836,92 +1837,89 @@ export default function Account() {
         </AlertDialogContent>
       </AlertDialog>
       
-      <div className="flex flex-col items-center w-full mb-12 pt-6">
-        {/* Toolbar - Aufgeteilt in zwei Teile (wie im Editor) */}
-        <div className="no-print flex items-center gap-3 mb-4 w-full max-w-[210mm]">
-          {/* Linke Toolbar - Navigation */}
-          <div className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm border border-gray-200 flex-1">
-            {/* Navigation Links */}
-            <div className="flex items-center gap-1">
-              <Button
-                variant={currentTab === 'sops' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => changeTab('sops')}
-                className="h-8 text-xs px-2 gap-1 relative"
-              >
-                <FileText size={16} weight={currentTab === 'sops' ? 'fill' : 'regular'} />
-                Meine Leitfäden
-                {/* Always render badge to prevent layout shift, but hide when no docs */}
-                <span className={`ml-2 min-w-[18px] h-[18px] px-1.5 flex items-center justify-center text-[10px] font-bold rounded-full transition-opacity ${
-                  documents.length > 0 ? 'opacity-100' : 'opacity-0'
-                } ${
-                  currentTab === 'sops'
-                    ? 'bg-white text-primary'
-                    : 'bg-primary/20 text-primary'
-                }`}>
-                  {documents.length || '0'}
-                </span>
-              </Button>
-              <Button
-                variant={currentTab === 'templates' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => changeTab('templates')}
-                className="h-8 text-xs px-2 gap-1"
-              >
-                <Layout size={16} weight={currentTab === 'templates' ? 'fill' : 'regular'} />
-                SOP Templates
-              </Button>
-              <Button
-                variant={currentTab === 'profile' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => changeTab('profile')}
-                className="h-8 text-xs px-2 gap-1"
-              >
-                <User size={16} weight={currentTab === 'profile' ? 'fill' : 'regular'} />
-                Account
-              </Button>
-              <Button
-                variant={currentTab === 'organization' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => changeTab('organization')}
-                className="h-8 text-xs px-2 gap-1"
-              >
-                <Buildings size={16} weight={currentTab === 'organization' ? 'fill' : 'regular'} />
-                Organisation
-              </Button>
-            </div>
+      {/* Top-Right Toolbar (Zurück zum Editor & Account) - als Portal */}
+      {user && createPortal(
+        <div className="fixed top-6 right-6 z-50 no-print flex items-center gap-2">
+          {/* Zurück zum Editor Button */}
+          <Button
+            variant="outline"
+            onClick={() => navigate('/')}
+            className="h-10 px-3 gap-1.5 bg-popover"
+          >
+            <ArrowLeft size={18} />
+            <span className="text-sm">Zum Editor</span>
+          </Button>
+          
+          {/* Account Avatar */}
+          <AccountDropdown 
+            user={user} 
+            signOut={signOut}
+            displayName={getDisplayName()}
+            avatarUrl={avatarUrl}
+            documentsCount={documents.length}
+            onTabChange={changeTab}
+            dropdownPosition="bottom"
+            size="lg"
+          />
+        </div>,
+        document.body
+      )}
+
+      <div className="flex flex-col items-center w-full pt-7">
+        
+        {/* Navigation Bar - gleiche Breite wie Content */}
+        <div className="w-full max-w-[210mm] mb-4">
+          <div className="flex items-center gap-1 p-1 bg-popover rounded-lg border border-border shadow-lg">
+            <Button
+              variant={currentTab === 'sops' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => changeTab('sops')}
+              className="h-8 text-sm px-3 gap-1.5 relative"
+            >
+              <FileText size={16} weight={currentTab === 'sops' ? 'fill' : 'regular'} />
+              Meine Leitfäden
+              {/* Badge for document count */}
+              <span className={`ml-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-bold rounded-full transition-opacity ${
+                documents.length > 0 ? 'opacity-100' : 'opacity-0'
+              } ${
+                currentTab === 'sops'
+                  ? 'bg-white text-primary'
+                  : 'bg-primary/20 text-primary'
+              }`}>
+                {documents.length || '0'}
+              </span>
+            </Button>
+            <Button
+              variant={currentTab === 'templates' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => changeTab('templates')}
+              className="h-8 text-sm px-3 gap-1.5"
+            >
+              <Layout size={16} weight={currentTab === 'templates' ? 'fill' : 'regular'} />
+              SOP Templates
+            </Button>
+            <Button
+              variant={currentTab === 'profile' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => changeTab('profile')}
+              className="h-8 text-sm px-3 gap-1.5"
+            >
+              <User size={16} weight={currentTab === 'profile' ? 'fill' : 'regular'} />
+              Account
+            </Button>
+            <Button
+              variant={currentTab === 'organization' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => changeTab('organization')}
+              className="h-8 text-sm px-3 gap-1.5"
+            >
+              <Buildings size={16} weight={currentTab === 'organization' ? 'fill' : 'regular'} />
+              Organisation
+            </Button>
           </div>
-
-          {/* Rechte Toolbar - Back to Editor & Account */}
-          {user && (
-            <div className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm border border-gray-200">
-              {/* Back to Editor */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/')}
-                className="h-8 text-xs px-2 gap-1 text-[#003366]"
-              >
-                <ArrowLeft size={16} />
-                Zurück zum Editor
-              </Button>
-
-              <div className="h-4 w-px bg-gray-200" />
-              
-              {/* Account Button - Eingeloggt */}
-              <AccountDropdown 
-                user={user} 
-                signOut={signOut}
-                displayName={getDisplayName()}
-                avatarUrl={avatarUrl}
-                documentsCount={documents.length}
-                onTabChange={changeTab}
-              />
-            </div>
-          )}
         </div>
 
-        {/* Main Content - Gleiche Breite wie Toolbar */}
+        {/* Main Content - Gleiche Breite wie Navigation */}
         {/* min-height prevents layout shift during tab changes */}
         <main className="w-full max-w-[210mm]" style={{ minHeight: '600px' }}>
           {currentTab === 'sops' && <SopsView 

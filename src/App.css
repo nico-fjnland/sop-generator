@@ -747,9 +747,9 @@ body.export-ready .a4-page {
     border-radius: 8px; /* Same as toolbar (rounded-lg) */
   }
   
-  /* First page - reduced top margin to match toolbar gap */
+  /* First page - align with top-right toolbar */
   .a4-page[data-first-page="true"] {
-    margin-top: 12px;
+    margin-top: 6px;
   }
   
   /* Dark mode - enhance page shadow */
