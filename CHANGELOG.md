@@ -7,7 +7,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
-## [0.7.2] - 2025-12-16
+## [0.7.1] - 2025-12-16
 
 ### ✨ Features
 
@@ -23,10 +23,6 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - **Neuer Hook `useHeightEqualization`:** Verwendet ResizeObserver zur Höhenmessung
 - **CSS-Klasse `height-equalized`:** Wird automatisch auf `.block-row.two-columns` angewendet wenn passend
 - **Print-Unterstützung:** Funktioniert sowohl im Screen- als auch im Print-Modus
-
----
-
-## [0.7.1] - 2025-12-16
 
 ### 🐛 Bugfixes
 
