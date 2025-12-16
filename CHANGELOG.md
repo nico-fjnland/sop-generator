@@ -9,28 +9,52 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [0.7.0] - 2025-12-16
 
+### ✨ Neue Features
+
+#### Globales Status-System mit farbigen Alerts
+- **StatusContext:** Neuer globaler Context für Status-Nachrichten
+  - Ersetzt alle `toast()` Aufrufe durch einheitliches Status-System
+  - Unterstützt Erfolg (Grün), Fehler (Rot), Warnung (Gelb), Info (Blau)
+- **Farbkodierung basierend auf ContentBox-Kategorien:**
+  - Erfolg: Therapie-Grün `#52C41A`
+  - Fehler: Definition-Rot `#EB5547`
+  - Warnung: Merke-Gelb `#FAAD14`
+  - Info/Standard: Blau `#39F`
+- **StatusIndicator:** Zeigt Status als farbiger Rahmen um die Toolbar
+  - Farbe wechselt dynamisch je nach Statustyp
+  - Passende Icons: Check (Erfolg), X (Fehler), Warning (Warnung), Spinner (Loading)
+- **Neue Datei:** `src/contexts/StatusContext.js` - Status-Management Context
+
 ### 🎨 UI/UX Überarbeitung
+
+#### StatusIndicator als Toolbar-Rahmen
+- **Status aus Toolbar entfernt** - erscheint jetzt als expandierender Rahmen
+- **StatusIndicator-Komponente:** Farbiger Rahmen der sich hinter der Toolbar "aufbläht"
+  - Erscheint nur bei Statusänderungen (Export, Speichern, Sync)
+  - Status-Text erscheint im oberen, dickeren Bereich des Rahmens
+  - Toolbar sitzt "innerhalb" des Rahmens (Apple-Style Design)
+- **Smooth Animations:** 
+  - Einblenden: `padding-top` wächst mit spring-ähnlichem cubic-bezier
+  - Status-Text faded mit Verzögerung ein
+  - Auto-Hide nach 2,5 Sekunden bei "Synchronisiert"
 
 #### Editor-Toolbars
 - **Toolbar aufgeteilt:** Zwei separate Toolbars für bessere Übersichtlichkeit
-  - **Bottom-Toolbar** (zentriert unten): History, Export/Import, Status
+  - **Bottom-Toolbar** (zentriert unten): History, Export/Import mit Textlabels
   - **Top-Right-Toolbar** (oben rechts, 24px Abstand): Speichern-Button + Account-Avatar
 - Speichern-Button als blauer Primary-Button (`variant="default"`)
 - Account-Avatar vergrößert (`h-12 w-12`), Dropdown öffnet nach unten
-- Kompakteres Design mit Icon-Only Buttons für Export/Import
-- Status-Anzeige mit fixer Breite (`w-[120px]`) verhindert Layout-Springen
-- "Gespeichert" umbenannt zu "Synchronisiert"
+- Export/Import Buttons mit Icon + Textlabel (Import, PDF, Word, JSON)
+
+#### Account-Seite
+- **Navigation-Bar:** Jetzt am unteren Bildschirmrand zentriert (wie Editor-Toolbar)
+  - Umwickelt vom StatusIndicator für konsistentes Design
+  - Gleiche Styling-Sprache wie Editor-Toolbar (rounded-xl, gap-0.5, etc.)
+- "Zum Editor" Button + Account-Avatar weiterhin oben rechts (fixed)
 
 #### A4-Seiten-Layout
 - **Seiten-Ausrichtung:** Erste A4-Seite beginnt auf gleicher Höhe wie Top-Right-Toolbar
   - `margin-top: 6px` für optimales visuelles Alignment
-
-#### Account-Seite
-- **Navigation-Bar:** Neu positioniert oberhalb des Contents
-  - Gleiche Breite wie Content (`max-w-[210mm]`)
-  - Styling konsistent mit Zoombar (`p-1`, `gap-1`, `h-8` Buttons)
-  - Icons auf 16px reduziert für einheitliches Erscheinungsbild
-- "Zum Editor" Button + Account-Avatar weiterhin oben rechts (fixed)
 
 #### Steuerelemente
 - **Bottom-Gradient:** Dezenter Verlauf am unteren Viewport-Rand
@@ -38,6 +62,18 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   - Tagmodus: Weißer Verlauf / Nachtmodus: Dunkler Verlauf
 - **Zoom-Control:** Prozent-Feld jetzt gleiche Höhe wie +/- Buttons (`h-8`)
 - **Einheitliche Schatten:** Alle Bottom-Controls mit `shadow-lg`
+
+### 🔧 Technische Änderungen
+
+- **Entfernt:** Sonner Toaster (`<Toaster />` aus App.js)
+- **Entfernt:** `toast` Import aus Editor.js, Account.jsx, HelpButton.js
+- **Neu:** `useStatus` Hook mit Convenience-Methoden:
+  - `showSuccess()`, `showError()`, `showWarning()`, `showInfo()`
+  - `showSaving()`, `showExporting()`, `showSynced()`
+- **Komponenten aktualisiert:**
+  - Editor.js: Alle toast-Aufrufe durch useStatus ersetzt
+  - Account.jsx: Alle toast-Aufrufe durch useStatus ersetzt
+  - HelpButton.js: toast.warning durch showWarning ersetzt
 
 ### 🔄 Changed
 - AccountDropdown: Neue Props `size` und `dropdownPosition`

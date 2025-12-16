@@ -11,7 +11,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ZoomProvider } from './contexts/ZoomContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { TipTapFocusProvider } from './contexts/TipTapFocusContext';
-import { Toaster } from './components/ui/sonner';
+import { StatusProvider } from './contexts/StatusContext';
 import HelpButton from './components/HelpButton';
 import AnimatedBackgroundGradient from './components/AnimatedBackgroundGradient';
 import './App.css';
@@ -32,7 +32,6 @@ const AppContent = () => {
       <div className="grain-overlay" />
       
       {/* UI-Elemente außerhalb des Zoom-Wrappers - bleiben bei fixer Größe */}
-      <Toaster position="bottom-left" />
       <HelpButton />
       <ZoomControl />
       
@@ -80,13 +79,15 @@ function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <ZoomProvider>
-          <TipTapFocusProvider>
-            <Router>
-              <AppContent />
-            </Router>
-          </TipTapFocusProvider>
-        </ZoomProvider>
+        <StatusProvider>
+          <ZoomProvider>
+            <TipTapFocusProvider>
+              <Router>
+                <AppContent />
+              </Router>
+            </TipTapFocusProvider>
+          </ZoomProvider>
+        </StatusProvider>
       </ThemeProvider>
     </AuthProvider>
   );

@@ -1,0 +1,116 @@
+/* StatusIndicator - Frame around toolbar that expands to show status */
+
+.status-indicator-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-end;
+}
+
+/* The expanding frame behind the toolbar */
+.status-frame {
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background: #39F;
+  border-radius: 16px;
+  z-index: 1;
+  
+  /* Initial state - just behind toolbar */
+  top: -4px;
+  opacity: 0;
+  pointer-events: none;
+  
+  /* Smooth transition */
+  transition: 
+    top 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.25s ease-out;
+}
+
+.status-frame.visible {
+  top: -28px;
+  opacity: 1;
+}
+
+.status-frame.hiding {
+  top: -4px;
+  opacity: 0;
+  transition: 
+    top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.25s ease-in;
+}
+
+/* Status header at the top of the frame */
+.status-header {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 0 14px;
+  
+  /* Hidden initially */
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+  transition-delay: 0s;
+}
+
+.status-frame.visible .status-header {
+  opacity: 1;
+  transition-delay: 0.15s;
+}
+
+.status-frame.hiding .status-header {
+  opacity: 0;
+  transition-delay: 0s;
+}
+
+/* Status text styling - force white color */
+.status-text {
+  font-size: 11px;
+  font-weight: 500;
+  color: white !important;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+.status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white !important;
+}
+
+.status-icon svg {
+  color: white !important;
+}
+
+/* Toolbar content sits on top of the frame */
+.toolbar-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Spinner size and color adjustment */
+.status-header .spinner,
+.status-icon .spinner {
+  width: 14px;
+  height: 14px;
+}
+
+.status-frame .spinner {
+  border-color: white !important;
+  border-top-color: transparent !important;
+  border-width: 2px;
+}
+
+/* Print styles */
+@media print {
+  .status-indicator-wrapper {
+    display: none !important;
+  }
+}

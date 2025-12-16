@@ -49,7 +49,8 @@ import {
 import { getDocuments, deleteDocument, saveDocument, updateDocumentCategory } from '../services/documentService';
 import { updateOrganization } from '../services/organizationService';
 import { exportMultipleDocuments } from '../utils/exportUtils';
-import { toast } from 'sonner';
+import { useStatus } from '../contexts/StatusContext';
+import StatusIndicator from '../components/StatusIndicator';
 import AccountDropdown from '../components/AccountDropdown';
 import { HospitalCombobox } from '../components/ui/hospital-combobox';
 import { PositionCombobox } from '../components/ui/position-combobox';
@@ -984,6 +985,7 @@ const ProfileView = React.memo(({
 
 export default function Account() {
   const { user, signOut, organization, organizationId, refreshOrganization, loading: authLoading, profile } = useAuth();
+  const { showSuccess, showError, showWarning, showSaving } = useStatus();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const fileInputRef = useRef(null);
@@ -1280,9 +1282,9 @@ export default function Account() {
         await refreshOrganization();
       }
 
-      toast.success('Profil erfolgreich aktualisiert');
+      showSuccess('Profil erfolgreich aktualisiert');
     } catch (error) {
-      toast.error('Fehler beim Aktualisieren des Profils');
+      showError('Fehler beim Aktualisieren des Profils');
       console.error(error);
     } finally {
       setUpdating(false);
@@ -1348,10 +1350,10 @@ export default function Account() {
         logo_url: data.publicUrl, // In DB ohne Cache-Buster speichern
       });
       await refreshOrganization();
-      toast.success('Firmenlogo erfolgreich aktualisiert');
+      showSuccess('Firmenlogo erfolgreich aktualisiert');
 
     } catch (error) {
-      toast.error(error.message);
+      showError(error.message);
     } finally {
       setUploadingLogo(false);
     }
@@ -1396,9 +1398,9 @@ export default function Account() {
         logo_url: null,
       });
       await refreshOrganization();
-      toast.success('Firmenlogo entfernt');
+      showSuccess('Firmenlogo entfernt');
     } catch (error) {
-      toast.error('Fehler beim Entfernen des Logos');
+      showError('Fehler beim Entfernen des Logos');
       console.error(error);
     }
   };
@@ -1406,7 +1408,7 @@ export default function Account() {
   const updateEmail = async (e) => {
     e.preventDefault();
     if (!newEmail || newEmail === user.email) {
-      toast.error('Bitte gib eine neue E-Mail-Adresse ein.');
+      showError('Bitte gib eine neue E-Mail-Adresse ein.');
       return;
     }
 
@@ -1414,10 +1416,10 @@ export default function Account() {
     try {
       const { error } = await supabase.auth.updateUser({ email: newEmail });
       if (error) throw error;
-      toast.success('E-Mail-Adresse aktualisiert! Bitte überprüfe deine neue E-Mail für die Bestätigung.');
+      showSuccess('E-Mail-Adresse aktualisiert! Bitte überprüfe deine neue E-Mail.');
       setNewEmail('');
     } catch (error) {
-      toast.error('Fehler beim Aktualisieren der E-Mail: ' + error.message);
+      showError('Fehler beim Aktualisieren der E-Mail: ' + error.message);
     } finally {
       setUpdatingEmail(false);
     }
@@ -1426,15 +1428,15 @@ export default function Account() {
   const updatePassword = async (e) => {
     e.preventDefault();
     if (!newPassword) {
-      toast.error('Bitte gib ein neues Passwort ein.');
+      showError('Bitte gib ein neues Passwort ein.');
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error('Passwörter stimmen nicht überein.');
+      showError('Passwörter stimmen nicht überein.');
       return;
     }
     if (newPassword.length < 6) {
-      toast.error('Das Passwort muss mindestens 6 Zeichen lang sein.');
+      showError('Das Passwort muss mindestens 6 Zeichen lang sein.');
       return;
     }
 
@@ -1442,11 +1444,11 @@ export default function Account() {
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
-      toast.success('Passwort erfolgreich aktualisiert!');
+      showSuccess('Passwort erfolgreich aktualisiert!');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
-      toast.error('Fehler beim Aktualisieren des Passworts: ' + error.message);
+      showError('Fehler beim Aktualisieren des Passworts: ' + error.message);
     } finally {
       setUpdatingPassword(false);
     }
@@ -1503,10 +1505,10 @@ export default function Account() {
         updated_at: new Date(),
       };
       await supabase.from('profiles').upsert(updates);
-      toast.success('Avatar erfolgreich aktualisiert');
+      showSuccess('Avatar erfolgreich aktualisiert');
 
     } catch (error) {
-      toast.error(error.message);
+      showError(error.message);
     } finally {
       setUploading(false);
     }
@@ -1523,9 +1525,9 @@ export default function Account() {
           newSet.delete(id);
           return newSet;
         });
-        toast.success('Dokument gelöscht');
+        showSuccess('Dokument gelöscht');
       } else {
-        toast.error('Fehler beim Löschen des Dokuments');
+        showError('Fehler beim Löschen des Dokuments');
       }
     }
   };
@@ -1539,7 +1541,7 @@ export default function Account() {
     if (files.length === 0) return;
 
     if (!organizationId) {
-      toast.error('Keine Organisation gefunden.');
+      showError('Keine Organisation gefunden.');
       return;
     }
 
@@ -1591,15 +1593,15 @@ export default function Account() {
 
     // Feedback
     if (successCount > 0 && errorCount === 0) {
-      toast.success(
+      showSuccess(
         successCount === 1 
           ? 'Dokument erfolgreich importiert!' 
-          : `${successCount} Dokumente erfolgreich importiert!`
+          : `${successCount} Dokumente importiert!`
       );
     } else if (successCount > 0 && errorCount > 0) {
-      toast.warning(`${successCount} importiert, ${errorCount} fehlgeschlagen`);
+      showWarning(`${successCount} importiert, ${errorCount} fehlgeschlagen`);
     } else {
-      toast.error('Import fehlgeschlagen');
+      showError('Import fehlgeschlagen');
     }
 
     // Input zurücksetzen
@@ -1638,7 +1640,7 @@ export default function Account() {
 
   const confirmDeleteAccount = async () => {
     if (deleteConfirmText !== 'LÖSCHEN') {
-      toast.error('Bitte gib "LÖSCHEN" ein, um fortzufahren');
+      showError('Bitte gib "LÖSCHEN" ein, um fortzufahren');
       return;
     }
 
@@ -1672,18 +1674,18 @@ export default function Account() {
 
           // User ausloggen (Auth-User kann nur serverseitig gelöscht werden)
           await signOut();
-          toast.success('Deine Daten wurden gelöscht. Bitte kontaktiere den Support, um deinen Account vollständig zu entfernen.');
+          showSuccess('Deine Daten wurden gelöscht.');
           window.location.href = '/';
           return;
         }
         throw error;
       }
 
-      toast.success('Account wurde erfolgreich gelöscht');
+      showSuccess('Account wurde erfolgreich gelöscht');
       window.location.href = '/';
     } catch (error) {
       console.error('Error deleting account:', error);
-      toast.error('Fehler beim Löschen des Accounts: ' + error.message);
+      showError('Fehler beim Löschen des Accounts: ' + error.message);
       setIsDeletingAccount(false);
     }
   };
@@ -1706,10 +1708,10 @@ export default function Account() {
         doc.id === docId ? { ...doc, category } : doc
       ));
       
-      toast.success(category ? 'Fachgebiet aktualisiert' : 'Fachgebiet entfernt');
+      showSuccess(category ? 'Fachgebiet aktualisiert' : 'Fachgebiet entfernt');
     } catch (error) {
       console.error('Error updating category:', error);
-      toast.error('Fehler beim Aktualisieren des Fachgebiets');
+      showError('Fehler beim Aktualisieren des Fachgebiets');
     }
   };
 
@@ -1727,7 +1729,7 @@ export default function Account() {
 
   const handleBulkExport = () => {
     if (selectedDocs.size === 0) {
-      toast.error('Keine Dokumente ausgewählt');
+      showError('Keine Dokumente ausgewählt');
       return;
     }
     setShowExportDialog(true);
@@ -1750,9 +1752,9 @@ export default function Account() {
 
       // Erfolgsmeldung
       if (selectedDocs.size === 1) {
-        toast.success('Dokument als JSON exportiert');
+        showSuccess('Dokument als JSON exportiert');
       } else {
-        toast.success(`${selectedDocs.size} Dokumente als ZIP-Archiv exportiert`);
+        showSuccess(`${selectedDocs.size} Dokumente exportiert`);
       }
       
       // Wait a moment before closing to show completion
@@ -1765,7 +1767,7 @@ export default function Account() {
       
     } catch (error) {
       console.error('Bulk export error:', error);
-      toast.error('Fehler beim Exportieren der Dokumente');
+      showError('Fehler beim Exportieren der Dokumente');
       setIsExporting(false);
       setExportProgress(null);
     }
@@ -1865,61 +1867,64 @@ export default function Account() {
         document.body
       )}
 
-      <div className="flex flex-col items-center w-full pt-7">
-        
-        {/* Navigation Bar - gleiche Breite wie Content */}
-        <div className="w-full max-w-[210mm] mb-4">
-          <div className="flex items-center gap-1 p-1 bg-popover rounded-lg border border-border shadow-lg">
-            <Button
-              variant={currentTab === 'sops' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => changeTab('sops')}
-              className="h-8 text-sm px-3 gap-1.5 relative"
-            >
-              <FileText size={16} weight={currentTab === 'sops' ? 'fill' : 'regular'} />
-              Meine Leitfäden
-              {/* Badge for document count */}
-              <span className={`ml-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-bold rounded-full transition-opacity ${
-                documents.length > 0 ? 'opacity-100' : 'opacity-0'
-              } ${
-                currentTab === 'sops'
-                  ? 'bg-white text-primary'
-                  : 'bg-primary/20 text-primary'
-              }`}>
-                {documents.length || '0'}
-              </span>
-            </Button>
-            <Button
-              variant={currentTab === 'templates' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => changeTab('templates')}
-              className="h-8 text-sm px-3 gap-1.5"
-            >
-              <Layout size={16} weight={currentTab === 'templates' ? 'fill' : 'regular'} />
-              SOP Templates
-            </Button>
-            <Button
-              variant={currentTab === 'profile' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => changeTab('profile')}
-              className="h-8 text-sm px-3 gap-1.5"
-            >
-              <User size={16} weight={currentTab === 'profile' ? 'fill' : 'regular'} />
-              Account
-            </Button>
-            <Button
-              variant={currentTab === 'organization' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => changeTab('organization')}
-              className="h-8 text-sm px-3 gap-1.5"
-            >
-              <Buildings size={16} weight={currentTab === 'organization' ? 'fill' : 'regular'} />
-              Organisation
-            </Button>
-          </div>
-        </div>
+      {/* Bottom Navigation Bar - als Portal wie Editor Toolbar */}
+      {createPortal(
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 no-print">
+          <StatusIndicator>
+            <div className="flex items-center gap-0.5 py-1.5 pl-1.5 pr-2 bg-popover rounded-xl border border-border shadow-lg">
+              <Button
+                variant={currentTab === 'sops' ? 'default' : 'ghost'}
+                onClick={() => changeTab('sops')}
+                className="h-9 px-3 gap-1.5 relative"
+              >
+                <FileText size={18} weight={currentTab === 'sops' ? 'fill' : 'regular'} />
+                <span className="text-sm">Leitfäden</span>
+                {/* Badge for document count */}
+                {documents.length > 0 && (
+                  <span className={`ml-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-bold rounded-full ${
+                    currentTab === 'sops'
+                      ? 'bg-white/20 text-white'
+                      : 'bg-primary/20 text-primary'
+                  }`}>
+                    {documents.length}
+                  </span>
+                )}
+              </Button>
+              <Button
+                variant={currentTab === 'templates' ? 'default' : 'ghost'}
+                onClick={() => changeTab('templates')}
+                className="h-9 px-3 gap-1.5"
+              >
+                <Layout size={18} weight={currentTab === 'templates' ? 'fill' : 'regular'} />
+                <span className="text-sm">Templates</span>
+              </Button>
+              
+              <div className="h-5 w-px bg-border mx-1" />
+              
+              <Button
+                variant={currentTab === 'profile' ? 'default' : 'ghost'}
+                onClick={() => changeTab('profile')}
+                className="h-9 px-3 gap-1.5"
+              >
+                <User size={18} weight={currentTab === 'profile' ? 'fill' : 'regular'} />
+                <span className="text-sm">Account</span>
+              </Button>
+              <Button
+                variant={currentTab === 'organization' ? 'default' : 'ghost'}
+                onClick={() => changeTab('organization')}
+                className="h-9 px-3 gap-1.5"
+              >
+                <Buildings size={18} weight={currentTab === 'organization' ? 'fill' : 'regular'} />
+                <span className="text-sm">Organisation</span>
+              </Button>
+            </div>
+          </StatusIndicator>
+        </div>,
+        document.body
+      )}
 
-        {/* Main Content - Gleiche Breite wie Navigation */}
+      <div className="flex flex-col items-center w-full pt-7">
+        {/* Main Content */}
         {/* min-height prevents layout shift during tab changes */}
         <main className="w-full max-w-[210mm]" style={{ minHeight: '600px' }}>
           {currentTab === 'sops' && <SopsView 

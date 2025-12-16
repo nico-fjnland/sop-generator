@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { QuestionMark, EnvelopeSimple, Warning } from '@phosphor-icons/react';
+import { QuestionMark } from '@phosphor-icons/react';
 import { Button } from './ui/button';
 import { useTheme } from '../contexts/ThemeContext';
-import { toast } from 'sonner';
+import { useStatus } from '../contexts/StatusContext';
 import packageJson from '../../package.json';
-
-// Support email - change this to your actual support email
-const SUPPORT_EMAIL = 'support@example.com';
 
 // App Version aus package.json
 const APP_VERSION = packageJson.version;
@@ -22,6 +19,7 @@ const HelpButton = () => {
   const [isBeaconAvailable, setIsBeaconAvailable] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
   const { timeOfDay } = useTheme();
+  const { showWarning } = useStatus();
 
   // Update time every second
   useEffect(() => {
@@ -78,35 +76,11 @@ const HelpButton = () => {
     if (isBeaconAvailable && window.Beacon) {
       window.Beacon('toggle');
     } else {
-      // Show informative toast when Beacon is blocked
-      toast.warning(
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 font-medium">
-            <Warning size={18} weight="fill" />
-            <span>Live-Chat nicht verfügbar</span>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Der Support-Chat wird vermutlich durch einen Ad-Blocker oder Browser-Einstellung blockiert.
-          </p>
-          <div className="flex gap-2 mt-1">
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex items-center gap-1.5 h-8"
-              onClick={() => {
-                window.location.href = `mailto:${SUPPORT_EMAIL}?subject=SOP%20Editor%20Hilfe`;
-              }}
-            >
-              <EnvelopeSimple size={14} weight="bold" />
-              Per E-Mail kontaktieren
-            </Button>
-          </div>
-        </div>,
-        {
-          duration: 8000,
-          id: 'beacon-blocked', // Prevent duplicate toasts
-        }
-      );
+      // Show informative warning when Beacon is blocked
+      showWarning('Live-Chat nicht verfügbar', {
+        description: 'Ad-Blocker aktiv – E-Mail an support@example.com',
+        duration: 4000,
+      });
     }
   };
 

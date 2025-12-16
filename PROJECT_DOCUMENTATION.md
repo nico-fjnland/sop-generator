@@ -130,6 +130,7 @@ src/
 │   ├── ZoomControl.jsx       # Zoom-Steuerung
 │   ├── ZoomWrapper.jsx       # Zoom-Container
 │   ├── HelpButton.js         # Support-Button
+│   ├── StatusIndicator.js    # Status-Rahmen um Toolbar (farbcodierte Alerts)
 │   ├── AccountDropdown.js    # Benutzer-Dropdown
 │   ├── PrivateRoute.jsx      # Auth-geschützte Route
 │   ├── DocumentCard.jsx      # Dokument-Karte für Account
@@ -662,6 +663,37 @@ const { timeOfDay, toggleTime, getGradientClass } = useTheme();
 const { zoom, setZoom } = useZoom();
 // zoom: 50-200 (Prozent)
 ```
+
+### StatusContext
+
+Globales Status-Management für farbcodierte Alerts. Ersetzt Sonner Toaster.
+
+```javascript
+// Provider in App.js
+<StatusProvider>
+  {children}
+</StatusProvider>
+
+// Hook
+const { 
+  showSuccess,    // Grün (Therapie) #52C41A
+  showError,      // Rot (Definition) #EB5547
+  showWarning,    // Gelb (Merke) #FAAD14
+  showInfo,       // Blau #39F
+  showSaving,     // Blau mit Spinner
+  showExporting,  // Blau mit Spinner
+  showSynced,     // Blau mit Check
+  hide            // Status ausblenden
+} = useStatus();
+
+// Beispiel
+showSuccess('Dokument gespeichert');
+showError('Fehler beim Export', { description: 'Bitte erneut versuchen' });
+showWarning('Live-Chat nicht verfügbar');
+```
+
+**Komponenten:**
+- `StatusIndicator` - Rahmen um Toolbar (Editor & Account-Seite)
 
 ### useEditorHistory (Custom Hook)
 

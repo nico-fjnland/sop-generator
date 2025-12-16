@@ -10,14 +10,15 @@ import { useEditorHistory } from '../hooks/useEditorHistory';
 import { Button } from './ui/button';
 import { Spinner } from './ui/spinner';
 import { UndoRedoButton } from './ui/undo-redo-button';
-import { Trash, Upload, FileDoc, FileCode, FilePdf, Check, CloudArrowUp, User } from '@phosphor-icons/react';
+import { Trash, Upload, FileDoc, FileCode, FilePdf, CloudArrowUp, User } from '@phosphor-icons/react';
+import StatusIndicator from './StatusIndicator';
 import { CATEGORIES } from './blocks/ContentBoxBlock';
 import { exportAsJson, importFromJson, exportAsWord, exportAsPdf } from '../utils/exportUtils';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useStatus } from '../contexts/StatusContext';
 import { saveDocument, getDocument, getDocuments } from '../services/documentService';
 import AccountDropdown from './AccountDropdown';
-import { toast } from 'sonner';
 import { getInitialState } from '../hooks/useEditorHistory';
 import { supabase } from '../lib/supabase';
 import { DragDropProvider } from '../contexts/DragDropContext';
@@ -28,6 +29,7 @@ import { DragGhost } from './dnd/DropIndicator';
 const Editor = () => {
   const { user, signOut, organizationId, organization, profile } = useAuth();
   const { timeOfDay, toggleTime } = useTheme();
+  const { showSuccess, showError, showSaving, showExporting, showSynced } = useStatus();
   const navigate = useNavigate();
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -120,14 +122,14 @@ const Editor = () => {
       
       if (error) {
         console.error('Logout error:', error);
-        toast.error('Fehler beim Ausloggen', {
+        showError('Fehler beim Ausloggen', {
           description: error.message || 'Bitte versuchen Sie es erneut.',
         });
         return;
       }
       
       // Erfolgreicher Logout
-      toast.success('Erfolgreich abgemeldet');
+      showSuccess('Erfolgreich abgemeldet');
       // Erzwinge kompletten Reload um sicherzustellen, dass der State zurückgesetzt wird
       window.location.href = '/';
     } catch (error) {
@@ -187,20 +189,21 @@ const Editor = () => {
   // Save to Cloud
   const handleCloudSave = async () => {
     if (!user) {
-      toast.error('Anmeldung erforderlich', {
+      showError('Anmeldung erforderlich', {
         description: 'Bitte melde dich an, um Dokumente zu speichern.',
       });
       return;
     }
 
     if (!organizationId) {
-      toast.error('Organisation nicht gefunden', {
+      showError('Organisation nicht gefunden', {
         description: 'Bitte aktualisiere die Seite und versuche es erneut.',
       });
       return;
     }
 
     setIsCloudSaving(true);
+    showSaving('Speichere in Cloud...');
     try {
       // Prepare content state to save
       const contentToSave = {
@@ -220,17 +223,11 @@ const Editor = () => {
 
       if (error) throw error;
       
-      toast.success('Dokument erfolgreich in Cloud gespeichert', {
-        description: 'Dein Dokument wurde gespeichert.',
-        action: {
-          label: 'Meine Leitfäden',
-          onClick: () => window.location.href = '/account?tab=sops',
-        },
-      });
+      showSuccess('Dokument in Cloud gespeichert');
     } catch (error) {
       console.error('Cloud save failed:', error);
-      toast.error('Fehler beim Speichern', {
-        description: 'Das Dokument konnte nicht in der Cloud gespeichert werden.',
+      showError('Fehler beim Speichern', {
+        description: 'Das Dokument konnte nicht gespeichert werden.',
       });
     } finally {
       setIsCloudSaving(false);
@@ -264,16 +261,13 @@ const Editor = () => {
   // Handle Export
   const handleJsonExport = () => {
     setIsExporting(true);
+    showExporting('Exportiere JSON...');
     try {
       exportAsJson(state);
-      toast.success('JSON-Datei erfolgreich heruntergeladen', {
-        description: 'Die JSON-Datei wurde erfolgreich gespeichert.',
-      });
+      showSuccess('JSON-Datei heruntergeladen');
     } catch (error) {
       console.error('JSON export failed:', error);
-      toast.error('Fehler beim JSON-Export', {
-        description: 'Bitte versuchen Sie es erneut.',
-      });
+      showError('Fehler beim JSON-Export');
     } finally {
       setIsExporting(false);
     }
@@ -281,18 +275,15 @@ const Editor = () => {
 
   const handleWordExport = async () => {
     setIsExporting(true);
+    showExporting('Exportiere Word...');
     try {
       // Wait a small tick to ensure any pending renders are done
       await new Promise(resolve => setTimeout(resolve, 100));
       await exportAsWord(containerRef.current, headerTitle, headerStand);
-      toast.success('Word-Dokument erfolgreich heruntergeladen', {
-        description: 'Das Word-Dokument wurde erfolgreich gespeichert.',
-      });
+      showSuccess('Word-Dokument heruntergeladen');
     } catch (error) {
       console.error('Word export failed:', error);
-      toast.error('Fehler beim Word-Export', {
-        description: 'Bitte versuchen Sie es erneut.',
-      });
+      showError('Fehler beim Word-Export');
     } finally {
       setIsExporting(false);
     }
@@ -300,17 +291,14 @@ const Editor = () => {
 
   const handlePdfExport = async () => {
     setIsExporting(true);
+    showExporting('Exportiere PDF...');
     try {
       await new Promise(resolve => setTimeout(resolve, 100));
       await exportAsPdf(containerRef.current, headerTitle, headerStand);
-      toast.success('PDF erfolgreich heruntergeladen', {
-        description: 'Das PDF wurde erfolgreich gespeichert.',
-      });
+      showSuccess('PDF heruntergeladen');
     } catch (error) {
       console.error('PDF export failed:', error);
-      toast.error('Fehler beim PDF-Export', {
-        description: 'Bitte versuchen Sie es erneut.',
-      });
+      showError('Fehler beim PDF-Export');
     } finally {
       setIsExporting(false);
     }
@@ -324,16 +312,14 @@ const Editor = () => {
     try {
       const newState = await importFromJson(file);
       setEditorState(newState);
-      toast.success('JSON-Datei erfolgreich importiert', {
-        description: 'Die Datei wurde erfolgreich geladen.',
-      });
+      showSuccess('JSON-Datei importiert');
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     } catch (error) {
       console.error('Import failed:', error);
-      toast.error('Fehler beim Importieren', {
+      showError('Fehler beim Importieren', {
         description: 'Das Dateiformat ist ungültig.',
       });
     }
@@ -622,97 +608,77 @@ const Editor = () => {
     return groupedPages;
   }, [rows, pageBreaks]);
 
-  // Bottom Toolbar (zentriert am unteren Rand)
+  // Bottom Toolbar (zentriert am unteren Rand) - wrapped by StatusIndicator
   const bottomToolbar = (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 no-print">
-      <div className="flex items-center gap-1.5 py-1.5 pl-1.5 pr-3 bg-popover rounded-xl border border-border shadow-lg">
-        {/* History & Reset Controls */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={reset} 
-          title="Reset"
-          className="h-9 w-9 text-red-500 hover:text-red-600 hover:bg-red-50"
-        >
-          <Trash size={20} />
-        </Button>
-        <UndoRedoButton
-          action="undo"
-          onAction={undo}
-          canExecute={canUndo}
-          size="lg"
-        />
-        <UndoRedoButton
-          action="redo"
-          onAction={redo}
-          canExecute={canRedo}
-          size="lg"
-        />
-        
-        <div className="h-5 w-px bg-border mx-1" />
-        
-        {/* Export / Import Controls */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={triggerImport}
-          title="Import (JSON)"
-          className="h-9 w-9"
-        >
-          <Upload size={18} />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handlePdfExport}
-          disabled={isExporting}
-          title="Export als PDF"
-          className="h-9 w-9"
-        >
-          <FilePdf size={18} />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleWordExport}
-          disabled={isExporting}
-          title="Export als Word"
-          className="h-9 w-9"
-        >
-          <FileDoc size={18} />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleJsonExport}
-          title="Export als JSON"
-          className="h-9 w-9"
-        >
-          <FileCode size={18} />
-        </Button>
+      <StatusIndicator>
+        <div className="flex items-center gap-0.5 py-1.5 pl-1.5 pr-2 bg-popover rounded-xl border border-border shadow-lg">
+          {/* History & Reset Controls */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={reset} 
+            title="Reset"
+            className="h-9 w-9 text-red-500 hover:text-red-600 hover:bg-red-50"
+          >
+            <Trash size={20} />
+          </Button>
+          <UndoRedoButton
+            action="undo"
+            onAction={undo}
+            canExecute={canUndo}
+            size="lg"
+          />
+          <UndoRedoButton
+            action="redo"
+            onAction={redo}
+            canExecute={canRedo}
+            size="lg"
+          />
           
-        <div className="h-5 w-px bg-border mx-1" />
+          <div className="h-5 w-px bg-border mx-1" />
           
-        {/* Status Indicator - fixe Breite um Springen zu vermeiden */}
-        <div className="flex items-center justify-center gap-2 w-[120px]">
-          {isExporting ? (
-            <>
-              <Spinner size="sm" className="text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Exportiere...</span>
-            </>
-          ) : (isSaving || isCloudSaving) ? (
-            <>
-              <Spinner size="sm" className="text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Speichern...</span>
-            </>
-          ) : (
-            <>
-              <Check size={18} weight="bold" className="text-emerald-500" />
-              <span className="text-sm text-muted-foreground">Synchronisiert</span>
-            </>
-          )}
+          {/* Export / Import Controls */}
+          <Button
+            variant="ghost"
+            onClick={triggerImport}
+            title="Import (JSON)"
+            className="h-9 px-3 gap-1.5"
+          >
+            <Upload size={18} />
+            <span className="text-sm">Import</span>
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={handlePdfExport}
+            disabled={isExporting}
+            title="Export als PDF"
+            className="h-9 px-3 gap-1.5"
+          >
+            <FilePdf size={18} />
+            <span className="text-sm">PDF</span>
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={handleWordExport}
+            disabled={isExporting}
+            title="Export als Word"
+            className="h-9 px-3 gap-1.5"
+          >
+            <FileDoc size={18} />
+            <span className="text-sm">Word</span>
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={handleJsonExport}
+            title="Export als JSON"
+            className="h-9 px-3 gap-1.5"
+          >
+            <FileCode size={18} />
+            <span className="text-sm">JSON</span>
+          </Button>
         </div>
-      </div>
+      </StatusIndicator>
     </div>
   );
 
