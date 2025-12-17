@@ -7,6 +7,21 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.8.3] - 2025-12-17
+
+### ✨ Features
+
+- **Neue Node-Typen:** Drei neue Nodes für Wert-Indikatoren hinzugefügt:
+  - **Hoch:** Dunkelblauer Rand mit rotem Pfeil-nach-oben-Icon
+  - **Runter:** Dunkelblauer Rand mit blauem Pfeil-nach-unten-Icon
+  - **Gleich:** Dunkelblauer Rand mit gelbem Pfeil-nach-rechts-Icon
+
+### 🔄 Changed
+
+- **Kommentar-Node:** Platzhaltertext von "Comment" zu "Kommentar" geändert
+
+---
+
 ## [0.8.2] - 2025-12-17
 
 ### ✨ Features

@@ -188,6 +188,65 @@
   font-weight: 400;
 }
 
+/* High Node - Dark Blue border with red arrow icon */
+.flowchart-node-high {
+  border-color: #003366;
+  background: white;
+}
+
+.flowchart-node-high .flowchart-node-input {
+  color: #003366;
+  font-weight: 400;
+}
+
+/* Low Node - Dark Blue border with blue arrow icon */
+.flowchart-node-low {
+  border-color: #003366;
+  background: white;
+}
+
+.flowchart-node-low .flowchart-node-input {
+  color: #003366;
+  font-weight: 400;
+}
+
+/* Equal Node - Dark Blue border with yellow arrow icon */
+.flowchart-node-equal {
+  border-color: #003366;
+  background: white;
+}
+
+.flowchart-node-equal .flowchart-node-input {
+  color: #003366;
+  font-weight: 400;
+}
+
+/* Node with icon layout */
+.flowchart-node-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flowchart-node-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.flowchart-node-icon-high {
+  color: #EB5547;
+}
+
+.flowchart-node-icon-low {
+  color: #3399FF;
+}
+
+.flowchart-node-icon-equal {
+  color: #FAAD14;
+}
+
 /* ReactFlow Controls Styling - similar to inline text editor */
 .flowchart-controls {
   border: 1px solid #d1d5db;
@@ -401,6 +460,18 @@
 
 .flowchart-node-neutral .flowchart-node-static-text {
   color: #B27700;
+}
+
+.flowchart-node-high .flowchart-node-static-text {
+  color: #003366;
+}
+
+.flowchart-node-low .flowchart-node-static-text {
+  color: #003366;
+}
+
+.flowchart-node-equal .flowchart-node-static-text {
+  color: #003366;
 }
 
 /* Edit Overlay */

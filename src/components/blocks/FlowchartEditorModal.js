@@ -38,6 +38,9 @@ import {
   Cursor,
   Hand,
   Eraser as EraserIcon,
+  ArrowCircleUp,
+  ArrowCircleDown,
+  ArrowCircleRight,
 } from '@phosphor-icons/react';
 import Eraser from './flowchart/Eraser';
 
@@ -380,6 +383,105 @@ const NeutralNode = ({ data, selected }) => {
   );
 };
 
+const HighNode = ({ data, selected }) => {
+  const text = data.label || 'Hoch';
+  const lines = text.split('\n');
+  const cols = Math.max(6, Math.max(...lines.map(line => line.length)) + 2);
+  const rows = Math.max(1, lines.length);
+  
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.stopPropagation();
+    }
+  };
+  
+  return (
+    <div className={`flowchart-node flowchart-node-high ${selected ? 'selected' : ''}`}>
+      <NodeHandles selected={selected} />
+      <div className="flowchart-node-content flowchart-node-with-icon">
+        <textarea
+          value={data.label}
+          onChange={(e) => data.onChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Hoch"
+          className="flowchart-node-input"
+          cols={cols}
+          rows={rows}
+        />
+        <div className="flowchart-node-icon flowchart-node-icon-high">
+          <ArrowCircleUp size={28} weight="fill" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const LowNode = ({ data, selected }) => {
+  const text = data.label || 'Runter';
+  const lines = text.split('\n');
+  const cols = Math.max(6, Math.max(...lines.map(line => line.length)) + 2);
+  const rows = Math.max(1, lines.length);
+  
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.stopPropagation();
+    }
+  };
+  
+  return (
+    <div className={`flowchart-node flowchart-node-low ${selected ? 'selected' : ''}`}>
+      <NodeHandles selected={selected} />
+      <div className="flowchart-node-content flowchart-node-with-icon">
+        <textarea
+          value={data.label}
+          onChange={(e) => data.onChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Runter"
+          className="flowchart-node-input"
+          cols={cols}
+          rows={rows}
+        />
+        <div className="flowchart-node-icon flowchart-node-icon-low">
+          <ArrowCircleDown size={28} weight="fill" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const EqualNode = ({ data, selected }) => {
+  const text = data.label || 'Gleich';
+  const lines = text.split('\n');
+  const cols = Math.max(6, Math.max(...lines.map(line => line.length)) + 2);
+  const rows = Math.max(1, lines.length);
+  
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.stopPropagation();
+    }
+  };
+  
+  return (
+    <div className={`flowchart-node flowchart-node-equal ${selected ? 'selected' : ''}`}>
+      <NodeHandles selected={selected} />
+      <div className="flowchart-node-content flowchart-node-with-icon">
+        <textarea
+          value={data.label}
+          onChange={(e) => data.onChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Gleich"
+          className="flowchart-node-input"
+          cols={cols}
+          rows={rows}
+        />
+        <div className="flowchart-node-icon flowchart-node-icon-equal">
+          <ArrowCircleRight size={28} weight="fill" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const nodeTypes = {
   start: StartNode,
   phase: PhaseNode,
@@ -388,6 +490,9 @@ const nodeTypes = {
   positive: PositiveNode,
   negative: NegativeNode,
   neutral: NeutralNode,
+  high: HighNode,
+  low: LowNode,
+  equal: EqualNode,
 };
 
 // ============================================
@@ -417,6 +522,9 @@ const NODE_TYPE_CONFIG = [
   { type: 'positive', label: 'Positiv', icon: CheckCircle, color: '#52C41A', bgColor: '#ECF9EB' },
   { type: 'negative', label: 'Negativ', icon: XCircle, color: '#EB5547', bgColor: '#FCEAE8' },
   { type: 'neutral', label: 'Neutral', icon: MinusCircle, color: '#FAAD14', bgColor: '#FFF7E6' },
+  { type: 'high', label: 'Hoch', icon: ArrowCircleUp, color: '#EB5547', bgColor: '#FCEAE8' },
+  { type: 'low', label: 'Runter', icon: ArrowCircleDown, color: '#3399FF', bgColor: '#E5F2FF' },
+  { type: 'equal', label: 'Gleich', icon: ArrowCircleRight, color: '#FAAD14', bgColor: '#FFF7E6' },
   { type: 'comment', label: 'Kommentar', icon: ChatCircleText, color: '#3399FF', bgColor: '#FFFFFF' },
   { type: 'label', label: 'Label', icon: Tag, color: '#6b7280', bgColor: 'transparent' },
 ];
@@ -1009,6 +1117,9 @@ const FlowchartEditorInner = ({
                   case 'positive': return '#52C41A';
                   case 'negative': return '#EB5547';
                   case 'neutral': return '#B27700';
+                  case 'high': return '#003366';
+                  case 'low': return '#003366';
+                  case 'equal': return '#003366';
                   case 'label': return '#6b7280';
                   case 'comment': return '#3399FF';
                   default: return '#9ca3af';

@@ -7,7 +7,7 @@ import ReactFlow, {
   Background,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { PencilSimple } from '@phosphor-icons/react';
+import { PencilSimple, ArrowCircleUp, ArrowCircleDown, ArrowCircleRight } from '@phosphor-icons/react';
 
 // Default color for Algorithmus category
 const ALGORITHMUS_COLOR = '#47D1C6';
@@ -259,6 +259,69 @@ const StaticNeutralNode = ({ data }) => {
   );
 };
 
+const StaticHighNode = ({ data }) => {
+  const text = data.label || 'Hoch';
+  const lines = text.split('\n');
+  
+  return (
+    <div className="flowchart-node flowchart-node-high">
+      <StaticNodeHandles />
+      <div className="flowchart-node-content flowchart-node-with-icon">
+        <div className="flowchart-node-static-text">
+          {lines.map((line, i) => (
+            <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
+          ))}
+        </div>
+        <div className="flowchart-node-icon flowchart-node-icon-high">
+          <ArrowCircleUp size={28} weight="fill" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const StaticLowNode = ({ data }) => {
+  const text = data.label || 'Runter';
+  const lines = text.split('\n');
+  
+  return (
+    <div className="flowchart-node flowchart-node-low">
+      <StaticNodeHandles />
+      <div className="flowchart-node-content flowchart-node-with-icon">
+        <div className="flowchart-node-static-text">
+          {lines.map((line, i) => (
+            <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
+          ))}
+        </div>
+        <div className="flowchart-node-icon flowchart-node-icon-low">
+          <ArrowCircleDown size={28} weight="fill" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const StaticEqualNode = ({ data }) => {
+  const text = data.label || 'Gleich';
+  const lines = text.split('\n');
+  
+  return (
+    <div className="flowchart-node flowchart-node-equal">
+      <StaticNodeHandles />
+      <div className="flowchart-node-content flowchart-node-with-icon">
+        <div className="flowchart-node-static-text">
+          {lines.map((line, i) => (
+            <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
+          ))}
+        </div>
+        <div className="flowchart-node-icon flowchart-node-icon-equal">
+          <ArrowCircleRight size={28} weight="fill" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const nodeTypes = {
   start: StaticStartNode,
   phase: StaticPhaseNode,
@@ -267,6 +330,9 @@ const nodeTypes = {
   positive: StaticPositiveNode,
   negative: StaticNegativeNode,
   neutral: StaticNeutralNode,
+  high: StaticHighNode,
+  low: StaticLowNode,
+  equal: StaticEqualNode,
 };
 
 const FlowchartPreview = ({ nodes, edges, height, onEditClick, accentColor }) => {
