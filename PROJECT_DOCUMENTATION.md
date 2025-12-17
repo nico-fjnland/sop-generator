@@ -1,6 +1,6 @@
 # SOP Editor - Vollständige Projektdokumentation
 
-> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.7.0)  
+> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.8.0)  
 > **Stack:** React 18 + Supabase + TailwindCSS  
 > **Zielgruppe:** Medizinisches Personal zur Erstellung von Standard Operating Procedures (SOPs)  
 > **Changelog:** [`CHANGELOG.md`](./CHANGELOG.md)
@@ -142,7 +142,9 @@ src/
 │   │   ├── ContentBoxBlock.js    # Content-Box (12 Kategorien)
 │   │   ├── TextBlock.js          # Rich-Text Block (TipTap)
 │   │   ├── TipTapTableBlock.js   # Tabellen-Block
-│   │   ├── FlowchartBlock.js     # Algorithmus/Flowchart
+│   │   ├── FlowchartBlock.js     # Algorithmus/Flowchart (Controller)
+│   │   ├── FlowchartPreview.js   # Statisches Flowchart-Preview
+│   │   ├── FlowchartEditorModal.js # Modal-Editor für Flowcharts
 │   │   ├── SourceBlock.js        # Quellen-Block
 │   │   ├── TitleBlock.js         # Titel
 │   │   ├── HeadingBlock.js       # Überschrift
@@ -311,13 +313,32 @@ Rich-Text Editor innerhalb von Content-Boxen:
 
 ### FlowchartBlock (ReactFlow)
 
-Interaktiver Flowchart-Editor mit:
+Controller-Komponente für den Diagnostischen Algorithmus mit Modal-basierter Bearbeitung:
+
+**Architektur:**
+- **FlowchartBlock.js** - Controller, verwaltet State und zeigt Preview/Modal
+- **FlowchartPreview.js** - Statisches, nicht-interaktives Preview in der Box
+- **FlowchartEditorModal.js** - Großer Modal-Editor (80% Viewport) für Bearbeitung
+
+**Preview-Modus:**
+- Nicht-interaktives ReactFlow-Rendering des aktuellen Zustands
+- Edit-Button erscheint beim Hover über das Preview
+- Klick öffnet den Modal-Editor
+- Resize-Handle für Höhenanpassung (200-1200px)
+
+**Modal-Editor (inspiriert von tldraw/Miro):**
+- **Linke Sidebar:** Drag-and-Drop Node-Typen
+- **Zentrales Canvas:** Voller Arbeitsbereich mit Background-Grid
+- **Bottom-Toolbar:** Undo/Redo, Fit-View, Zoom-Reset
+- **Footer:** Abbrechen/Speichern Buttons
+- **Keyboard-Shortcuts:** Escape, Cmd+S, Cmd+Z
+
+**Features:**
 - **Node-Typen:** Start, Phase, Positiv, Negativ, Neutral, Kommentar, Label
 - **Automatische Kantenverbindung** (Floating Edges)
 - **Helper Lines** beim Positionieren (Snap-to-Grid)
 - **Distanzanzeige** zwischen Nodes
 - **Undo/Redo** innerhalb des Flowcharts
-- **Anpassbare Höhe** (300px - 1200px)
 
 ### TipTapTableBlock
 

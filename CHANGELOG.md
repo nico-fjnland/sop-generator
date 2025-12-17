@@ -7,6 +7,67 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.8.0] - 2025-12-17
+
+### ✨ Features
+
+- **Flowchart Modal Editor:** Grundlegender Umbau der "Diagnostischer Algorithmus"-Box
+  - Das Flowchart wird jetzt als statisches, nicht-interaktives Preview in der Box angezeigt
+  - Runder Edit-Button (in Kategorie-Farbe) erscheint beim Hover über das Preview
+  - Klick öffnet einen großen Modal-Editor (ca. 80% Viewport)
+  - Löst Scroll-Konflikte zwischen Seiten-Scroll und Canvas-Navigation
+  - Bietet mehr Arbeitsraum für komplexe Flowcharts
+
+- **Flowchart Editor Modal UX (inspiriert von tldraw/Miro):**
+  - **Neuer Modal-Titel:** "SOP FLOWCHART EDITOR" in Quicksand, ALL CAPS, Dunkelblau (#003366)
+  - **Floating Header:** Header schwebt über dem Canvas, Canvas füllt gesamtes Modal
+  - **Speichern/Schließen-Buttons** im Header (türkis/grau)
+  - Neue tldraw-Style Toolbar am unteren Bildschirmrand:
+    - **Obere Reihe (mintgrün #EBFAF9):** Löschen | Radierer | Undo/Redo | Auswahl/Pan | Fit-View/Zoom-Reset
+    - **Untere Reihe (weiß):** Node-Typen zum Auswählen
+  - **Interaktionsmodi:**
+    - Auswahl-Modus (V): Nodes auswählen, verschieben und verbinden (Pfeil-Cursor)
+    - Pan-Modus (H): Canvas inkl. Grid frei verschieben (Hand-Cursor)
+    - Radierer-Modus (E): Nodes/Edges durch Wischen löschen
+  - Engmaschigeres Hintergrundraster (8px) in Preview und Modal
+  - Keyboard-Shortcuts: V (Auswahl), H (Pan), E (Radierer), Escape (Schließen), Cmd/Ctrl+S (Speichern), Cmd/Ctrl+Z (Undo)
+  - Smooth Animations beim Öffnen/Schließen
+
+- **Eraser Tool:** Neues Radierer-Werkzeug zum Löschen von Nodes und Edges
+  - Aktivierung per Toolbar-Button oder Taste "E"
+  - Nodes/Edges werden gelöscht, wenn die Radier-Linie sie kreuzt
+  - Ultra-smooth Radier-Linie mit Bezier-Kurven-Glättung
+  - Linie in Definition-Rot (#EB5547)
+
+- **MiniMap:** Übersichtskarte unten rechts im Modal
+  - Gestylt als Miniatur der ContentBox (türkiser Rand, Icon, Caption)
+  - Zeigt alle Nodes farbcodiert nach Typ
+  - Pannable & Zoomable für Navigation
+
+### 🔄 Changed
+
+- **FlowchartBlock:** Refactored zu Controller-Komponente
+  - Zeigt FlowchartPreview (statisch) statt direktem ReactFlow-Canvas
+  - Leere Standardansicht mit Hintergrundraster (keine Start-Node)
+  - Änderungen werden erst beim "Speichern" im Modal übernommen
+  - Resize-Handle für Höhenanpassung bleibt erhalten (200-1200px)
+
+- **FlowchartPreview:** Flowchart wird mittig mit maxZoom=1 angezeigt (nie größer als Original)
+
+### 📁 Files Added
+
+- `src/components/blocks/FlowchartPreview.js` - Statisches Preview mit Edit-Overlay
+- `src/components/blocks/FlowchartEditorModal.js` - Modal-Editor mit floatender Toolbox
+- `src/components/blocks/FlowchartEditorModal.css` - Styles für den Modal-Editor
+- `src/components/blocks/flowchart/Eraser.js` - Eraser-Tool Komponente
+
+### 📁 Files Changed
+
+- `src/components/blocks/FlowchartBlock.js` - Refactored zu Controller
+- `src/components/blocks/FlowchartBlock.css` - Erweitert um Preview-Styles
+
+---
+
 ## [0.7.3] - 2025-12-17
 
 ### ✨ Features

@@ -330,9 +330,127 @@
   background: #3b82f6;
 }
 
+/* ============================================
+   FLOWCHART PREVIEW STYLES
+   ============================================ */
+
+/* Preview Container */
+.flowchart-preview-container {
+  width: 100%;
+  min-height: 200px;
+  margin: 0;
+  border: none;
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+  position: relative;
+  background: white;
+}
+
+.flowchart-preview-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.flowchart-preview-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* Hide ReactFlow default controls and attribution in preview */
+.flowchart-preview-canvas .react-flow__controls,
+.flowchart-preview-canvas .react-flow__attribution {
+  display: none !important;
+}
+
+/* Static text display for preview nodes */
+.flowchart-node-static-text {
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
+  text-align: center;
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Apply node colors to static text */
+.flowchart-node-start .flowchart-node-static-text {
+  color: #47D1C6;
+}
+
+.flowchart-node-phase .flowchart-node-static-text {
+  color: #003366;
+}
+
+.flowchart-node-label .flowchart-node-static-text {
+  color: #6b7280;
+}
+
+.flowchart-node-comment .flowchart-node-static-text {
+  color: #3399FF;
+}
+
+.flowchart-node-positive .flowchart-node-static-text {
+  color: #52C41A;
+}
+
+.flowchart-node-negative .flowchart-node-static-text {
+  color: #EB5547;
+}
+
+.flowchart-node-neutral .flowchart-node-static-text {
+  color: #B27700;
+}
+
+/* Edit Overlay */
+.flowchart-preview-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  z-index: 10;
+}
+
+.flowchart-preview-overlay:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.flowchart-preview-edit-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.flowchart-preview-overlay:hover .flowchart-preview-edit-button {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.flowchart-preview-edit-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
 /* Print Styles */
 @media print {
-  .flowchart-block-container {
+  .flowchart-block-container,
+  .flowchart-preview-container {
     page-break-inside: avoid;
     break-inside: avoid;
     height: auto;
@@ -343,6 +461,7 @@
   .flowchart-controls,
   .flowchart-resize-handle,
   .flowchart-helper-line,
+  .flowchart-preview-overlay,
   .no-print {
     display: none !important;
   }
