@@ -470,7 +470,7 @@ const ContentBoxBlock = ({
               aria-label={selectedCategory === 'algorithmus' ? 'Flowchartoptionen' : 'Box individualisieren'}
               title={selectedCategory === 'algorithmus' ? 'Flowchartoptionen' : 'Box individualisieren'}
             >
-              <NotePencil className="h-4 w-4 text-white" weight="bold" />
+              <NotePencil className="h-4 w-4 text-white" weight="regular" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent 
@@ -630,7 +630,7 @@ const ContentBoxBlock = ({
                 aria-label="Box hinzufügen"
                 title="Box hinzufügen"
               >
-                <Plus className="h-4 w-4 text-white" weight="bold" />
+                <Plus className="h-4 w-4 text-white" weight="regular" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent 
@@ -713,7 +713,7 @@ const ContentBoxBlock = ({
                           <Icon className="h-4 w-4" weight="regular" />
                         </span>
                         <span className="flex-1">{element.label}</span>
-                        <Infinity className="h-[10px] w-[10px] mr-1" weight="bold" />
+                        <Infinity className="h-[10px] w-[10px] mr-1" weight="regular" />
                       </DropdownMenuItem>
                     );
                   })}
@@ -735,7 +735,7 @@ const ContentBoxBlock = ({
             }
           }}
         >
-          <X className="h-4 w-4 text-white" weight="bold" />
+          <X className="h-4 w-4 text-white" weight="regular" />
         </button>
       </div>
 

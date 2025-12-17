@@ -36,8 +36,8 @@ import {
   MinusCircle, 
   ArrowCounterClockwise, 
   ArrowClockwise, 
-  FrameCorners,
   ArrowsOut,
+  ArrowsIn,
   Tag,
   ChatCircleText,
   FloppyDisk,
@@ -1385,12 +1385,12 @@ const FlowchartEditorInner = ({
             title="Speichern (Cmd+S)"
             className="flowchart-editor-save-btn"
           >
-            <FloppyDisk size={16} weight="bold" />
+            <FloppyDisk size={16} weight="regular" />
             <span>Speichern</span>
           </button>
           <Dialog.Close asChild>
             <button className="flowchart-editor-close-btn">
-              <X size={16} weight="bold" />
+              <X size={16} weight="regular" />
               <span>Schließen</span>
             </button>
           </Dialog.Close>
@@ -1614,14 +1614,14 @@ const FlowchartEditorInner = ({
               title="Löschen"
               className="flowchart-toolbar-btn"
             >
-              <Trash size={16} weight="bold" />
+              <Trash size={16} weight="regular" />
             </button>
             <button 
               onClick={() => setInteractionMode('eraser')} 
               title="Radierer (E)"
               className={`flowchart-toolbar-btn ${interactionMode === 'eraser' ? 'active' : ''}`}
             >
-              <EraserIcon size={16} weight="bold" />
+              <EraserIcon size={16} weight="regular" />
             </button>
             <div className="flowchart-toolbar-separator" />
             {/* Undo/Redo */}
@@ -1631,7 +1631,7 @@ const FlowchartEditorInner = ({
               title="Rückgängig (Cmd+Z)"
               className="flowchart-toolbar-btn"
             >
-              <ArrowCounterClockwise size={16} weight="bold" />
+              <ArrowCounterClockwise size={16} weight="regular" />
             </button>
             <button 
               onClick={handleRedo} 
@@ -1639,7 +1639,7 @@ const FlowchartEditorInner = ({
               title="Wiederherstellen (Cmd+Shift+Z)"
               className="flowchart-toolbar-btn"
             >
-              <ArrowClockwise size={16} weight="bold" />
+              <ArrowClockwise size={16} weight="regular" />
             </button>
             <div className="flowchart-toolbar-separator" />
             {/* Interaction Mode Tools */}
@@ -1648,14 +1648,14 @@ const FlowchartEditorInner = ({
               title="Auswahl (V)"
               className={`flowchart-toolbar-btn ${interactionMode === 'select' ? 'active' : ''}`}
             >
-              <Cursor size={16} weight="bold" />
+              <Cursor size={16} weight="regular" />
             </button>
             <button 
               onClick={() => setInteractionMode('pan')} 
               title="Verschieben (H)"
               className={`flowchart-toolbar-btn ${interactionMode === 'pan' ? 'active' : ''}`}
             >
-              <Hand size={16} weight="bold" />
+              <Hand size={16} weight="regular" />
             </button>
             <div className="flowchart-toolbar-separator" />
             {/* View Controls */}
@@ -1664,14 +1664,14 @@ const FlowchartEditorInner = ({
               title="Alles anzeigen"
               className="flowchart-toolbar-btn"
             >
-              <FrameCorners size={16} weight="bold" />
+              <ArrowsOut size={16} weight="regular" />
             </button>
             <button 
               onClick={handleResetZoom} 
               title="Zoom zurücksetzen"
               className="flowchart-toolbar-btn"
             >
-              <ArrowsOut size={16} weight="bold" />
+              <ArrowsIn size={16} weight="regular" />
             </button>
           </div>
 
