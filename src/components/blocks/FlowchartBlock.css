@@ -225,7 +225,7 @@
 .flowchart-node-with-icon {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .flowchart-node-icon {
@@ -233,6 +233,11 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  line-height: 1;
+}
+
+.flowchart-node-icon svg {
+  display: block;
 }
 
 .flowchart-node-icon-high {

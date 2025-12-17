@@ -409,7 +409,7 @@ const HighNode = ({ data, selected }) => {
           rows={rows}
         />
         <div className="flowchart-node-icon flowchart-node-icon-high">
-          <ArrowCircleUp size={28} weight="fill" />
+          <ArrowCircleUp size={18} weight="fill" />
         </div>
       </div>
     </div>
@@ -442,7 +442,7 @@ const LowNode = ({ data, selected }) => {
           rows={rows}
         />
         <div className="flowchart-node-icon flowchart-node-icon-low">
-          <ArrowCircleDown size={28} weight="fill" />
+          <ArrowCircleDown size={18} weight="fill" />
         </div>
       </div>
     </div>
@@ -475,7 +475,7 @@ const EqualNode = ({ data, selected }) => {
           rows={rows}
         />
         <div className="flowchart-node-icon flowchart-node-icon-equal">
-          <ArrowCircleRight size={28} weight="fill" />
+          <ArrowCircleRight size={18} weight="fill" />
         </div>
       </div>
     </div>
@@ -516,18 +516,42 @@ const hexToLightBg = (hex, lightness = 0.88) => {
 // NODE TYPE CONFIG FOR SIDEBAR
 // ============================================
 
-const NODE_TYPE_CONFIG = [
-  { type: 'start', label: 'Start', icon: Circle, color: '#47D1C6', bgColor: '#E8FAF9' },
-  { type: 'phase', label: 'Phase', icon: Square, color: '#003366', bgColor: '#E5F2FF' },
-  { type: 'positive', label: 'Positiv', icon: CheckCircle, color: '#52C41A', bgColor: '#ECF9EB' },
-  { type: 'negative', label: 'Negativ', icon: XCircle, color: '#EB5547', bgColor: '#FCEAE8' },
-  { type: 'neutral', label: 'Neutral', icon: MinusCircle, color: '#FAAD14', bgColor: '#FFF7E6' },
-  { type: 'high', label: 'Hoch', icon: ArrowCircleUp, color: '#EB5547', bgColor: '#FCEAE8' },
-  { type: 'low', label: 'Runter', icon: ArrowCircleDown, color: '#3399FF', bgColor: '#E5F2FF' },
-  { type: 'equal', label: 'Gleich', icon: ArrowCircleRight, color: '#FAAD14', bgColor: '#FFF7E6' },
-  { type: 'comment', label: 'Kommentar', icon: ChatCircleText, color: '#3399FF', bgColor: '#FFFFFF' },
-  { type: 'label', label: 'Label', icon: Tag, color: '#6b7280', bgColor: 'transparent' },
+// Node types grouped for toolbar display
+const NODE_TYPE_GROUPS = [
+  {
+    id: 'basic',
+    items: [
+      { type: 'start', label: 'Start', icon: Circle, color: '#47D1C6', bgColor: '#E8FAF9' },
+      { type: 'phase', label: 'Phase', icon: Square, color: '#003366', bgColor: '#E5F2FF' },
+    ]
+  },
+  {
+    id: 'status',
+    items: [
+      { type: 'positive', label: 'Positiv', icon: CheckCircle, color: '#52C41A', bgColor: '#ECF9EB' },
+      { type: 'negative', label: 'Negativ', icon: XCircle, color: '#EB5547', bgColor: '#FCEAE8' },
+      { type: 'neutral', label: 'Neutral', icon: MinusCircle, color: '#FAAD14', bgColor: '#FFF7E6' },
+    ]
+  },
+  {
+    id: 'indicators',
+    items: [
+      { type: 'high', label: 'Hoch', icon: ArrowCircleUp, color: '#EB5547', bgColor: '#FCEAE8' },
+      { type: 'low', label: 'Runter', icon: ArrowCircleDown, color: '#3399FF', bgColor: '#E5F2FF' },
+      { type: 'equal', label: 'Gleich', icon: ArrowCircleRight, color: '#FAAD14', bgColor: '#FFF7E6' },
+    ]
+  },
+  {
+    id: 'annotations',
+    items: [
+      { type: 'comment', label: 'Kommentar', icon: ChatCircleText, color: '#3399FF', bgColor: '#FFFFFF' },
+      { type: 'label', label: 'Label', icon: Tag, color: '#6b7280', bgColor: 'transparent' },
+    ]
+  }
 ];
+
+// Flat list for backwards compatibility
+const NODE_TYPE_CONFIG = NODE_TYPE_GROUPS.flatMap(group => group.items);
 
 // ============================================
 // MAIN EDITOR COMPONENT
@@ -1321,31 +1345,37 @@ const FlowchartEditorInner = ({
             </button>
           </div>
 
-          {/* Bottom row: Node types (white, larger) */}
+          {/* Bottom row: Node types (white, larger) - grouped */}
           <div className="flowchart-toolbar-nodes">
-            {/* Node type buttons */}
-            {NODE_TYPE_CONFIG.map((config) => {
-              const Icon = config.icon;
-              return (
-                <div
-                  key={config.type}
-                  className="flowchart-toolbar-node-item"
-                  draggable
-                  onDragStart={(event) => {
-                    event.dataTransfer.setData('application/reactflow', config.type);
-                    event.dataTransfer.effectAllowed = 'move';
-                  }}
-                  onClick={() => addNode(config.type)}
-                  title={config.label}
-                  style={{ 
-                    '--node-color': config.color,
-                    '--node-bg': config.bgColor,
-                  }}
-                >
-                  <Icon size={20} weight="regular" style={{ color: config.color }} />
+            {NODE_TYPE_GROUPS.map((group, groupIndex) => (
+              <React.Fragment key={group.id}>
+                {groupIndex > 0 && <div className="flowchart-toolbar-separator" />}
+                <div className="flowchart-toolbar-group">
+                  {group.items.map((config) => {
+                    const Icon = config.icon;
+                    return (
+                      <div
+                        key={config.type}
+                        className="flowchart-toolbar-node-item"
+                        draggable
+                        onDragStart={(event) => {
+                          event.dataTransfer.setData('application/reactflow', config.type);
+                          event.dataTransfer.effectAllowed = 'move';
+                        }}
+                        onClick={() => addNode(config.type)}
+                        title={config.label}
+                        style={{ 
+                          '--node-color': config.color,
+                          '--node-bg': config.bgColor,
+                        }}
+                      >
+                        <Icon size={20} weight="regular" style={{ color: config.color }} />
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              </React.Fragment>
+            ))}
           </div>
         </div>
       </div>

@@ -273,7 +273,7 @@ const StaticHighNode = ({ data }) => {
           ))}
         </div>
         <div className="flowchart-node-icon flowchart-node-icon-high">
-          <ArrowCircleUp size={28} weight="fill" />
+          <ArrowCircleUp size={18} weight="fill" />
         </div>
       </div>
     </div>
@@ -294,7 +294,7 @@ const StaticLowNode = ({ data }) => {
           ))}
         </div>
         <div className="flowchart-node-icon flowchart-node-icon-low">
-          <ArrowCircleDown size={28} weight="fill" />
+          <ArrowCircleDown size={18} weight="fill" />
         </div>
       </div>
     </div>
@@ -315,7 +315,7 @@ const StaticEqualNode = ({ data }) => {
           ))}
         </div>
         <div className="flowchart-node-icon flowchart-node-icon-equal">
-          <ArrowCircleRight size={28} weight="fill" />
+          <ArrowCircleRight size={18} weight="fill" />
         </div>
       </div>
     </div>

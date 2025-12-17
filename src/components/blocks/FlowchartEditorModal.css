@@ -255,6 +255,21 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
+/* Node type groups */
+.flowchart-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Separator between groups */
+.flowchart-toolbar-separator {
+  width: 1px;
+  height: 24px;
+  background: #e5e7eb;
+  margin: 0 4px;
+}
+
 .flowchart-toolbar-node-item {
   display: flex;
   align-items: center;
