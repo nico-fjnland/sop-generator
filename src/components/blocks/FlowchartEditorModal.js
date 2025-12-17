@@ -18,8 +18,13 @@ import ReactFlow, {
   getSmoothStepPath,
   useStore,
   EdgeLabelRenderer,
-  getBezierPath,
 } from 'reactflow';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import Subscript from '@tiptap/extension-subscript';
+import Superscript from '@tiptap/extension-superscript';
+import { Mark, mergeAttributes } from '@tiptap/core';
 import 'reactflow/dist/style.css';
 import './FlowchartEditorModal.css';
 import { 
@@ -45,6 +50,7 @@ import {
   ArrowCircleRight,
 } from '@phosphor-icons/react';
 import Eraser from './flowchart/Eraser';
+import InlineTextToolbar from '../InlineTextToolbar';
 
 // ============================================
 // EDGE HELPERS
@@ -240,6 +246,208 @@ const edgeTypes = {
 };
 
 // ============================================
+// TIPTAP EXTENSIONS FOR FLOWCHART NODES
+// ============================================
+
+// Custom extension for smaller font size (9px)
+const SmallFont = Mark.create({
+  name: 'smallFont',
+  
+  parseHTML() {
+    return [
+      {
+        tag: 'span',
+        getAttrs: node => (node.style.fontSize === '9px' || node.style.fontSize === '8px' || node.style.fontSize === '7px' || node.style.fontSize === '10px') && null,
+      },
+    ];
+  },
+  
+  renderHTML({ HTMLAttributes }) {
+    return ['span', mergeAttributes(HTMLAttributes, { style: 'font-size: 9px' }), 0];
+  },
+  
+  addCommands() {
+    return {
+      toggleSmallFont: () => ({ commands }) => {
+        return commands.toggleMark(this.name);
+      },
+    };
+  },
+});
+
+// Custom extension for heading font size (11px)
+const HeadingFont = Mark.create({
+  name: 'headingFont',
+  
+  parseHTML() {
+    return [
+      {
+        tag: 'span',
+        getAttrs: node => (node.style.fontSize === '11px' || node.style.fontSize === '12px' || node.style.fontSize === '13px') && null,
+      },
+    ];
+  },
+  
+  renderHTML({ HTMLAttributes }) {
+    return ['span', mergeAttributes(HTMLAttributes, { class: 'tiptap-heading', style: 'font-size: 11px' }), 0];
+  },
+  
+  addCommands() {
+    return {
+      toggleHeadingFont: () => ({ commands }) => {
+        return commands.toggleMark(this.name);
+      },
+    };
+  },
+});
+
+// ============================================
+// FLOWCHART NODE EDITOR COMPONENT (TipTap)
+// ============================================
+
+const FlowchartNodeEditor = ({ 
+  content, 
+  onChange, 
+  placeholder,
+  onToolbarUpdate,
+  onFocusChange,
+}) => {
+  const editorRef = useRef(null);
+  
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        // Minimal configuration for flowchart nodes
+        bulletList: false,
+        orderedList: false,
+        listItem: false,
+        heading: false,
+        codeBlock: false,
+        blockquote: false,
+        horizontalRule: false,
+        code: false,
+        strike: false,
+        hardBreak: true,
+        // Disable underline from StarterKit - we use explicit import
+        underline: false,
+        paragraph: {
+          HTMLAttributes: {
+            class: 'flowchart-tiptap-paragraph',
+          },
+        },
+      }),
+      Underline,
+      Subscript,
+      Superscript,
+      SmallFont,
+      HeadingFont,
+    ],
+    content: content || '',
+    editorProps: {
+      attributes: {
+        class: 'flowchart-node-tiptap-editor',
+        spellcheck: 'false',
+      },
+    },
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML();
+      // Convert empty paragraph to empty string
+      const cleanHtml = html === '<p></p>' || html === '<p class="flowchart-tiptap-paragraph"></p>' ? '' : html;
+      onChange(cleanHtml);
+    },
+    onFocus: () => {
+      // Notify parent that editor is focused - disable node dragging
+      if (onFocusChange) {
+        onFocusChange(true);
+      }
+    },
+    onSelectionUpdate: ({ editor }) => {
+      if (onToolbarUpdate) {
+        const { state } = editor;
+        const { from, to } = state.selection;
+        
+        if (from !== to) {
+          // There's a text selection - show toolbar
+          const { view } = editor;
+          const start = view.coordsAtPos(from);
+          const end = view.coordsAtPos(to);
+          
+          const left = (start.left + end.right) / 2;
+          const top = start.top - 10;
+          
+          onToolbarUpdate({
+            visible: true,
+            position: { top, left },
+            editor,
+          });
+        } else {
+          onToolbarUpdate({ visible: false, editor });
+        }
+      }
+    },
+    onBlur: ({ editor }) => {
+      // Clear selection when editor loses focus to prevent text from staying selected
+      // when user drags selection box in canvas
+      if (editor && !editor.isDestroyed) {
+        const { from } = editor.state.selection;
+        editor.commands.setTextSelection(from);
+      }
+      // Notify parent that editor is blurred - re-enable node dragging
+      if (onFocusChange) {
+        onFocusChange(false);
+      }
+      // Hide toolbar with delay to allow button clicks
+      if (onToolbarUpdate) {
+        setTimeout(() => {
+          onToolbarUpdate({ visible: false, editor: null });
+        }, 200);
+      }
+    },
+  });
+
+  // Sync content from parent
+  useEffect(() => {
+    if (editor) {
+      const currentContent = editor.getHTML();
+      const newContent = content || '';
+      
+      // Normalize for comparison
+      const normalizedCurrent = currentContent === '<p></p>' || currentContent === '<p class="flowchart-tiptap-paragraph"></p>' ? '' : currentContent;
+      const normalizedNew = newContent === '<p></p>' || newContent === '<p class="flowchart-tiptap-paragraph"></p>' ? '' : newContent;
+      
+      // Only update if content actually changed and editor is not focused
+      if (normalizedCurrent !== normalizedNew && !editor.isFocused) {
+        editor.commands.setContent(newContent, false);
+      }
+    }
+  }, [content, editor]);
+
+  // Store editor ref
+  useEffect(() => {
+    editorRef.current = editor;
+  }, [editor]);
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (editor) {
+        editor.destroy();
+      }
+    };
+  }, [editor]);
+
+  if (!editor) {
+    return null;
+  }
+
+  return (
+    <div className="flowchart-node-editor-wrapper nodrag" data-placeholder={placeholder}>
+      <EditorContent editor={editor} />
+    </div>
+  );
+};
+
+// ============================================
 // NODE COMPONENTS
 // ============================================
 
@@ -261,29 +469,15 @@ const NodeHandles = ({ selected }) => {
 };
 
 const StartNode = ({ data, selected }) => {
-  const text = data.label || 'Start';
-  const lines = text.split('\n');
-  const cols = Math.max(5, Math.max(...lines.map(line => line.length)) + 2);
-  const rows = Math.max(1, lines.length);
-  
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.stopPropagation();
-    }
-  };
-  
   return (
     <div className={`flowchart-node flowchart-node-start ${selected ? 'selected' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
-        <textarea
-          value={data.label}
-          onChange={(e) => data.onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
+        <FlowchartNodeEditor
+          content={data.label}
+          onChange={data.onChange}
           placeholder="Start"
-          className="flowchart-node-input"
-          cols={cols}
-          rows={rows}
+          onToolbarUpdate={data.onToolbarUpdate}
         />
       </div>
     </div>
@@ -291,29 +485,15 @@ const StartNode = ({ data, selected }) => {
 };
 
 const PhaseNode = ({ data, selected }) => {
-  const text = data.label || 'Phase';
-  const lines = text.split('\n');
-  const cols = Math.max(5, Math.max(...lines.map(line => line.length)) + 2);
-  const rows = Math.max(1, lines.length);
-  
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.stopPropagation();
-    }
-  };
-  
   return (
     <div className={`flowchart-node flowchart-node-phase ${selected ? 'selected' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
-        <textarea
-          value={data.label}
-          onChange={(e) => data.onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
+        <FlowchartNodeEditor
+          content={data.label}
+          onChange={data.onChange}
           placeholder="Phase"
-          className="flowchart-node-input"
-          cols={cols}
-          rows={rows}
+          onToolbarUpdate={data.onToolbarUpdate}
         />
       </div>
     </div>
@@ -321,29 +501,15 @@ const PhaseNode = ({ data, selected }) => {
 };
 
 const LabelNode = ({ data, selected }) => {
-  const text = data.label || 'Beschriftung';
-  const lines = text.split('\n');
-  const cols = Math.max(8, Math.max(...lines.map(line => line.length)) + 2);
-  const rows = Math.max(1, lines.length);
-  
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.stopPropagation();
-    }
-  };
-  
   return (
     <div className={`flowchart-node flowchart-node-label ${selected ? 'selected' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
-        <textarea
-          value={data.label}
-          onChange={(e) => data.onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
+        <FlowchartNodeEditor
+          content={data.label}
+          onChange={data.onChange}
           placeholder="Beschriftung"
-          className="flowchart-node-input"
-          cols={cols}
-          rows={rows}
+          onToolbarUpdate={data.onToolbarUpdate}
         />
       </div>
     </div>
@@ -351,29 +517,15 @@ const LabelNode = ({ data, selected }) => {
 };
 
 const CommentNode = ({ data, selected }) => {
-  const text = data.label || 'Kommentar';
-  const lines = text.split('\n');
-  const cols = Math.max(8, Math.max(...lines.map(line => line.length)) + 2);
-  const rows = Math.max(1, lines.length);
-  
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.stopPropagation();
-    }
-  };
-  
   return (
     <div className={`flowchart-node flowchart-node-comment ${selected ? 'selected' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
-        <textarea
-          value={data.label}
-          onChange={(e) => data.onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
+        <FlowchartNodeEditor
+          content={data.label}
+          onChange={data.onChange}
           placeholder="Kommentar"
-          className="flowchart-node-input"
-          cols={cols}
-          rows={rows}
+          onToolbarUpdate={data.onToolbarUpdate}
         />
       </div>
     </div>
@@ -381,29 +533,15 @@ const CommentNode = ({ data, selected }) => {
 };
 
 const PositiveNode = ({ data, selected }) => {
-  const text = data.label || 'Positiv';
-  const lines = text.split('\n');
-  const cols = Math.max(6, Math.max(...lines.map(line => line.length)) + 2);
-  const rows = Math.max(1, lines.length);
-  
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.stopPropagation();
-    }
-  };
-  
   return (
     <div className={`flowchart-node flowchart-node-positive ${selected ? 'selected' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
-        <textarea
-          value={data.label}
-          onChange={(e) => data.onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
+        <FlowchartNodeEditor
+          content={data.label}
+          onChange={data.onChange}
           placeholder="Positiv"
-          className="flowchart-node-input"
-          cols={cols}
-          rows={rows}
+          onToolbarUpdate={data.onToolbarUpdate}
         />
       </div>
     </div>
@@ -411,29 +549,15 @@ const PositiveNode = ({ data, selected }) => {
 };
 
 const NegativeNode = ({ data, selected }) => {
-  const text = data.label || 'Negativ';
-  const lines = text.split('\n');
-  const cols = Math.max(6, Math.max(...lines.map(line => line.length)) + 2);
-  const rows = Math.max(1, lines.length);
-  
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.stopPropagation();
-    }
-  };
-  
   return (
     <div className={`flowchart-node flowchart-node-negative ${selected ? 'selected' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
-        <textarea
-          value={data.label}
-          onChange={(e) => data.onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
+        <FlowchartNodeEditor
+          content={data.label}
+          onChange={data.onChange}
           placeholder="Negativ"
-          className="flowchart-node-input"
-          cols={cols}
-          rows={rows}
+          onToolbarUpdate={data.onToolbarUpdate}
         />
       </div>
     </div>
@@ -441,29 +565,15 @@ const NegativeNode = ({ data, selected }) => {
 };
 
 const NeutralNode = ({ data, selected }) => {
-  const text = data.label || 'Neutral';
-  const lines = text.split('\n');
-  const cols = Math.max(6, Math.max(...lines.map(line => line.length)) + 2);
-  const rows = Math.max(1, lines.length);
-  
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.stopPropagation();
-    }
-  };
-  
   return (
     <div className={`flowchart-node flowchart-node-neutral ${selected ? 'selected' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
-        <textarea
-          value={data.label}
-          onChange={(e) => data.onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
+        <FlowchartNodeEditor
+          content={data.label}
+          onChange={data.onChange}
           placeholder="Neutral"
-          className="flowchart-node-input"
-          cols={cols}
-          rows={rows}
+          onToolbarUpdate={data.onToolbarUpdate}
         />
       </div>
     </div>
@@ -471,29 +581,15 @@ const NeutralNode = ({ data, selected }) => {
 };
 
 const HighNode = ({ data, selected }) => {
-  const text = data.label || 'Hoch';
-  const lines = text.split('\n');
-  const cols = Math.max(6, Math.max(...lines.map(line => line.length)) + 2);
-  const rows = Math.max(1, lines.length);
-  
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.stopPropagation();
-    }
-  };
-  
   return (
     <div className={`flowchart-node flowchart-node-high ${selected ? 'selected' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content flowchart-node-with-icon">
-        <textarea
-          value={data.label}
-          onChange={(e) => data.onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
+        <FlowchartNodeEditor
+          content={data.label}
+          onChange={data.onChange}
           placeholder="Hoch"
-          className="flowchart-node-input"
-          cols={cols}
-          rows={rows}
+          onToolbarUpdate={data.onToolbarUpdate}
         />
         <div className="flowchart-node-icon flowchart-node-icon-high">
           <ArrowCircleUp size={18} weight="fill" />
@@ -504,29 +600,15 @@ const HighNode = ({ data, selected }) => {
 };
 
 const LowNode = ({ data, selected }) => {
-  const text = data.label || 'Runter';
-  const lines = text.split('\n');
-  const cols = Math.max(6, Math.max(...lines.map(line => line.length)) + 2);
-  const rows = Math.max(1, lines.length);
-  
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.stopPropagation();
-    }
-  };
-  
   return (
     <div className={`flowchart-node flowchart-node-low ${selected ? 'selected' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content flowchart-node-with-icon">
-        <textarea
-          value={data.label}
-          onChange={(e) => data.onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
+        <FlowchartNodeEditor
+          content={data.label}
+          onChange={data.onChange}
           placeholder="Runter"
-          className="flowchart-node-input"
-          cols={cols}
-          rows={rows}
+          onToolbarUpdate={data.onToolbarUpdate}
         />
         <div className="flowchart-node-icon flowchart-node-icon-low">
           <ArrowCircleDown size={18} weight="fill" />
@@ -537,29 +619,15 @@ const LowNode = ({ data, selected }) => {
 };
 
 const EqualNode = ({ data, selected }) => {
-  const text = data.label || 'Gleich';
-  const lines = text.split('\n');
-  const cols = Math.max(6, Math.max(...lines.map(line => line.length)) + 2);
-  const rows = Math.max(1, lines.length);
-  
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.stopPropagation();
-    }
-  };
-  
   return (
     <div className={`flowchart-node flowchart-node-equal ${selected ? 'selected' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content flowchart-node-with-icon">
-        <textarea
-          value={data.label}
-          onChange={(e) => data.onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
+        <FlowchartNodeEditor
+          content={data.label}
+          onChange={data.onChange}
           placeholder="Gleich"
-          className="flowchart-node-input"
-          cols={cols}
-          rows={rows}
+          onToolbarUpdate={data.onToolbarUpdate}
         />
         <div className="flowchart-node-icon flowchart-node-icon-equal">
           <ArrowCircleRight size={18} weight="fill" />
@@ -637,9 +705,6 @@ const NODE_TYPE_GROUPS = [
   }
 ];
 
-// Flat list for backwards compatibility
-const NODE_TYPE_CONFIG = NODE_TYPE_GROUPS.flatMap(group => group.items);
-
 // ============================================
 // MAIN EDITOR COMPONENT
 // ============================================
@@ -658,6 +723,75 @@ const FlowchartEditorInner = ({
   const reactFlowWrapper = useRef(null);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   
+  // Inline Text Toolbar state
+  const [toolbarState, setToolbarState] = useState({
+    visible: false,
+    position: { top: 0, left: 0 },
+    editor: null,
+  });
+  
+  // Handle toolbar updates from nodes
+  const handleToolbarUpdate = useCallback((update) => {
+    setToolbarState(prev => ({
+      ...prev,
+      ...update,
+    }));
+  }, []);
+  
+  // Get active formatting states for toolbar
+  const getActiveFormats = useCallback(() => {
+    const { editor } = toolbarState;
+    if (!editor) return {};
+    return {
+      heading: editor.isActive('headingFont'),
+      bold: editor.isActive('bold'),
+      italic: editor.isActive('italic'),
+      underline: editor.isActive('underline'),
+      fontSize: editor.isActive('smallFont'),
+      superscript: editor.isActive('superscript'),
+      subscript: editor.isActive('subscript'),
+      bulletList: false, // Not supported in flowchart nodes
+    };
+  }, [toolbarState.editor]);
+  
+  // Handle toolbar commands
+  const handleFormatCommand = useCallback((command) => {
+    const { editor } = toolbarState;
+    if (!editor) return;
+    
+    switch (command) {
+      case 'heading':
+        editor.chain().focus().toggleHeadingFont().run();
+        break;
+      case 'bold':
+        editor.chain().focus().toggleBold().run();
+        break;
+      case 'italic':
+        editor.chain().focus().toggleItalic().run();
+        break;
+      case 'underline':
+        editor.chain().focus().toggleUnderline().run();
+        break;
+      case 'fontSize':
+        editor.chain().focus().toggleSmallFont().run();
+        break;
+      case 'superscript':
+        editor.chain().focus().toggleSuperscript().run();
+        break;
+      case 'subscript':
+        editor.chain().focus().toggleSubscript().run();
+        break;
+      case 'bulletList':
+        // Not supported in flowchart nodes
+        break;
+      case 'removeFormat':
+        editor.chain().focus().clearNodes().unsetAllMarks().run();
+        break;
+      default:
+        break;
+    }
+  }, [toolbarState.editor]);
+  
   // Initialize nodes with onChange handlers
   const initializeNodes = useCallback((nodes) => {
     return nodes.map(node => ({
@@ -665,6 +799,7 @@ const FlowchartEditorInner = ({
       data: {
         ...node.data,
         onChange: () => {}, // Will be set properly after setNodes is available
+        onToolbarUpdate: () => {}, // Will be set properly after setNodes is available
       },
     }));
   }, []);
@@ -723,7 +858,7 @@ const FlowchartEditorInner = ({
     }, 100);
   }, [setEdges]);
 
-  // Sync nodes with onChange handlers
+  // Sync nodes with onChange and onToolbarUpdate handlers
   useEffect(() => {
     setNodes((nds) =>
       nds.map((node) => ({
@@ -731,10 +866,11 @@ const FlowchartEditorInner = ({
         data: {
           ...node.data,
           onChange: (newLabel) => handleNodeLabelChange(node.id, newLabel),
+          onToolbarUpdate: handleToolbarUpdate,
         },
       }))
     );
-  }, [handleNodeLabelChange, setNodes]);
+  }, [handleNodeLabelChange, handleToolbarUpdate, setNodes]);
 
   // Sync edges with onLabelChange handlers
   useEffect(() => {
@@ -783,13 +919,14 @@ const FlowchartEditorInner = ({
         data: {
           ...node.data,
           onChange: (newLabel) => handleNodeLabelChange(node.id, newLabel),
+          onToolbarUpdate: handleToolbarUpdate,
         },
       }));
       setNodes(restoredNodes);
       setEdges(previousState.edges);
       setHistoryIndex((prev) => prev - 1);
     }
-  }, [history, historyIndex, setNodes, setEdges, handleNodeLabelChange]);
+  }, [history, historyIndex, setNodes, setEdges, handleNodeLabelChange, handleToolbarUpdate]);
 
   // Redo function
   const handleRedo = useCallback(() => {
@@ -800,13 +937,14 @@ const FlowchartEditorInner = ({
         data: {
           ...node.data,
           onChange: (newLabel) => handleNodeLabelChange(node.id, newLabel),
+          onToolbarUpdate: handleToolbarUpdate,
         },
       }));
       setNodes(restoredNodes);
       setEdges(nextState.edges);
       setHistoryIndex((prev) => prev + 1);
     }
-  }, [history, historyIndex, setNodes, setEdges, handleNodeLabelChange]);
+  }, [history, historyIndex, setNodes, setEdges, handleNodeLabelChange, handleToolbarUpdate]);
 
   // Reset Zoom function
   const handleResetZoom = useCallback(() => {
@@ -1131,13 +1269,14 @@ const FlowchartEditorInner = ({
       data: {
         label: nodeTypeLabels[type] || type.charAt(0).toUpperCase() + type.slice(1),
         onChange: (newLabel) => handleNodeLabelChange(`${nodeIdCounter}`, newLabel),
+        onToolbarUpdate: handleToolbarUpdate,
       },
     };
 
     setNodes((nds) => [...nds, newNode]);
     setNodeIdCounter((prev) => prev + 1);
     setTimeout(() => saveToHistory(), 100);
-  }, [nodeIdCounter, setNodes, handleNodeLabelChange, saveToHistory]);
+  }, [nodeIdCounter, setNodes, handleNodeLabelChange, handleToolbarUpdate, saveToHistory]);
 
   // Handle drop from sidebar
   const onDragOver = useCallback((event) => {
@@ -1571,6 +1710,15 @@ const FlowchartEditorInner = ({
         </div>
       </div>
     </div>
+    
+    {/* Inline Text Toolbar for Flowchart Nodes */}
+    <InlineTextToolbar
+      visible={toolbarState.visible}
+      position={toolbarState.position}
+      activeStates={getActiveFormats()}
+      onCommand={handleFormatCommand}
+      usePortal={true}
+    />
     </>
   );
 };

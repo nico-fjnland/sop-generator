@@ -8,7 +8,7 @@ import ReactFlow, {
   EdgeLabelRenderer,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { PencilSimple, ArrowCircleUp, ArrowCircleDown, ArrowCircleRight } from '@phosphor-icons/react';
+import { TreeStructure, ArrowCircleUp, ArrowCircleDown, ArrowCircleRight } from '@phosphor-icons/react';
 
 // Default color for Algorithmus category
 const ALGORITHMUS_COLOR = '#47D1C6';
@@ -166,145 +166,119 @@ const StaticNodeHandles = () => (
   </>
 );
 
-const StaticStartNode = ({ data }) => {
-  const text = data.label || 'Start';
-  const lines = text.split('\n');
+// Helper to check if content contains HTML
+const isHtmlContent = (content) => {
+  return content && (content.includes('<') || content.includes('&'));
+};
+
+// Static text display component that handles both plain text and HTML
+const StaticNodeText = ({ content, fallback }) => {
+  const text = content || fallback;
   
+  // Check if content is HTML (from TipTap editor)
+  if (isHtmlContent(text)) {
+    return (
+      <div 
+        className="flowchart-node-static-text flowchart-node-html-content"
+        dangerouslySetInnerHTML={{ __html: text }}
+      />
+    );
+  }
+  
+  // Plain text - render with line breaks
+  const lines = text.split('\n');
+  return (
+    <div className="flowchart-node-static-text">
+      {lines.map((line, i) => (
+        <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
+      ))}
+    </div>
+  );
+};
+
+const StaticStartNode = ({ data }) => {
   return (
     <div className="flowchart-node flowchart-node-start">
       <StaticNodeHandles />
       <div className="flowchart-node-content">
-        <div className="flowchart-node-static-text">
-          {lines.map((line, i) => (
-            <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
-          ))}
-        </div>
+        <StaticNodeText content={data.label} fallback="Start" />
       </div>
     </div>
   );
 };
 
 const StaticPhaseNode = ({ data }) => {
-  const text = data.label || 'Phase';
-  const lines = text.split('\n');
-  
   return (
     <div className="flowchart-node flowchart-node-phase">
       <StaticNodeHandles />
       <div className="flowchart-node-content">
-        <div className="flowchart-node-static-text">
-          {lines.map((line, i) => (
-            <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
-          ))}
-        </div>
+        <StaticNodeText content={data.label} fallback="Phase" />
       </div>
     </div>
   );
 };
 
 const StaticLabelNode = ({ data }) => {
-  const text = data.label || 'Beschriftung';
-  const lines = text.split('\n');
-  
   return (
     <div className="flowchart-node flowchart-node-label">
       <StaticNodeHandles />
       <div className="flowchart-node-content">
-        <div className="flowchart-node-static-text">
-          {lines.map((line, i) => (
-            <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
-          ))}
-        </div>
+        <StaticNodeText content={data.label} fallback="Beschriftung" />
       </div>
     </div>
   );
 };
 
 const StaticCommentNode = ({ data }) => {
-  const text = data.label || 'Kommentar';
-  const lines = text.split('\n');
-  
   return (
     <div className="flowchart-node flowchart-node-comment">
       <StaticNodeHandles />
       <div className="flowchart-node-content">
-        <div className="flowchart-node-static-text">
-          {lines.map((line, i) => (
-            <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
-          ))}
-        </div>
+        <StaticNodeText content={data.label} fallback="Kommentar" />
       </div>
     </div>
   );
 };
 
 const StaticPositiveNode = ({ data }) => {
-  const text = data.label || 'Positiv';
-  const lines = text.split('\n');
-  
   return (
     <div className="flowchart-node flowchart-node-positive">
       <StaticNodeHandles />
       <div className="flowchart-node-content">
-        <div className="flowchart-node-static-text">
-          {lines.map((line, i) => (
-            <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
-          ))}
-        </div>
+        <StaticNodeText content={data.label} fallback="Positiv" />
       </div>
     </div>
   );
 };
 
 const StaticNegativeNode = ({ data }) => {
-  const text = data.label || 'Negativ';
-  const lines = text.split('\n');
-  
   return (
     <div className="flowchart-node flowchart-node-negative">
       <StaticNodeHandles />
       <div className="flowchart-node-content">
-        <div className="flowchart-node-static-text">
-          {lines.map((line, i) => (
-            <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
-          ))}
-        </div>
+        <StaticNodeText content={data.label} fallback="Negativ" />
       </div>
     </div>
   );
 };
 
 const StaticNeutralNode = ({ data }) => {
-  const text = data.label || 'Neutral';
-  const lines = text.split('\n');
-  
   return (
     <div className="flowchart-node flowchart-node-neutral">
       <StaticNodeHandles />
       <div className="flowchart-node-content">
-        <div className="flowchart-node-static-text">
-          {lines.map((line, i) => (
-            <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
-          ))}
-        </div>
+        <StaticNodeText content={data.label} fallback="Neutral" />
       </div>
     </div>
   );
 };
 
 const StaticHighNode = ({ data }) => {
-  const text = data.label || 'Hoch';
-  const lines = text.split('\n');
-  
   return (
     <div className="flowchart-node flowchart-node-high">
       <StaticNodeHandles />
       <div className="flowchart-node-content flowchart-node-with-icon">
-        <div className="flowchart-node-static-text">
-          {lines.map((line, i) => (
-            <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
-          ))}
-        </div>
+        <StaticNodeText content={data.label} fallback="Hoch" />
         <div className="flowchart-node-icon flowchart-node-icon-high">
           <ArrowCircleUp size={18} weight="fill" />
         </div>
@@ -314,18 +288,11 @@ const StaticHighNode = ({ data }) => {
 };
 
 const StaticLowNode = ({ data }) => {
-  const text = data.label || 'Runter';
-  const lines = text.split('\n');
-  
   return (
     <div className="flowchart-node flowchart-node-low">
       <StaticNodeHandles />
       <div className="flowchart-node-content flowchart-node-with-icon">
-        <div className="flowchart-node-static-text">
-          {lines.map((line, i) => (
-            <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
-          ))}
-        </div>
+        <StaticNodeText content={data.label} fallback="Runter" />
         <div className="flowchart-node-icon flowchart-node-icon-low">
           <ArrowCircleDown size={18} weight="fill" />
         </div>
@@ -335,18 +302,11 @@ const StaticLowNode = ({ data }) => {
 };
 
 const StaticEqualNode = ({ data }) => {
-  const text = data.label || 'Gleich';
-  const lines = text.split('\n');
-  
   return (
     <div className="flowchart-node flowchart-node-equal">
       <StaticNodeHandles />
       <div className="flowchart-node-content flowchart-node-with-icon">
-        <div className="flowchart-node-static-text">
-          {lines.map((line, i) => (
-            <span key={i}>{line}{i < lines.length - 1 && <br />}</span>
-          ))}
-        </div>
+        <StaticNodeText content={data.label} fallback="Gleich" />
         <div className="flowchart-node-icon flowchart-node-icon-equal">
           <ArrowCircleRight size={18} weight="fill" />
         </div>
@@ -436,7 +396,7 @@ const FlowchartPreview = ({ nodes, edges, height, onEditClick, accentColor }) =>
             style={{ backgroundColor: buttonColor }}
             aria-label="Flowchart bearbeiten"
           >
-            <PencilSimple size={18} weight="bold" />
+            <TreeStructure size={18} weight="regular" />
           </button>
         </div>
       </div>

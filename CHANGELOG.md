@@ -7,6 +7,21 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.8.4] - 2025-12-17
+
+### ✨ Features
+
+- **Inline-Textformatierung im Flowchart Editor:** Text in Flowchart-Nodes kann jetzt formatiert werden
+  - Markierter Text zeigt die Inline-Text-Toolbar des TipTap-Editors an
+  - Unterstützte Formatierungen: Fett, Kursiv, Unterstreichen, Hochgestellt, Tiefgestellt, Überschrift, Kleine Schrift
+  - Nodes verwenden jetzt TipTap-Editoren statt einfacher Textareas
+  - Rich-Text wird als HTML gespeichert und korrekt angezeigt
+  - **Verbesserte UX:** Text markieren funktioniert ohne Node-Dragging - Node ziehen nur am Rand möglich
+  - **Canvas-Selektion:** Beim Aufziehen eines Markier-Feldes im Canvas wird nur der Node ausgewählt, nicht der Text darin
+  - **Neues Edit-Icon:** Das Bearbeiten-Icon in der Algorithmus-Box wurde von Stift zu "TreeStructure" geändert
+
+---
+
 ## [0.8.3] - 2025-12-17
 
 ### ✨ Features

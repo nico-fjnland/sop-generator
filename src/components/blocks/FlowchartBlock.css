@@ -523,6 +523,46 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+/* ============================================
+   HTML CONTENT IN PREVIEW NODES
+   ============================================ */
+
+/* HTML content from TipTap editor in preview */
+.flowchart-node-html-content {
+  text-align: center;
+}
+
+.flowchart-node-html-content p {
+  margin: 0;
+  padding: 0;
+}
+
+.flowchart-node-html-content strong {
+  font-weight: 700;
+}
+
+.flowchart-node-html-content em {
+  font-style: italic;
+}
+
+.flowchart-node-html-content u {
+  text-decoration: underline;
+}
+
+.flowchart-node-html-content sup {
+  vertical-align: super;
+  font-size: 0.75em;
+}
+
+.flowchart-node-html-content sub {
+  vertical-align: sub;
+  font-size: 0.75em;
+}
+
+.flowchart-node-html-content .tiptap-heading {
+  font-weight: 600;
+}
+
 /* Print Styles */
 @media print {
   .flowchart-block-container,

@@ -621,3 +621,150 @@
 .edge-label-input::placeholder {
   color: #9ca3af;
 }
+
+/* ============================================
+   TIPTAP EDITOR IN FLOWCHART NODES
+   ============================================ */
+
+/* Wrapper for TipTap editor in nodes */
+.flowchart-node-editor-wrapper {
+  position: relative;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* Prevent text selection in entire ReactFlow canvas */
+.flowchart-editor-canvas .react-flow__renderer,
+.flowchart-editor-canvas .react-flow__nodes,
+.flowchart-editor-canvas .flowchart-node,
+.flowchart-editor-canvas .flowchart-node-content,
+.flowchart-editor-canvas .flowchart-node-editor-wrapper,
+.flowchart-editor-canvas .flowchart-node-tiptap-editor,
+.flowchart-editor-canvas .ProseMirror {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Enable text selection only when TipTap editor is focused */
+.flowchart-editor-canvas .flowchart-node-editor-wrapper:focus-within,
+.flowchart-editor-canvas .flowchart-node-editor-wrapper:focus-within .flowchart-node-tiptap-editor,
+.flowchart-editor-canvas .flowchart-node-editor-wrapper:focus-within .ProseMirror {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+/* Empty state placeholder */
+.flowchart-node-editor-wrapper:has(.ProseMirror:empty)::before,
+.flowchart-node-editor-wrapper .ProseMirror:empty::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: currentColor;
+  opacity: 0.5;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* TipTap editor inside flowchart nodes */
+.flowchart-node-tiptap-editor {
+  outline: none;
+  border: none;
+  background: transparent;
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  min-width: 40px;
+}
+
+.flowchart-node-tiptap-editor:focus {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 3px;
+}
+
+/* Remove default paragraph margins in flowchart nodes */
+.flowchart-node-tiptap-editor p,
+.flowchart-node-tiptap-editor .flowchart-tiptap-paragraph {
+  margin: 0;
+  padding: 0;
+}
+
+/* Inherit colors from parent node */
+.flowchart-node-start .flowchart-node-tiptap-editor {
+  color: #47D1C6;
+}
+
+.flowchart-node-phase .flowchart-node-tiptap-editor {
+  color: #003366;
+}
+
+.flowchart-node-label .flowchart-node-tiptap-editor {
+  color: #6b7280;
+}
+
+.flowchart-node-comment .flowchart-node-tiptap-editor {
+  color: #3399FF;
+}
+
+.flowchart-node-positive .flowchart-node-tiptap-editor {
+  color: #52C41A;
+}
+
+.flowchart-node-negative .flowchart-node-tiptap-editor {
+  color: #EB5547;
+}
+
+.flowchart-node-neutral .flowchart-node-tiptap-editor {
+  color: #B27700;
+}
+
+.flowchart-node-high .flowchart-node-tiptap-editor,
+.flowchart-node-low .flowchart-node-tiptap-editor,
+.flowchart-node-equal .flowchart-node-tiptap-editor {
+  color: #003366;
+}
+
+/* TipTap formatting styles */
+.flowchart-node-tiptap-editor strong {
+  font-weight: 700;
+}
+
+.flowchart-node-tiptap-editor em {
+  font-style: italic;
+}
+
+.flowchart-node-tiptap-editor u {
+  text-decoration: underline;
+}
+
+.flowchart-node-tiptap-editor sup {
+  vertical-align: super;
+  font-size: 0.75em;
+}
+
+.flowchart-node-tiptap-editor sub {
+  vertical-align: sub;
+  font-size: 0.75em;
+}
+
+.flowchart-node-tiptap-editor .tiptap-heading {
+  font-weight: 600;
+}
+
+/* Selection styling - only show when editor is focused */
+.flowchart-node-tiptap-editor ::selection {
+  background: transparent;
+}
+
+.flowchart-node-editor-wrapper:focus-within .flowchart-node-tiptap-editor ::selection {
+  background: rgba(0, 51, 102, 0.2);
+}
