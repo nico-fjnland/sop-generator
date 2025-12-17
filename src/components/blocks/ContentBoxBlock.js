@@ -467,8 +467,8 @@ const ContentBoxBlock = ({
               type="button"
               className="notion-control-button"
               style={{ backgroundColor: effectiveColor }}
-              aria-label="Box individualisieren"
-              title="Box individualisieren"
+              aria-label={selectedCategory === 'algorithmus' ? 'Flowchartoptionen' : 'Box individualisieren'}
+              title={selectedCategory === 'algorithmus' ? 'Flowchartoptionen' : 'Box individualisieren'}
             >
               <NotePencil className="h-4 w-4 text-white" weight="bold" />
             </button>
@@ -492,7 +492,7 @@ const ContentBoxBlock = ({
             }}
           >
             <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
-              <span>Box individualisieren</span>
+              <span>{selectedCategory === 'algorithmus' ? 'Flowchartoptionen' : 'Box individualisieren'}</span>
               <button
                 type="button"
                 onClick={(e) => {
@@ -782,74 +782,98 @@ const ContentBoxBlock = ({
               style={{ top: '-10px' }}
             >
               <div className="relative">
-                {/* Caption Box - clickable in editor, static in print */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <div
-                      className="border-2 border-solid border-white box-border flex items-center relative shrink-0 no-print cursor-pointer"
-                      style={{
-                        backgroundColor: effectiveColor,
-                        borderRadius: '6px',
-                        padding: '4px 8px',
+                {/* Caption Box - clickable in editor (except for algorithmus), static in print */}
+                {selectedCategory === 'algorithmus' ? (
+                  /* Static caption for Algorithmus - no category change dropdown */
+                  <div
+                    className="border-2 border-solid border-white box-border flex items-center relative shrink-0 no-print"
+                    style={{
+                      backgroundColor: effectiveColor,
+                      borderRadius: '6px',
+                      padding: '4px 8px',
+                    }}
+                  >
+                    <p 
+                      className="font-semibold italic text-white uppercase tracking-[1.05px] whitespace-nowrap"
+                      style={{ 
+                        fontFamily: "'Roboto', sans-serif",
+                        fontSize: '9px',
+                        lineHeight: '9px'
                       }}
                     >
-                      <p 
-                        className="font-semibold italic text-white uppercase tracking-[1.05px] whitespace-nowrap"
-                        style={{ 
-                          fontFamily: "'Roboto', sans-serif",
-                          fontSize: '9px',
-                          lineHeight: '9px'
+                      {customLabel || category.label}
+                    </p>
+                  </div>
+                ) : (
+                  /* Dropdown for other categories */
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <div
+                        className="border-2 border-solid border-white box-border flex items-center relative shrink-0 no-print cursor-pointer"
+                        style={{
+                          backgroundColor: effectiveColor,
+                          borderRadius: '6px',
+                          padding: '4px 8px',
                         }}
                       >
-                        {customLabel || category.label}
-                      </p>
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="start" sideOffset={4} collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }} avoidCollisions={true}>
-                    <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
-                      <span>Kategorie ändern</span>
-                      {onSortBlocks && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSortBlocks();
+                        <p 
+                          className="font-semibold italic text-white uppercase tracking-[1.05px] whitespace-nowrap"
+                          style={{ 
+                            fontFamily: "'Roboto', sans-serif",
+                            fontSize: '9px',
+                            lineHeight: '9px'
                           }}
-                          className="p-1 rounded hover:bg-muted transition-colors"
-                          title="Content-Boxen nach Standard-Reihenfolge sortieren"
                         >
-                          <SortAscending className="h-4 w-4" weight="regular" />
-                        </button>
-                      )}
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {CATEGORIES.filter(cat => !cat.hideFromCategoryChange).map((cat) => {
-                      const usageCount = categoryUsageCount[cat.id] || 0;
-                      const maxUsage = cat.maxUsage || 1;
-                      // For category change: allow selecting current category, but check max for others
-                      const isCurrentCategory = cat.id === selectedCategory;
-                      const isMaxed = !isCurrentCategory && usageCount >= maxUsage;
-                      return (
-                        <DropdownMenuItem
-                          key={cat.id}
-                          disabled={isMaxed}
-                          onClick={() => handleCategorySelect(cat.id)}
-                          className="flex items-center gap-2 cursor-pointer"
-                        >
-                          <span
-                            className="flex items-center justify-center w-4 h-4"
+                          {customLabel || category.label}
+                        </p>
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="start" sideOffset={4} collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }} avoidCollisions={true}>
+                      <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
+                        <span>Kategorie ändern</span>
+                        {onSortBlocks && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSortBlocks();
+                            }}
+                            className="p-1 rounded hover:bg-muted transition-colors"
+                            title="Content-Boxen nach Standard-Reihenfolge sortieren"
                           >
-                            {getIconWithColors(cat.id, isMaxed ? '#9CA3AF' : cat.color, isMaxed ? '#F3F4F6' : cat.bgColor)}
-                          </span>
-                          <span className="flex-1">{cat.shortLabel || cat.label}</span>
-                          <span className="text-[10px] tabular-nums">
-                            {usageCount}/{maxUsage}
-                          </span>
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                            <SortAscending className="h-4 w-4" weight="regular" />
+                          </button>
+                        )}
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {CATEGORIES.filter(cat => !cat.hideFromCategoryChange).map((cat) => {
+                        const usageCount = categoryUsageCount[cat.id] || 0;
+                        const maxUsage = cat.maxUsage || 1;
+                        // For category change: allow selecting current category, but check max for others
+                        const isCurrentCategory = cat.id === selectedCategory;
+                        const isMaxed = !isCurrentCategory && usageCount >= maxUsage;
+                        return (
+                          <DropdownMenuItem
+                            key={cat.id}
+                            disabled={isMaxed}
+                            onClick={() => handleCategorySelect(cat.id)}
+                            className="flex items-center gap-2 cursor-pointer"
+                          >
+                            <span
+                              className="flex items-center justify-center w-4 h-4"
+                            >
+                              {getIconWithColors(cat.id, isMaxed ? '#9CA3AF' : cat.color, isMaxed ? '#F3F4F6' : cat.bgColor)}
+                            </span>
+                            <span className="flex-1">{cat.shortLabel || cat.label}</span>
+                            <span className="text-[10px] tabular-nums">
+                              {usageCount}/{maxUsage}
+                            </span>
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
 
                 {/* Static caption for print */}
                 <div
@@ -898,6 +922,7 @@ const ContentBoxBlock = ({
                   onAddAfter={handleAddInnerBlock}
                   isLast={index === innerBlocks.length - 1}
                   isInsideContentBox={true}
+                  boxLabel={customLabel || category.shortLabel || category.label}
                 />
               ))}
             </div>

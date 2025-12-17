@@ -10,7 +10,7 @@ import FlowchartBlock from './blocks/FlowchartBlock';
 import SourceBlock from './blocks/SourceBlock';
 import { X } from '@phosphor-icons/react';
 
-const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideContentBox = false, usedCategories = [], isRightColumn = false, iconOnRight = false, onSortBlocks, dragHandleProps, isDragging }) => {
+const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideContentBox = false, usedCategories = [], isRightColumn = false, iconOnRight = false, onSortBlocks, dragHandleProps, isDragging, boxLabel }) => {
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const blockRef = useRef(null);
   const inputRef = useRef(null);
@@ -110,6 +110,7 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
           <FlowchartBlock
             content={block.content}
             onChange={(content) => onUpdate(block.id, content)}
+            boxLabel={boxLabel}
           />
         );
       case 'contentbox':

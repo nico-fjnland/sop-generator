@@ -431,7 +431,8 @@ const FlowchartEditorInner = ({
   initialNodeIdCounter,
   onSave, 
   onCancel,
-  accentColor = '#47D1C6'
+  accentColor = '#47D1C6',
+  boxLabel = 'Diag. Algorithmus'
 }) => {
   const { x: viewportX, y: viewportY, zoom } = useViewport();
   const { fitView } = useReactFlow();
@@ -982,26 +983,44 @@ const FlowchartEditorInner = ({
         >
           <Background />
           
-          {/* MiniMap */}
-          <MiniMap 
-            nodeColor={(node) => {
-              switch (node.type) {
-                case 'start': return accentColor;
-                case 'phase': return '#003366';
-                case 'positive': return '#52C41A';
-                case 'negative': return '#EB5547';
-                case 'neutral': return '#B27700';
-                case 'label': return '#6b7280';
-                case 'comment': return '#3399FF';
-                default: return '#9ca3af';
-              }
-            }}
-            maskColor={`${accentColor}26`}
-            nodeStrokeWidth={1}
-            pannable
-            zoomable
-            className="minimap-inner"
-          />
+          {/* MiniMap with Custom Wrapper for Dynamic Icon Color */}
+          <div className="minimap-wrapper" style={{ '--minimap-accent': accentColor, '--minimap-accent-light': hexToLightBg(accentColor, 0.95) }}>
+            {/* Dynamic Icon */}
+            <svg className="minimap-icon" width="18" height="26" viewBox="0 0 30 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M14.625 0.625C18.338 0.625 21.899 2.1 24.5245 4.72551C27.15 7.35102 28.625 10.912 28.625 14.625V28.625C28.625 32.338 27.15 35.899 24.5245 38.5245C21.899 41.15 18.338 42.625 14.625 42.625C10.912 42.625 7.35099 41.15 4.72548 38.5245C2.09998 35.899 0.625005 32.338 0.625005 28.625V14.625C0.625005 10.912 2.09998 7.35102 4.72548 4.72551C7.35099 2.1 10.912 0.625 14.625 0.625Z" fill={hexToLightBg(accentColor, 0.95)} stroke={hexToLightBg(accentColor, 0.95)} strokeWidth="0.5"/>
+              <path d="M10.4623 1.25966C11.8099 0.839454 13.2134 0.625485 14.625 0.625C18.338 0.625 21.899 2.1 24.5245 4.72551C27.15 7.35102 28.625 10.912 28.625 14.625V28.625C28.625 32.338 27.15 35.899 24.5245 38.5245C21.899 41.15 18.338 42.625 14.625 42.625C10.912 42.625 7.35099 41.15 4.72548 38.5245C2.09998 35.899 0.625005 32.338 0.625005 28.625V14.625C0.623464 12.8005 0.978562 10.9933 1.67033 9.30499" stroke={accentColor} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5.61865 2.11832V6.69165" stroke={accentColor} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M3.33154 4.40498H7.90488" stroke={accentColor} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M18.2655 12.133H11.0695C10.3788 12.133 9.81885 12.6929 9.81885 13.3837V15.8197C9.81885 16.5104 10.3788 17.0703 11.0695 17.0703H18.2655C18.9562 17.0703 19.5162 16.5104 19.5162 15.8197V13.3837C19.5162 12.6929 18.9562 12.133 18.2655 12.133Z" fill={hexToLightBg(accentColor, 0.95)} stroke={accentColor} strokeWidth="1.25"/>
+              <path d="M14.6626 17.2943V28.1583" stroke={accentColor} strokeWidth="1.25"/>
+              <path d="M21.7367 27.4676V24.5183H7.5874V27.5236" stroke={accentColor} strokeWidth="1.25"/>
+              <path d="M14.6626 31.1263C15.6111 31.1263 16.38 30.3574 16.38 29.4089C16.38 28.4605 15.6111 27.6916 14.6626 27.6916C13.7142 27.6916 12.9453 28.4605 12.9453 29.4089C12.9453 30.3574 13.7142 31.1263 14.6626 31.1263Z" fill={hexToLightBg(accentColor, 0.95)} stroke={accentColor} strokeWidth="1.25"/>
+              <path d="M7.58793 31.1263C8.53639 31.1263 9.30526 30.3574 9.30526 29.4089C9.30526 28.4605 8.53639 27.6916 7.58793 27.6916C6.63948 27.6916 5.87061 28.4605 5.87061 29.4089C5.87061 30.3574 6.63948 31.1263 7.58793 31.1263Z" fill={hexToLightBg(accentColor, 0.95)} stroke={accentColor} strokeWidth="1.25"/>
+              <path d="M21.7373 31.1263C22.6858 31.1263 23.4547 30.3574 23.4547 29.4089C23.4547 28.4605 22.6858 27.6916 21.7373 27.6916C20.7889 27.6916 20.02 28.4605 20.02 29.4089C20.02 30.3574 20.7889 31.1263 21.7373 31.1263Z" fill={hexToLightBg(accentColor, 0.95)} stroke={accentColor} strokeWidth="1.25"/>
+              <path d="M12.3662 14.597H16.9676" stroke={accentColor} strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            {/* Dynamic Caption */}
+            <span className="minimap-caption" style={{ background: accentColor }}>{boxLabel}</span>
+            <MiniMap 
+              nodeColor={(node) => {
+                switch (node.type) {
+                  case 'start': return accentColor;
+                  case 'phase': return '#003366';
+                  case 'positive': return '#52C41A';
+                  case 'negative': return '#EB5547';
+                  case 'neutral': return '#B27700';
+                  case 'label': return '#6b7280';
+                  case 'comment': return '#3399FF';
+                  default: return '#9ca3af';
+                }
+              }}
+              maskColor={`${accentColor}26`}
+              nodeStrokeWidth={1}
+              pannable
+              zoomable
+              className="minimap-inner"
+            />
+          </div>
           
           {/* Eraser Tool */}
           {interactionMode === 'eraser' && (
@@ -1231,7 +1250,8 @@ const FlowchartEditorModal = ({
   edges, 
   nodeIdCounter,
   onSave,
-  accentColor = DEFAULT_ACCENT_COLOR
+  accentColor = DEFAULT_ACCENT_COLOR,
+  boxLabel = 'Diag. Algorithmus'
 }) => {
   const handleSave = useCallback((data) => {
     onSave(data);
@@ -1262,6 +1282,7 @@ const FlowchartEditorModal = ({
               onSave={handleSave}
               onCancel={handleCancel}
               accentColor={accentColor}
+              boxLabel={boxLabel}
             />
           </ReactFlowProvider>
         </Dialog.Content>

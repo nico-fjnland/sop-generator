@@ -12,7 +12,7 @@ const initialEdges = [];
 // Default algorithmus color
 const DEFAULT_COLOR = '#47D1C6';
 
-const FlowchartBlock = ({ content, onChange }) => {
+const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) => {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
@@ -144,6 +144,7 @@ const FlowchartBlock = ({ content, onChange }) => {
         nodeIdCounter={nodeIdCounter}
         onSave={handleSaveFromModal}
         accentColor={accentColor}
+        boxLabel={boxLabel}
       />
     </div>
   );
