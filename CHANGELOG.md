@@ -7,6 +7,24 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.8.2] - 2025-12-17
+
+### ✨ Features
+
+- **Viewport Logger:** Zeigt Viewport-Position (x, y) und Zoom-Level am unteren linken Rand des Flowchart-Canvas
+  - Dezentes Styling: kleine Monospace-Schrift, grauer Text, direkt auf dem Canvas
+- **Dynamische MiniMap-Caption:** Benutzerdefinierter Box-Name wird jetzt auch in der MiniMap-Caption angezeigt
+- **Dynamisches MiniMap-Icon:** Icon wird jetzt in der gewählten Akzentfarbe eingefärbt
+- **"Flowchartoptionen":** Das Menü "Box individualisieren" heißt für Algorithmus-Boxen jetzt "Flowchartoptionen"
+
+### 🔄 Changed
+
+- **Kategorie ändern deaktiviert für Algorithmus:** Klick auf die Caption der Algorithmus-Box öffnet kein Dropdown mehr
+  - Verhindert versehentliches Ändern der Kategorie
+  - Andere Boxen behalten das Kategorie-Dropdown
+
+---
+
 ## [0.8.1] - 2025-12-17
 
 ### ✨ Features

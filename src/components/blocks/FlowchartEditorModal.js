@@ -1022,6 +1022,13 @@ const FlowchartEditorInner = ({
             />
           </div>
           
+          {/* Viewport Logger - bottom left */}
+          <div className="viewport-logger">
+            <span>x: {viewportX.toFixed(0)}</span>
+            <span>y: {viewportY.toFixed(0)}</span>
+            <span>zoom: {(zoom * 100).toFixed(0)}%</span>
+          </div>
+          
           {/* Eraser Tool */}
           {interactionMode === 'eraser' && (
             <Eraser onErase={() => saveToHistory()} />

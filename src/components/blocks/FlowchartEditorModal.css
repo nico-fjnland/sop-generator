@@ -529,3 +529,24 @@
   stroke: none !important;
   stroke-width: 0 !important;
 }
+
+/* ============================================
+   VIEWPORT LOGGER - Debug info bottom left
+   ============================================ */
+
+.viewport-logger {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  gap: 12px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 10px;
+  color: #9ca3af;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.viewport-logger span {
+  white-space: nowrap;
+}
