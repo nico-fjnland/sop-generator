@@ -10,15 +10,17 @@ import packageJson from '../../package.json';
 // App Version aus package.json
 const APP_VERSION = packageJson.version;
 
+// Vercel Build ID (kurze Version des Commit SHA)
+const VERCEL_BUILD = process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || 'local';
+
 /**
  * Custom Help Button that triggers the Help Scout Beacon
  * Styled to match the ZoomControl bar visual language
- * Also displays current time (UTC+1) and app version
+ * Also displays app version and Vercel build ID
  */
 const HelpButton = () => {
   const [isBeaconOpen, setIsBeaconOpen] = useState(false);
   const [isBeaconAvailable, setIsBeaconAvailable] = useState(false);
-  const [currentTime, setCurrentTime] = useState('');
   const { timeOfDay } = useTheme();
   const { showWarning } = useStatus();
   const { user, profile, organization } = useAuth();
@@ -66,22 +68,6 @@ const HelpButton = () => {
     window.Beacon('identify', identifyData);
   };
 
-  // Update time every second
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      // Get UTC+1 time
-      const utcPlus1 = new Date(now.getTime() + (1 * 60 * 60 * 1000));
-      const hours = utcPlus1.getUTCHours().toString().padStart(2, '0');
-      const minutes = utcPlus1.getUTCMinutes().toString().padStart(2, '0');
-      setCurrentTime(`${hours}:${minutes}`);
-    };
-
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     // Check if Beacon is available (may be blocked by ad-blockers)
@@ -166,13 +152,13 @@ const HelpButton = () => {
         )}
       </div>
 
-      {/* Time and Version Display */}
+      {/* Version and Build Display */}
       <div 
         className="flex flex-col text-[10px] font-medium select-none leading-tight"
         style={{ color: textColor }}
       >
-        <span>{currentTime} Uhr (MEZ)</span>
-        <span className="opacity-70">SOP Editor {APP_VERSION}</span>
+        <span>SOP Editor {APP_VERSION} (BETA)</span>
+        <span className="opacity-70">Build {VERCEL_BUILD} • <a href="https://fjnland.de" target="_blank" rel="noopener noreferrer" className="hover:underline">fjnland.de</a></span>
       </div>
     </div>
   );
