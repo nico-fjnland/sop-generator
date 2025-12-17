@@ -10,6 +10,7 @@ import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
 import { NotePencil, X, Plus, Check, Table as TableIcon, SortAscending, Infinity, ArrowCounterClockwise } from '@phosphor-icons/react';
+import { Switch } from '../ui/switch';
 import { CategoryIconComponents } from '../icons/CategoryIcons';
 import InlineTextToolbar from '../InlineTextToolbar';
 import {
@@ -141,6 +142,7 @@ const TipTapTableBlock = forwardRef(({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [tableTitle, setTableTitle] = useState('');
+  const [showTitle, setShowTitle] = useState(true);
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState({ top: 0, left: 0 });
   const containerRef = useRef(null);
@@ -267,9 +269,9 @@ const TipTapTableBlock = forwardRef(({
     },
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
-      // Only save as object if we have a title, otherwise save as string for backwards compatibility
-      if (tableTitle || (typeof content === 'object' && content !== null)) {
-        onChange({ table: html, title: tableTitle });
+      // Only save as object if we have a title or showTitle is false, otherwise save as string for backwards compatibility
+      if (tableTitle || !showTitle || (typeof content === 'object' && content !== null)) {
+        onChange({ table: html, title: tableTitle, showTitle });
       } else {
         onChange(html);
       }
@@ -310,11 +312,19 @@ const TipTapTableBlock = forwardRef(({
     },
   }, [registerEditor, unregisterEditor]);
 
-  // Initialize title from content - only once on mount
+  // Initialize title and showTitle from content - only once on mount
   useEffect(() => {
     const parsed = parseContent();
-    if (parsed && parsed.title !== undefined) {
-      setTableTitle(parsed.title || '');
+    if (parsed) {
+      if (parsed.title !== undefined) {
+        setTableTitle(parsed.title || '');
+      }
+      // Default to true if not specified (backwards compatibility)
+      if (parsed.showTitle !== undefined) {
+        setShowTitle(parsed.showTitle);
+      } else {
+        setShowTitle(true);
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -363,9 +373,18 @@ const TipTapTableBlock = forwardRef(({
     setTableTitle(newTitle);
     if (editor) {
       // Always save as object when title exists or is being edited
-      onChange({ table: editor.getHTML(), title: newTitle });
+      onChange({ table: editor.getHTML(), title: newTitle, showTitle });
     }
-  }, [editor, onChange]);
+  }, [editor, onChange, showTitle]);
+
+  // Handle showTitle toggle
+  const handleToggleShowTitle = useCallback(() => {
+    const newShowTitle = !showTitle;
+    setShowTitle(newShowTitle);
+    if (editor) {
+      onChange({ table: editor.getHTML(), title: tableTitle, showTitle: newShowTitle });
+    }
+  }, [editor, onChange, tableTitle, showTitle]);
 
   // Expose ref for focus functionality
   useImperativeHandle(ref, () => ({
@@ -396,7 +415,8 @@ const TipTapTableBlock = forwardRef(({
       const initialContent = getInitialContent();
       editor.commands.setContent(initialContent);
       setTableTitle('');
-      onChange({ table: initialContent, title: '' });
+      setShowTitle(true);
+      onChange({ table: initialContent, title: '', showTitle: true });
     }
   };
   const toggleHeaderRow = () => editor?.chain().focus().toggleHeaderRow().run();
@@ -608,6 +628,19 @@ const TipTapTableBlock = forwardRef(({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             
+            <div
+              className="flex items-center justify-between px-2 py-1.5 text-sm select-none outline-none cursor-pointer hover:bg-accent hover:text-accent-foreground rounded-sm transition-colors"
+              onClick={(e) => { e.preventDefault(); handleToggleShowTitle(); }}
+            >
+              <span>Überschrift anzeigen</span>
+              <Switch 
+                checked={showTitle} 
+                className="data-[state=checked]:bg-primary scale-90 pointer-events-none"
+              />
+            </div>
+            
+            <DropdownMenuSeparator />
+            
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>Zeile</DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
@@ -694,6 +727,7 @@ const TipTapTableBlock = forwardRef(({
                 </div>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
+            
           </DropdownMenuContent>
         </DropdownMenu>
         
@@ -806,67 +840,69 @@ const TipTapTableBlock = forwardRef(({
       </div>
 
       {/* Table Title - Same style as ContentBox caption but without box */}
-      <div className="w-full mb-2 flex items-center gap-2" style={{ paddingLeft: '28px', paddingRight: '28px' }}>
-        <input
-          ref={titleInputRef}
-          type="text"
-          value={tableTitle}
-          onChange={handleTitleChange}
-          placeholder="Tabellenüberschrift"
-          className="table-title-input no-print flex-1"
-          style={{
-            fontFamily: "'Roboto', sans-serif",
-            fontSize: '9px',
-            lineHeight: '9px',
-            fontWeight: 600,
-            fontStyle: 'italic',
-            textTransform: 'uppercase',
-            letterSpacing: '1.05px',
-            color: '#003366',
-            backgroundColor: 'transparent',
-            border: 'none',
-            outline: 'none',
-            padding: '4px 0',
-          }}
-        />
-        {/* Table Icon - serves as drag handle */}
-        <div
-          className={`no-print flex items-center justify-center ${dragHandleProps ? 'drag-handle' : ''}`}
-          style={{
-            cursor: dragHandleProps ? 'grab' : undefined,
-            flexShrink: 0,
-          }}
-          {...(dragHandleProps || {})}
-        >
-          <TableIcon 
-            size={16} 
-            weight="regular"
-            style={{ color: '#003366' }}
+      {showTitle && (
+        <div className="w-full mb-2 flex items-center gap-2" style={{ paddingLeft: '28px', paddingRight: '28px' }}>
+          <input
+            ref={titleInputRef}
+            type="text"
+            value={tableTitle}
+            onChange={handleTitleChange}
+            placeholder="Tabellenüberschrift"
+            className="table-title-input no-print flex-1"
+            style={{
+              fontFamily: "'Roboto', sans-serif",
+              fontSize: '9px',
+              lineHeight: '9px',
+              fontWeight: 600,
+              fontStyle: 'italic',
+              textTransform: 'uppercase',
+              letterSpacing: '1.05px',
+              color: '#003366',
+              backgroundColor: 'transparent',
+              border: 'none',
+              outline: 'none',
+              padding: '4px 0',
+            }}
           />
+          {/* Table Icon - serves as drag handle */}
+          <div
+            className={`no-print flex items-center justify-center ${dragHandleProps ? 'drag-handle' : ''}`}
+            style={{
+              cursor: dragHandleProps ? 'grab' : undefined,
+              flexShrink: 0,
+            }}
+            {...(dragHandleProps || {})}
+          >
+            <TableIcon 
+              size={16} 
+              weight="regular"
+              style={{ color: '#003366' }}
+            />
+          </div>
+          {/* Print version of title */}
+          <div
+            className="hidden print:flex w-full items-center gap-2"
+            style={{
+              fontFamily: "'Roboto', sans-serif",
+              fontSize: '9px',
+              lineHeight: '9px',
+              fontWeight: 600,
+              fontStyle: 'italic',
+              textTransform: 'uppercase',
+              letterSpacing: '1.05px',
+              color: '#003366',
+              padding: '4px 0',
+            }}
+          >
+            <span className="flex-1">{tableTitle}</span>
+            <TableIcon 
+              size={16} 
+              weight="regular"
+              style={{ color: '#003366', flexShrink: 0 }}
+            />
+          </div>
         </div>
-        {/* Print version of title */}
-        <div
-          className="hidden print:flex w-full items-center gap-2"
-          style={{
-            fontFamily: "'Roboto', sans-serif",
-            fontSize: '9px',
-            lineHeight: '9px',
-            fontWeight: 600,
-            fontStyle: 'italic',
-            textTransform: 'uppercase',
-            letterSpacing: '1.05px',
-            color: '#003366',
-            padding: '4px 0',
-          }}
-        >
-          <span className="flex-1">{tableTitle}</span>
-          <TableIcon 
-            size={16} 
-            weight="regular"
-            style={{ color: '#003366', flexShrink: 0 }}
-          />
-        </div>
-      </div>
+      )}
 
       {/* Inline Text Toolbar */}
       {showToolbar && editor && (

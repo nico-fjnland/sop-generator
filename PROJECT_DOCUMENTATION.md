@@ -124,6 +124,7 @@ src/
 │   ├── Block.js              # Block-Wrapper für alle Block-Typen
 │   ├── Page.js               # A4-Seiten-Container
 │   ├── SOPHeader.js          # Dokument-Header (Titel, Version, Logo)
+│   ├── SOPPageHeader.js      # Seitenkopf für Folgeseiten (Titel + Seitenzahl)
 │   ├── SOPFooter.js          # Dokument-Footer (Lizenz, Disclaimer)
 │   ├── SlashMenu.jsx         # Slash-Kommando Menü
 │   ├── InlineTextToolbar.js  # Formatierungs-Toolbar

@@ -264,7 +264,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               padding: '4px 8px',
               overflowWrap: 'break-word',
               wordBreak: 'break-word',
-              hyphens: 'auto',
+              hyphens: 'none',
               whiteSpace: 'pre-wrap', // Preserve manual line breaks
               minHeight: '38.4px' // fontSize 32px * lineHeight 1.2 = 38.4px
             }}
@@ -287,7 +287,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
             padding: '4px 8px',
             overflowWrap: 'break-word',
             wordBreak: 'break-word',
-            hyphens: 'auto',
+            hyphens: 'none',
             whiteSpace: 'pre-wrap', // Preserve manual line breaks
             minHeight: '38.4px' // fontSize 32px * lineHeight 1.2 = 38.4px
           }}

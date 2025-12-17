@@ -86,6 +86,14 @@ export const HEADER = {
   MARGIN_BOTTOM: 32, // Space below header (in screen mode)
 };
 
+// Page Header (for pages 2+) - shows SOP title and page number
+export const PAGE_HEADER = {
+  HEIGHT: 22, // Approximate height including margin
+  MARGIN_BOTTOM: 12,
+  PADDING_RIGHT: 14,
+  FONT_SIZE: 9, // Small font size (matches SmallFont mark)
+};
+
 // Dropdown menus
 export const DROPDOWN = {
   WIDTH: 220,

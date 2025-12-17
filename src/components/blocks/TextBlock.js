@@ -90,7 +90,7 @@ const SmallFont = Mark.create({
   },
 });
 
-// Custom extension for heading font size (12px)
+// Custom extension for heading font size (11px)
 const HeadingFont = Mark.create({
   name: 'headingFont',
   
@@ -98,14 +98,14 @@ const HeadingFont = Mark.create({
     return [
       {
         tag: 'span',
-        // Parse both 12px and legacy 13px
-        getAttrs: node => (node.style.fontSize === '12px' || node.style.fontSize === '13px') && null,
+        // Parse 11px, 12px and legacy 13px
+        getAttrs: node => (node.style.fontSize === '11px' || node.style.fontSize === '12px' || node.style.fontSize === '13px') && null,
       },
     ];
   },
   
   renderHTML({ HTMLAttributes }) {
-    return ['span', mergeAttributes(HTMLAttributes, { class: 'tiptap-heading', style: 'font-size: 12px' }), 0];
+    return ['span', mergeAttributes(HTMLAttributes, { class: 'tiptap-heading', style: 'font-size: 11px' }), 0];
   },
   
   addCommands() {

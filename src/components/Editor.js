@@ -4,6 +4,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import Block from './Block';
 import SOPHeader from './SOPHeader';
 import SOPFooter from './SOPFooter';
+import SOPPageHeader from './SOPPageHeader';
 import Page from './Page';
 import { usePageBreaks } from '../hooks/usePageBreaks';
 import { useEditorHistory } from '../hooks/useEditorHistory';
@@ -826,6 +827,15 @@ const Editor = () => {
                   onTitleChange={setHeaderTitle}
                   onStandChange={setHeaderStand}
                   onLogoChange={setHeaderLogo}
+                />
+              )}
+              
+              {/* Page Header - on pages 2+ (shows SOP title and page number) */}
+              {pageIndex > 0 && (
+                <SOPPageHeader 
+                  title={headerTitle}
+                  pageNumber={pageIndex + 1}
+                  totalPages={pages.length}
                 />
               )}
               

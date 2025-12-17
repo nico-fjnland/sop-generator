@@ -105,7 +105,8 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: break-word; /* Additional word breaking for long words */
-  hyphens: auto;
+  /* Disable automatic hyphenation - only break long words without hyphen */
+  hyphens: none;
   overflow: hidden; /* Clip any remaining overflow */
 }
 

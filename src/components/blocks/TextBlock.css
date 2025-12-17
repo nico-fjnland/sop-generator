@@ -12,15 +12,17 @@
   outline: none;
   /* Explicitly set language for spellcheck - helps Firefox */
   -webkit-locale: "de";
-  hyphens: auto;
-  -webkit-hyphens: auto;
-  -moz-hyphens: auto;
+  /* Disable automatic hyphenation - only break long words without hyphen */
+  hyphens: none;
+  -webkit-hyphens: none;
+  -moz-hyphens: none;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
-/* Heading style (12px) */
+/* Heading style (11px) - no font-weight to allow combining with bold */
 .tiptap-wrapper .tiptap-heading {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
   line-height: 1.8;
 }
 
@@ -35,7 +37,7 @@
 
 .tiptap-wrapper .bullet-list {
   margin: 0;
-  padding-left: 20px;
+  padding-left: 12px;
   list-style-type: disc;
 }
 
@@ -50,7 +52,7 @@
 
 .tiptap-wrapper .ordered-list {
   margin: 0;
-  padding-left: 20px;
+  padding-left: 12px;
   list-style-type: decimal;
 }
 
@@ -264,8 +266,7 @@
   
   /* Heading print styles */
   .tiptap-wrapper .tiptap-heading {
-    font-size: 12px !important;
-    font-weight: 500 !important;
+    font-size: 11px !important;
     line-height: 1.8 !important;
   }
   

@@ -7,7 +7,45 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.7.3] - 2025-12-17
+
+### ✨ Features
+
+- **SOPPageHeader:** Neue Komponente für Seitenkopfzeile auf Folgeseiten (ab Seite 2)
+  - Zeigt SOP-Titel (geerbt vom Header der ersten Seite) und Seitenzahl/Gesamtseitenzahl
+  - Rechtsbündig über der ersten Box positioniert (14px Einrückung)
+  - Dezentes Design (9px Schriftgröße, kursiv, dunkelblau #003366)
+
+### 🔄 Changed
+
+- **HeadingFont (Headline):** Schriftgröße von 12px auf 11px reduziert, font-weight entfernt
+  - Ermöglicht jetzt Kombination mit Bold und anderen Stilen
+  - Betrifft: TextBlock.js, TextBlock.css
+- **Aufzählungen (bullet-list, ordered-list):** Einrückung von 20px auf 12px reduziert
+- **TipTapTableBlock:** Neuer Switch-Toggle "Überschrift anzeigen" in den Tabellenoptionen
+  - Ermöglicht Ein-/Ausblenden der Tabellenüberschrift (Default: ein)
+  - Als erstes Element im Menü platziert, mit Switch-Toggle wie im Account-Dropdown
+  - Einstellung wird im Content-Objekt als `showTitle` gespeichert
+
+### 🔧 Technical
+
+- **usePageBreaks.js:** Berücksichtigt jetzt PAGE_HEADER-Höhe auf Folgeseiten für korrekte Seitenumbruchberechnung
+- **layout.js:** Neue PAGE_HEADER-Konstanten für konsistente Dimensionen
+
+### 📁 Files Added
+
+- `src/components/SOPPageHeader.js` - Seitenkopfzeile-Komponente für Folgeseiten
+
+---
+
 ## [0.7.2] - 2025-12-17
+
+### 🔄 Changed
+
+- **Silbentrennung deaktiviert:** Automatische Silbentrennung (`hyphens: auto`) wurde durch `overflow-wrap: break-word` ersetzt
+  - Betrifft: TextBlock, TipTapTableBlock, SOPHeader
+  - Wörter werden nur noch bei Platzmangel umbrochen, aber ohne Trennstrich
+  - Verhindert unschöne Trennungen bei kurzen Silben
 
 ### ✨ Features
 

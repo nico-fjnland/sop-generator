@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { PAGE, FOOTER, HEADER } from '../constants/layout';
+import { PAGE, FOOTER, HEADER, PAGE_HEADER } from '../constants/layout';
 
 // Calculates page breaks based on row heights using IntersectionObserver
 export const usePageBreaks = (rows, containerRef, footerVariant = 'tiny') => {
@@ -53,9 +53,10 @@ export const usePageBreaks = (rows, containerRef, footerVariant = 'tiny') => {
     const firstPageAvailableHeight = 
       totalPageHeight - headerHeight - PAGE.TOP_PADDING - footerHeight;
     
-    // Subsequent pages: no header, but double top padding
+    // Subsequent pages: no main header, but have page header (title + page number)
+    // Also includes double top padding
     const subsequentPageAvailableHeight = 
-      totalPageHeight - (PAGE.TOP_PADDING * 2) - footerHeight;
+      totalPageHeight - (PAGE.TOP_PADDING * 2) - PAGE_HEADER.HEIGHT - footerHeight;
 
     return {
       totalPageHeight,
