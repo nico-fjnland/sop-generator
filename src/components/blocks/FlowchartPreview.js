@@ -269,7 +269,7 @@ const nodeTypes = {
   neutral: StaticNeutralNode,
 };
 
-const FlowchartPreview = ({ nodes, edges, height, onEditClick, categoryColor }) => {
+const FlowchartPreview = ({ nodes, edges, height, onEditClick, accentColor }) => {
   // Memoize nodes and edges to prevent unnecessary re-renders
   const displayNodes = useMemo(() => {
     return (nodes || []).map(node => ({
@@ -282,7 +282,7 @@ const FlowchartPreview = ({ nodes, edges, height, onEditClick, categoryColor }) 
     return edges || [];
   }, [edges]);
 
-  const buttonColor = categoryColor || ALGORITHMUS_COLOR;
+  const buttonColor = accentColor || ALGORITHMUS_COLOR;
 
   // Fit view on init to ensure centering
   const onInit = useCallback((reactFlowInstance) => {
@@ -327,7 +327,7 @@ const FlowchartPreview = ({ nodes, edges, height, onEditClick, categoryColor }) 
           proOptions={{ hideAttribution: true }}
           className="flowchart-preview-canvas"
         >
-          <Background color="#c0c0c0" gap={8} size={1} />
+          <Background />
         </ReactFlow>
         
         {/* Edit Overlay */}

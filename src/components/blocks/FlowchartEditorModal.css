@@ -94,7 +94,7 @@
   align-items: center;
   gap: 6px;
   padding: 7px 14px;
-  background: #47D1C6;
+  background: var(--accent-color, #47D1C6);
   color: white;
   border: none;
   border-radius: 6px;
@@ -106,7 +106,7 @@
 }
 
 .flowchart-editor-save-btn:hover {
-  background: #3bc1b6;
+  filter: brightness(0.95);
 }
 
 .flowchart-editor-save-btn svg {
@@ -184,8 +184,8 @@
   gap: 2px;
   padding: 4px 6px;
   margin-left: 14px;
-  background: #EBFAF9;
-  border: 1px solid #c5eeeb;
+  background: var(--accent-color-lighter, #EBFAF9);
+  border: 1px solid var(--accent-color-light, #c5eeeb);
   border-bottom: none;
   border-radius: 8px 8px 0 0;
 }
@@ -221,12 +221,13 @@
 
 /* Active tool button */
 .flowchart-toolbar-btn.active {
-  background: #47D1C6;
+  background: var(--accent-color, #47D1C6);
   color: white;
 }
 
 .flowchart-toolbar-btn.active:hover {
-  background: #3bc1b6;
+  background: var(--accent-color, #47D1C6);
+  filter: brightness(0.95);
   color: white;
 }
 
@@ -329,7 +330,7 @@
 }
 
 .flowchart-editor-modal .react-flow__edge.selected .react-flow__edge-path {
-  stroke: #47D1C6;
+  stroke: var(--accent-color, #47D1C6);
   stroke-width: 2;
 }
 
@@ -467,8 +468,8 @@
   top: auto !important;
   transform: none !important;
   overflow: visible !important;
-  background-color: #E8FAF9 !important;
-  border: 1px solid #47D1C6 !important;
+  background-color: var(--accent-color-lighter, #E8FAF9) !important;
+  border: 1px solid var(--accent-color, #47D1C6) !important;
   border-radius: 4px !important;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
   padding: 0 !important;
@@ -498,7 +499,7 @@
   top: -7px;
   left: 14px;
   padding: 2px 6px;
-  background: #47D1C6;
+  background: var(--accent-color, #47D1C6);
   border-radius: 4px;
   font-family: 'Roboto', sans-serif;
   font-size: 6px;

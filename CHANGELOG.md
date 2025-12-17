@@ -7,6 +7,26 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.8.1] - 2025-12-17
+
+### ✨ Features
+
+- **Farbauswahl für Algorithmus-Box:** Neue Option im "Box individualisieren"-Menü
+  - Ersetzt die Spalten-Option (für Algorithmus nicht relevant)
+  - Farbpalette mit allen 12 Kategorie-Volltonfarben
+  - Gewählte Farbe wird konsistent angewendet auf:
+    - Box-Rahmen und Badge
+    - Hover-Buttons am rechten Rand
+    - Bearbeiten-Button in der Preview
+    - Alle Highlight-Farben im Modal (Toolbar, MiniMap, Helper Lines, etc.)
+
+### 🔄 Changed
+
+- **Grid auf ReactFlow Default zurückgesetzt:** Das Hintergrundraster in Preview und Modal verwendet nun die Standard-Einstellungen von ReactFlow
+- **CSS-Variablen für Akzentfarbe:** Modal nutzt jetzt `--accent-color`, `--accent-color-light` und `--accent-color-lighter` für dynamische Farbgebung
+
+---
+
 ## [0.8.0] - 2025-12-17
 
 ### ✨ Features
@@ -21,15 +41,14 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - **Flowchart Editor Modal UX (inspiriert von tldraw/Miro):**
   - **Neuer Modal-Titel:** "SOP FLOWCHART EDITOR" in Quicksand, ALL CAPS, Dunkelblau (#003366)
   - **Floating Header:** Header schwebt über dem Canvas, Canvas füllt gesamtes Modal
-  - **Speichern/Schließen-Buttons** im Header (türkis/grau)
+  - **Speichern/Schließen-Buttons** im Header (Akzentfarbe/grau)
   - Neue tldraw-Style Toolbar am unteren Bildschirmrand:
-    - **Obere Reihe (mintgrün #EBFAF9):** Löschen | Radierer | Undo/Redo | Auswahl/Pan | Fit-View/Zoom-Reset
+    - **Obere Reihe (Akzentfarbe):** Löschen | Radierer | Undo/Redo | Auswahl/Pan | Fit-View/Zoom-Reset
     - **Untere Reihe (weiß):** Node-Typen zum Auswählen
   - **Interaktionsmodi:**
     - Auswahl-Modus (V): Nodes auswählen, verschieben und verbinden (Pfeil-Cursor)
     - Pan-Modus (H): Canvas inkl. Grid frei verschieben (Hand-Cursor)
     - Radierer-Modus (E): Nodes/Edges durch Wischen löschen
-  - Engmaschigeres Hintergrundraster (8px) in Preview und Modal
   - Keyboard-Shortcuts: V (Auswahl), H (Pan), E (Radierer), Escape (Schließen), Cmd/Ctrl+S (Speichern), Cmd/Ctrl+Z (Undo)
   - Smooth Animations beim Öffnen/Schließen
 
@@ -40,7 +59,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   - Linie in Definition-Rot (#EB5547)
 
 - **MiniMap:** Übersichtskarte unten rechts im Modal
-  - Gestylt als Miniatur der ContentBox (türkiser Rand, Icon, Caption)
+  - Gestylt als Miniatur der ContentBox (Akzentfarbe-Rand, Icon, Caption)
   - Zeigt alle Nodes farbcodiert nach Typ
   - Pannable & Zoomable für Navigation
 

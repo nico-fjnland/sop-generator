@@ -539,53 +539,84 @@ const ContentBoxBlock = ({
             </div>
             <DropdownMenuSeparator />
             
-            {/* Column Count Selection */}
-            <div className="px-2 py-2">
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                Spalten
-              </label>
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => handleColumnCountChange(1)}
-                  className={`flex-1 flex items-center justify-center px-3 py-1.5 rounded-md border transition-all text-sm font-medium ${
-                    columnCount === 1
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border hover:bg-accent text-muted-foreground'
-                  }`}
-                  title="Einspaltig"
-                >
-                  1
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleColumnCountChange(2)}
-                  className={`flex-1 flex items-center justify-center px-3 py-1.5 rounded-md border transition-all text-sm font-medium ${
-                    columnCount === 2
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border hover:bg-accent text-muted-foreground'
-                  }`}
-                  title="Zweispaltig"
-                >
-                  2
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleColumnCountChange(3)}
-                  disabled={selectedCategory !== 'disposition'}
-                  className={`flex-1 flex items-center justify-center px-3 py-1.5 rounded-md border transition-all text-sm font-medium ${
-                    columnCount === 3
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : selectedCategory !== 'disposition'
-                        ? 'border-border/50 text-muted-foreground/40 cursor-not-allowed'
-                        : 'border-border hover:bg-accent text-muted-foreground'
-                  }`}
-                  title={selectedCategory !== 'disposition' ? 'Nur für Disposition verfügbar' : 'Dreispaltig'}
-                >
-                  3
-                </button>
+            {/* Color Selection - Only for Algorithmus */}
+            {selectedCategory === 'algorithmus' && (
+              <div className="px-2 py-2">
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                  Farbe
+                </label>
+                <div className="grid grid-cols-6 gap-1.5">
+                  {CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => {
+                        const newColor = cat.color;
+                        setCustomColor(newColor);
+                        setTimeout(() => updateContent(selectedCategory, innerBlocks, { customColor: newColor }), 0);
+                      }}
+                      className={`w-7 h-7 rounded border-2 cursor-pointer hover:scale-110 transition-transform ${
+                        customColor === cat.color || (!customColor && cat.id === 'algorithmus')
+                          ? 'border-gray-800 ring-2 ring-offset-1 ring-gray-400'
+                          : 'border-transparent'
+                      }`}
+                      style={{ backgroundColor: cat.color }}
+                      title={cat.label}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+            
+            {/* Column Count Selection - Not for Algorithmus */}
+            {selectedCategory !== 'algorithmus' && (
+              <div className="px-2 py-2">
+                <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                  Spalten
+                </label>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => handleColumnCountChange(1)}
+                    className={`flex-1 flex items-center justify-center px-3 py-1.5 rounded-md border transition-all text-sm font-medium ${
+                      columnCount === 1
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border hover:bg-accent text-muted-foreground'
+                    }`}
+                    title="Einspaltig"
+                  >
+                    1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleColumnCountChange(2)}
+                    className={`flex-1 flex items-center justify-center px-3 py-1.5 rounded-md border transition-all text-sm font-medium ${
+                      columnCount === 2
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border hover:bg-accent text-muted-foreground'
+                    }`}
+                    title="Zweispaltig"
+                  >
+                    2
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleColumnCountChange(3)}
+                    disabled={selectedCategory !== 'disposition'}
+                    className={`flex-1 flex items-center justify-center px-3 py-1.5 rounded-md border transition-all text-sm font-medium ${
+                      columnCount === 3
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : selectedCategory !== 'disposition'
+                          ? 'border-border/50 text-muted-foreground/40 cursor-not-allowed'
+                          : 'border-border hover:bg-accent text-muted-foreground'
+                    }`}
+                    title={selectedCategory !== 'disposition' ? 'Nur für Disposition verfügbar' : 'Dreispaltig'}
+                  >
+                    3
+                  </button>
+                </div>
+              </div>
+            )}
             
           </DropdownMenuContent>
         </DropdownMenu>

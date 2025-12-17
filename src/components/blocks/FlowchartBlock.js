@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './FlowchartBlock.css';
@@ -9,6 +9,9 @@ import FlowchartEditorModal from './FlowchartEditorModal';
 const initialNodes = [];
 const initialEdges = [];
 
+// Default algorithmus color
+const DEFAULT_COLOR = '#47D1C6';
+
 const FlowchartBlock = ({ content, onChange }) => {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [nodes, setNodes] = useState(initialNodes);
@@ -16,6 +19,18 @@ const FlowchartBlock = ({ content, onChange }) => {
   const [nodeIdCounter, setNodeIdCounter] = useState(2);
   const [height, setHeight] = useState(450);
   const [isResizing, setIsResizing] = useState(false);
+  const [accentColor, setAccentColor] = useState(DEFAULT_COLOR);
+  const containerRef = useRef(null);
+  
+  // Get accent color from CSS variable
+  useEffect(() => {
+    if (containerRef.current) {
+      const computedColor = getComputedStyle(containerRef.current).getPropertyValue('--content-box-color').trim();
+      if (computedColor) {
+        setAccentColor(computedColor);
+      }
+    }
+  });
 
   // Load saved content on mount
   useEffect(() => {
@@ -99,7 +114,7 @@ const FlowchartBlock = ({ content, onChange }) => {
   }, [isResizing]);
 
   return (
-    <div className="flowchart-block-container" style={{ height: `${height}px` }}>
+    <div ref={containerRef} className="flowchart-block-container" style={{ height: `${height}px` }}>
       {/* Preview with ReactFlowProvider */}
       <ReactFlowProvider>
         <FlowchartPreview
@@ -107,6 +122,7 @@ const FlowchartBlock = ({ content, onChange }) => {
           edges={edges}
           height={height - 12} // Subtract resize handle height
           onEditClick={handleEditClick}
+          accentColor={accentColor}
         />
       </ReactFlowProvider>
       
@@ -127,6 +143,7 @@ const FlowchartBlock = ({ content, onChange }) => {
         edges={edges}
         nodeIdCounter={nodeIdCounter}
         onSave={handleSaveFromModal}
+        accentColor={accentColor}
       />
     </div>
   );

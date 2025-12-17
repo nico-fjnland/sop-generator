@@ -391,6 +391,23 @@ const nodeTypes = {
 };
 
 // ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+// Convert hex color to a light, opaque background color (mix with white)
+const hexToLightBg = (hex, lightness = 0.88) => {
+  if (!hex || !hex.startsWith('#')) return hex;
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  // Mix with white (255, 255, 255) based on lightness factor
+  const lightR = Math.round(r + (255 - r) * lightness);
+  const lightG = Math.round(g + (255 - g) * lightness);
+  const lightB = Math.round(b + (255 - b) * lightness);
+  return `rgb(${lightR}, ${lightG}, ${lightB})`;
+};
+
+// ============================================
 // NODE TYPE CONFIG FOR SIDEBAR
 // ============================================
 
@@ -413,7 +430,8 @@ const FlowchartEditorInner = ({
   initialEdges, 
   initialNodeIdCounter,
   onSave, 
-  onCancel 
+  onCancel,
+  accentColor = '#47D1C6'
 }) => {
   const { x: viewportX, y: viewportY, zoom } = useViewport();
   const { fitView } = useReactFlow();
@@ -962,13 +980,13 @@ const FlowchartEditorInner = ({
           selectNodesOnDrag={false}
           className={`${interactionMode}-mode`}
         >
-          <Background color="#c0c0c0" gap={8} size={1} />
+          <Background />
           
           {/* MiniMap */}
           <MiniMap 
             nodeColor={(node) => {
               switch (node.type) {
-                case 'start': return '#47D1C6';
+                case 'start': return accentColor;
                 case 'phase': return '#003366';
                 case 'positive': return '#52C41A';
                 case 'negative': return '#EB5547';
@@ -978,7 +996,7 @@ const FlowchartEditorInner = ({
                 default: return '#9ca3af';
               }
             }}
-            maskColor="rgba(71, 209, 198, 0.15)"
+            maskColor={`${accentColor}26`}
             nodeStrokeWidth={1}
             pannable
             zoomable
@@ -998,10 +1016,10 @@ const FlowchartEditorInner = ({
                 y1={helperLineHorizontal * zoom + viewportY}
                 x2="100%"
                 y2={helperLineHorizontal * zoom + viewportY}
-                stroke="#47D1C6"
+                stroke={accentColor}
                 strokeWidth={1}
                 strokeDasharray="5,5"
-                style={{ filter: 'drop-shadow(0 0 6px rgba(71, 209, 198, 0.8))' }}
+                style={{ filter: `drop-shadow(0 0 6px ${accentColor}80)` }}
               />
             )}
             {helperLineVertical !== null && (
@@ -1010,10 +1028,10 @@ const FlowchartEditorInner = ({
                 y1={0}
                 x2={helperLineVertical * zoom + viewportX}
                 y2="100%"
-                stroke="#47D1C6"
+                stroke={accentColor}
                 strokeWidth={1}
                 strokeDasharray="5,5"
-                style={{ filter: 'drop-shadow(0 0 6px rgba(71, 209, 198, 0.8))' }}
+                style={{ filter: `drop-shadow(0 0 6px ${accentColor}80)` }}
               />
             )}
             
@@ -1203,13 +1221,17 @@ const FlowchartEditorInner = ({
 // MODAL WRAPPER
 // ============================================
 
+// Default algorithmus color
+const DEFAULT_ACCENT_COLOR = '#47D1C6';
+
 const FlowchartEditorModal = ({ 
   open, 
   onOpenChange, 
   nodes, 
   edges, 
   nodeIdCounter,
-  onSave 
+  onSave,
+  accentColor = DEFAULT_ACCENT_COLOR
 }) => {
   const handleSave = useCallback((data) => {
     onSave(data);
@@ -1224,7 +1246,14 @@ const FlowchartEditorModal = ({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="flowchart-editor-overlay" />
-        <Dialog.Content className="flowchart-editor-modal">
+        <Dialog.Content 
+          className="flowchart-editor-modal"
+          style={{ 
+            '--accent-color': accentColor,
+            '--accent-color-light': hexToLightBg(accentColor, 0.90),
+            '--accent-color-lighter': hexToLightBg(accentColor, 0.95),
+          }}
+        >
           <ReactFlowProvider>
             <FlowchartEditorInner
               initialNodes={nodes || []}
@@ -1232,6 +1261,7 @@ const FlowchartEditorModal = ({
               initialNodeIdCounter={nodeIdCounter || 2}
               onSave={handleSave}
               onCancel={handleCancel}
+              accentColor={accentColor}
             />
           </ReactFlowProvider>
         </Dialog.Content>
