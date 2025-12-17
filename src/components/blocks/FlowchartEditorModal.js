@@ -17,6 +17,8 @@ import ReactFlow, {
   getOutgoers,
   getSmoothStepPath,
   useStore,
+  EdgeLabelRenderer,
+  getBezierPath,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './FlowchartEditorModal.css';
@@ -111,9 +113,25 @@ function getClosestSides(sourceNode, targetNode) {
   }
 }
 
-function FloatingEdge({ id, source, target, markerEnd, style }) {
+function FloatingEdge({ id, source, target, markerEnd, style, data, selected }) {
   const sourceNode = useStore(useCallback((store) => store.nodeInternals.get(source), [source]));
   const targetNode = useStore(useCallback((store) => store.nodeInternals.get(target), [target]));
+  const [isEditing, setIsEditing] = useState(false);
+  const [labelText, setLabelText] = useState(data?.label || '');
+  const inputRef = useRef(null);
+
+  // Update local state when data changes
+  useEffect(() => {
+    setLabelText(data?.label || '');
+  }, [data?.label]);
+
+  // Focus input when editing starts
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
 
   if (!sourceNode || !targetNode) {
     return null;
@@ -127,24 +145,93 @@ function FloatingEdge({ id, source, target, markerEnd, style }) {
   const sourceAbsPos = sourceNode.positionAbsolute ?? sourceNode.position;
   const targetAbsPos = targetNode.positionAbsolute ?? targetNode.position;
   
-  const [edgePath] = getSmoothStepPath({
-    sourceX: sourceAbsPos.x + sourceHandleCoords.x,
-    sourceY: sourceAbsPos.y + sourceHandleCoords.y,
+  const sourceX = sourceAbsPos.x + sourceHandleCoords.x;
+  const sourceY = sourceAbsPos.y + sourceHandleCoords.y;
+  const targetX = targetAbsPos.x + targetHandleCoords.x;
+  const targetY = targetAbsPos.y + targetHandleCoords.y;
+  
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
+    sourceX,
+    sourceY,
     sourcePosition: sourcePos,
-    targetX: targetAbsPos.x + targetHandleCoords.x,
-    targetY: targetAbsPos.y + targetHandleCoords.y,
+    targetX,
+    targetY,
     targetPosition: targetPos,
     borderRadius: 8,
   });
 
+  const handleDoubleClick = (e) => {
+    e.stopPropagation();
+    setIsEditing(true);
+  };
+
+  const handleBlur = () => {
+    setIsEditing(false);
+    if (data?.onLabelChange) {
+      data.onLabelChange(labelText);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleBlur();
+    }
+    if (e.key === 'Escape') {
+      setLabelText(data?.label || '');
+      setIsEditing(false);
+    }
+  };
+
+  const hasLabel = labelText && labelText.trim() !== '';
+
   return (
-    <path
-      id={id}
-      className="react-flow__edge-path"
-      d={edgePath}
-      markerEnd={markerEnd}
-      style={style}
-    />
+    <>
+      <path
+        id={id}
+        className="react-flow__edge-path"
+        d={edgePath}
+        markerEnd={markerEnd}
+        style={style}
+      />
+      {/* Invisible wider path for easier clicking */}
+      <path
+        d={edgePath}
+        fill="none"
+        strokeWidth={20}
+        stroke="transparent"
+        className="react-flow__edge-interaction"
+        onDoubleClick={handleDoubleClick}
+      />
+      <EdgeLabelRenderer>
+        <div
+          className={`edge-label-container ${selected ? 'selected' : ''} ${hasLabel || isEditing ? 'has-label' : ''}`}
+          style={{
+            position: 'absolute',
+            transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+            pointerEvents: 'all',
+          }}
+          onDoubleClick={handleDoubleClick}
+        >
+          {isEditing ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={labelText}
+              onChange={(e) => setLabelText(e.target.value)}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+              className="edge-label-input"
+              placeholder="Label..."
+            />
+          ) : (
+            <div className="edge-label-text" title="Doppelklick zum Bearbeiten">
+              {hasLabel ? labelText : (selected ? '+' : '')}
+            </div>
+          )}
+        </div>
+      </EdgeLabelRenderer>
+    </>
   );
 }
 
@@ -610,6 +697,25 @@ const FlowchartEditorInner = ({
     );
   }, [setNodes]);
 
+  // Update edge label
+  const handleEdgeLabelChange = useCallback((edgeId, newLabel) => {
+    setEdges((eds) =>
+      eds.map((edge) => {
+        if (edge.id === edgeId) {
+          return {
+            ...edge,
+            data: {
+              ...edge.data,
+              label: newLabel,
+            },
+          };
+        }
+        return edge;
+      })
+    );
+    setTimeout(() => saveToHistory(), 100);
+  }, [setEdges, saveToHistory]);
+
   // Sync nodes with onChange handlers
   useEffect(() => {
     setNodes((nds) =>
@@ -622,6 +728,19 @@ const FlowchartEditorInner = ({
       }))
     );
   }, [handleNodeLabelChange, setNodes]);
+
+  // Sync edges with onLabelChange handlers
+  useEffect(() => {
+    setEdges((eds) =>
+      eds.map((edge) => ({
+        ...edge,
+        data: {
+          ...edge.data,
+          onLabelChange: (newLabel) => handleEdgeLabelChange(edge.id, newLabel),
+        },
+      }))
+    );
+  }, [handleEdgeLabelChange, setEdges]);
 
   // Save current state to history
   const saveToHistory = useCallback(() => {

@@ -5,6 +5,7 @@ import ReactFlow, {
   getSmoothStepPath,
   useStore,
   Background,
+  EdgeLabelRenderer,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { PencilSimple, ArrowCircleUp, ArrowCircleDown, ArrowCircleRight } from '@phosphor-icons/react';
@@ -78,7 +79,7 @@ function getClosestSides(sourceNode, targetNode) {
 }
 
 // Custom Floating Edge Component for Preview
-function FloatingEdgePreview({ id, source, target, markerEnd, style }) {
+function FloatingEdgePreview({ id, source, target, markerEnd, style, data }) {
   const sourceNode = useStore(useCallback((store) => store.nodeInternals.get(source), [source]));
   const targetNode = useStore(useCallback((store) => store.nodeInternals.get(target), [target]));
 
@@ -94,24 +95,56 @@ function FloatingEdgePreview({ id, source, target, markerEnd, style }) {
   const sourceAbsPos = sourceNode.positionAbsolute ?? sourceNode.position;
   const targetAbsPos = targetNode.positionAbsolute ?? targetNode.position;
   
-  const [edgePath] = getSmoothStepPath({
-    sourceX: sourceAbsPos.x + sourceHandleCoords.x,
-    sourceY: sourceAbsPos.y + sourceHandleCoords.y,
+  const sourceX = sourceAbsPos.x + sourceHandleCoords.x;
+  const sourceY = sourceAbsPos.y + sourceHandleCoords.y;
+  const targetX = targetAbsPos.x + targetHandleCoords.x;
+  const targetY = targetAbsPos.y + targetHandleCoords.y;
+  
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
+    sourceX,
+    sourceY,
     sourcePosition: sourcePos,
-    targetX: targetAbsPos.x + targetHandleCoords.x,
-    targetY: targetAbsPos.y + targetHandleCoords.y,
+    targetX,
+    targetY,
     targetPosition: targetPos,
     borderRadius: 8,
   });
 
+  const hasLabel = data?.label && data.label.trim() !== '';
+
   return (
-    <path
-      id={id}
-      className="react-flow__edge-path"
-      d={edgePath}
-      markerEnd={markerEnd}
-      style={style}
-    />
+    <>
+      <path
+        id={id}
+        className="react-flow__edge-path"
+        d={edgePath}
+        markerEnd={markerEnd}
+        style={style}
+      />
+      {hasLabel && (
+        <EdgeLabelRenderer>
+          <div
+            className="edge-label-preview"
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+              pointerEvents: 'none',
+              background: 'white',
+              border: '1px solid #e5e7eb',
+              borderRadius: '4px',
+              padding: '2px 6px',
+              fontSize: '11px',
+              fontFamily: "'Quicksand', sans-serif",
+              fontWeight: 500,
+              color: '#374151',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {data.label}
+          </div>
+        </EdgeLabelRenderer>
+      )}
+    </>
   );
 }
 

@@ -565,3 +565,59 @@
 .viewport-logger span {
   white-space: nowrap;
 }
+
+/* ============================================
+   EDGE LABELS
+   ============================================ */
+
+.edge-label-container {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+.edge-label-container.has-label,
+.edge-label-container.selected {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 2px 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.edge-label-container.selected {
+  border-color: #003366;
+}
+
+.edge-label-text {
+  color: #374151;
+  white-space: nowrap;
+  min-width: 10px;
+  text-align: center;
+}
+
+.edge-label-container.selected:not(.has-label) .edge-label-text {
+  color: #9ca3af;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.edge-label-input {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #374151;
+  min-width: 40px;
+  width: auto;
+  text-align: center;
+  padding: 0;
+}
+
+.edge-label-input::placeholder {
+  color: #9ca3af;
+}
