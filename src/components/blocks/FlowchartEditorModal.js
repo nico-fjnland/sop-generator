@@ -697,7 +697,9 @@ const FlowchartEditorInner = ({
     );
   }, [setNodes]);
 
-  // Update edge label
+  // Update edge label (saveToHistory is called via ref to avoid circular dependency)
+  const saveToHistoryRef = useRef(null);
+  
   const handleEdgeLabelChange = useCallback((edgeId, newLabel) => {
     setEdges((eds) =>
       eds.map((edge) => {
@@ -713,8 +715,13 @@ const FlowchartEditorInner = ({
         return edge;
       })
     );
-    setTimeout(() => saveToHistory(), 100);
-  }, [setEdges, saveToHistory]);
+    // Use ref to call saveToHistory after it's defined
+    setTimeout(() => {
+      if (saveToHistoryRef.current) {
+        saveToHistoryRef.current();
+      }
+    }, 100);
+  }, [setEdges]);
 
   // Sync nodes with onChange handlers
   useEffect(() => {
@@ -749,7 +756,10 @@ const FlowchartEditorInner = ({
         ...node,
         data: { label: data.label },
       })),
-      edges: edges,
+      edges: edges.map(({ data, ...edge }) => ({
+        ...edge,
+        data: { label: data?.label },
+      })),
     };
 
     setHistory((prev) => {
@@ -758,6 +768,11 @@ const FlowchartEditorInner = ({
     });
     setHistoryIndex((prev) => prev + 1);
   }, [nodes, edges, historyIndex]);
+  
+  // Update ref after saveToHistory is defined
+  useEffect(() => {
+    saveToHistoryRef.current = saveToHistory;
+  }, [saveToHistory]);
 
   // Undo function
   const handleUndo = useCallback(() => {
