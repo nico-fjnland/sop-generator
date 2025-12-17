@@ -1259,12 +1259,15 @@ export default function Account() {
 
     try {
       // Update personal profile data
+      // Strip cache-buster query params from avatar URL before saving to DB
+      const cleanAvatarUrl = avatarUrl ? avatarUrl.split('?')[0] : null;
+      
       const profileUpdates = {
         id: user.id,
         first_name: firstName,
         last_name: lastName,
         job_position: jobPosition,
-        avatar_url: avatarUrl,
+        avatar_url: cleanAvatarUrl,
         updated_at: new Date(),
       };
 
@@ -1273,9 +1276,12 @@ export default function Account() {
 
       // Update organization data
       if (organizationId) {
+        // Strip cache-buster query params from logo URL before saving to DB
+        const cleanLogoUrl = companyLogo ? companyLogo.split('?')[0] : null;
+        
         const { error: orgError } = await updateOrganization(organizationId, {
           name: hospitalName,
-          logo_url: companyLogo,
+          logo_url: cleanLogoUrl,
           license_model: licenseModel,
         });
         if (orgError) throw orgError;

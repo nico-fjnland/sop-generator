@@ -4,6 +4,7 @@ import { QuestionMark } from '@phosphor-icons/react';
 import { Button } from './ui/button';
 import { useTheme } from '../contexts/ThemeContext';
 import { useStatus } from '../contexts/StatusContext';
+import { useAuth } from '../contexts/AuthContext';
 import packageJson from '../../package.json';
 
 // App Version aus package.json
@@ -20,6 +21,50 @@ const HelpButton = () => {
   const [currentTime, setCurrentTime] = useState('');
   const { timeOfDay } = useTheme();
   const { showWarning } = useStatus();
+  const { user, profile, organization } = useAuth();
+
+  // Helper to get display name from profile
+  const getDisplayName = () => {
+    if (profile?.first_name || profile?.last_name) {
+      return [profile.first_name, profile.last_name].filter(Boolean).join(' ');
+    }
+    return user?.email?.split('@')[0] || '';
+  };
+
+  // Helper to identify user in Beacon (pre-fill feedback form)
+  const identifyUserInBeacon = () => {
+    if (!window.Beacon || !user?.email) return;
+    
+    // Build identify object with only non-empty values
+    // Empty strings can cause 400 errors in Helpscout
+    const identifyData = {
+      email: user.email,
+    };
+    
+    const displayName = getDisplayName();
+    if (displayName) {
+      identifyData.name = displayName;
+    }
+    
+    if (organization?.name) {
+      identifyData.company = organization.name;
+    }
+    
+    // Avatar: only include if it's a valid URL (must start with http)
+    // Helpscout requires: valid URL like "http://path.to/image.png"
+    if (profile?.avatar_url && profile.avatar_url.startsWith('http')) {
+      // Remove any query parameters (cache busters etc.)
+      const cleanAvatarUrl = profile.avatar_url.split('?')[0];
+      console.log('Avatar URL for Beacon:', cleanAvatarUrl);
+      identifyData.avatar = cleanAvatarUrl;
+    }
+    
+    if (profile?.job_position) {
+      identifyData.jobTitle = profile.job_position;
+    }
+    
+    window.Beacon('identify', identifyData);
+  };
 
   // Update time every second
   useEffect(() => {
@@ -74,6 +119,12 @@ const HelpButton = () => {
 
   const handleClick = () => {
     if (isBeaconAvailable && window.Beacon) {
+      // Identify user before opening (pre-fills name/email in feedback form)
+      try {
+        identifyUserInBeacon();
+      } catch (e) {
+        console.warn('Beacon identify failed:', e);
+      }
       window.Beacon('toggle');
     } else {
       // Show informative warning when Beacon is blocked

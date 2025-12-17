@@ -128,19 +128,24 @@ const AccountDropdown = ({
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem onSelect={() => {
-            if (window.Beacon) {
-              // Pre-fill user data in the feedback form
-              window.Beacon('identify', {
-                name: displayName || '',
-                email: user?.email || '',
-                company: organization?.name || '',
-                avatar: avatarUrl || '',
-                jobTitle: profile?.position || '',
-                // Custom attributes for additional context
-                'Dokumente': documentsCount,
-                'Organisation ID': organization?.id || '',
-                'Lizenzmodell': organization?.license_model || '',
-              });
+            if (window.Beacon && user?.email) {
+              // Build identify object with only non-empty values
+              // Empty strings can cause 400 errors in Helpscout
+              const identifyData = { email: user.email };
+              if (displayName) identifyData.name = displayName;
+              if (organization?.name) identifyData.company = organization.name;
+              // Avatar: only include if valid URL (avatarUrl may have cache-buster ?t=...)
+              if (avatarUrl && avatarUrl.startsWith('http')) {
+                // Remove cache-buster for Helpscout (use clean URL)
+                identifyData.avatar = avatarUrl.split('?')[0];
+              }
+              if (profile?.job_position) identifyData.jobTitle = profile.job_position;
+              
+              window.Beacon('identify', identifyData);
+              window.Beacon('open');
+              window.Beacon('navigate', '/ask/');
+            } else if (window.Beacon) {
+              // Fallback: just open without identify
               window.Beacon('open');
               window.Beacon('navigate', '/ask/');
             }

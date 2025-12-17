@@ -7,6 +7,37 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.7.2] - 2025-12-17
+
+### ✨ Features
+
+#### Helpscout Beacon User-Identifikation vereinheitlicht
+- **HelpButton:** Übergibt jetzt automatisch Benutzerdaten an Helpscout Beacon
+  - Name und E-Mail werden vorausgefüllt (erspart Nutzern die erneute Eingabe)
+  - Funktioniert jetzt identisch zum "Feedback geben"-Button im Account-Dropdown
+  - Verwendet `useAuth` Hook für Zugriff auf Benutzer-, Profil- und Organisationsdaten
+- **Standard Helpscout-Felder:** Beide Feedback-Buttons übergeben:
+  - `name`: Vollständiger Name (Vorname + Nachname)
+  - `email`: E-Mail-Adresse
+  - `company`: Krankenhaus-/Organisationsname
+  - `avatar`: Profilbild-URL
+  - `jobTitle`: Position
+
+### 🐛 Bugfixes
+
+- **AccountDropdown:** Korrektur von `profile?.position` zu `profile?.job_position` für jobTitle-Feld
+- **Account.jsx:** Avatar- und Logo-URLs werden jetzt ohne Cache-Buster in der Datenbank gespeichert
+  - Vorher wurden Cache-Buster (`?t=...`) bei jedem Profil-Update kumuliert
+  - Betraf sowohl `avatar_url` in Profilen als auch `logo_url` in Organisationen
+  - Bestehende fehlerhafte URLs in der Datenbank wurden bereinigt
+
+### 🔧 Technical
+
+- **HelpButton.js:** Import von `useAuth` Context hinzugefügt
+- **HelpButton.js:** Neue Helper-Funktionen `getDisplayName()` und `identifyUserInBeacon()`
+
+---
+
 ## [0.7.1] - 2025-12-16
 
 ### ✨ Features
