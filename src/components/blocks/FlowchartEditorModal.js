@@ -867,10 +867,22 @@ const FlowchartEditorInner = ({
     }
   }, [getHelperLines, nodes, onNodesChange, saveToHistory]);
 
+  // Multi-connection support: connect from all selected nodes to target
+  // Based on https://reactflow.dev/examples/edges/multi-connection-line
   const onConnect = useCallback(
     (params) => {
-      const newEdge = {
-        ...params,
+      const { source, target } = params;
+      
+      // Get all selected nodes that should also be connected
+      const selectedSourceNodes = nodes.filter(
+        (node) => (node.id === source || node.selected) && node.id !== target
+      );
+      
+      // Create edges from all selected source nodes to the target
+      const newEdges = selectedSourceNodes.map((node) => ({
+        id: `edge-${node.id}-${target}-${Date.now()}-${Math.random()}`,
+        source: node.id,
+        target: target,
         type: 'floating',
         markerEnd: {
           type: MarkerType.Arrow,
@@ -882,11 +894,42 @@ const FlowchartEditorInner = ({
           strokeWidth: 1.5,
           stroke: '#003366',
         },
-      };
-      setEdges((eds) => addEdge(newEdge, eds));
+      }));
+      
+      // If no selected nodes, just use the original params
+      if (newEdges.length === 0) {
+        const newEdge = {
+          ...params,
+          id: `edge-${source}-${target}-${Date.now()}`,
+          type: 'floating',
+          markerEnd: {
+            type: MarkerType.Arrow,
+            width: 20,
+            height: 20,
+            color: '#003366',
+          },
+          style: { 
+            strokeWidth: 1.5,
+            stroke: '#003366',
+          },
+        };
+        setEdges((eds) => addEdge(newEdge, eds));
+        saveToHistory();
+        return;
+      }
+      
+      // Add all new edges from selected nodes
+      setEdges((eds) => {
+        // Filter out any duplicate edges (same source-target combination)
+        const existingConnections = new Set(eds.map(e => `${e.source}-${e.target}`));
+        const uniqueNewEdges = newEdges.filter(
+          (e) => !existingConnections.has(`${e.source}-${e.target}`)
+        );
+        return [...eds, ...uniqueNewEdges];
+      });
       setTimeout(() => saveToHistory(), 100);
     },
-    [setEdges, saveToHistory]
+    [nodes, setEdges, saveToHistory]
   );
 
   // Delete Middle Node: Reconnect incomers to outgoers
@@ -928,6 +971,20 @@ const FlowchartEditorInner = ({
     [nodes, edges, setEdges, saveToHistory]
   );
 
+  // German labels for node types
+  const nodeTypeLabels = {
+    start: 'Start',
+    phase: 'Phase',
+    label: 'Beschriftung',
+    comment: 'Kommentar',
+    positive: 'Positiv',
+    negative: 'Negativ',
+    neutral: 'Neutral',
+    high: 'Hoch',
+    low: 'Runter',
+    equal: 'Gleich',
+  };
+
   // Add node function
   const addNode = useCallback((type, position = null) => {
     const newNode = {
@@ -938,7 +995,7 @@ const FlowchartEditorInner = ({
         y: Math.random() * 300 + 100,
       },
       data: {
-        label: type.charAt(0).toUpperCase() + type.slice(1),
+        label: nodeTypeLabels[type] || type.charAt(0).toUpperCase() + type.slice(1),
         onChange: (newLabel) => handleNodeLabelChange(`${nodeIdCounter}`, newLabel),
       },
     };
