@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { QuestionMark } from '@phosphor-icons/react';
+import { QuestionMark, GitCommit } from '@phosphor-icons/react';
 import { Button } from './ui/button';
 import { useTheme } from '../contexts/ThemeContext';
 import { useStatus } from '../contexts/StatusContext';
@@ -158,7 +158,7 @@ const HelpButton = () => {
         style={{ color: textColor }}
       >
         <span>SOP Editor {APP_VERSION} (BETA)</span>
-        <span className="opacity-70">Build {VERCEL_BUILD} • <a href="https://fjnland.de" target="_blank" rel="noopener noreferrer" className="hover:underline">fjnland.de</a></span>
+        <span className="opacity-70 flex items-center gap-1"><a href="https://github.com/nico-fjnland/sop-generator" target="_blank" rel="noopener noreferrer" className="hover:underline inline-flex items-center gap-0.5"><GitCommit size={10} weight="regular" />{VERCEL_BUILD}</a> • <a href="https://fjnland.de" target="_blank" rel="noopener noreferrer" className="hover:underline">fjnland.de</a></span>
       </div>
     </div>
   );
