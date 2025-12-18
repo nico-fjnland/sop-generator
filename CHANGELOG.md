@@ -7,6 +7,30 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.8.6] - 2025-12-18
+
+### 🔄 Changed
+
+- **Höhenangleichung in zweispaltigen Layouts vereinfacht:** Boxen werden nun **immer** angeglichen
+  - Früher: Intelligente Erkennung basierend auf Schwellenwerten (Differenz < 40px oder < 15%)
+  - Neu: Die kleinere Box dehnt sich immer auf die Höhe der größeren Box
+  - Beide Boxen können abwechselnd die "orientierungsgebende" Box sein
+  - Hook `useHeightEqualization` stark vereinfacht - gibt bei zweispaltigen Layouts immer `true` zurück
+  - **Archivierter Code:** Die alte Threshold-basierte Logik ist als Kommentar im Hook erhalten und kann bei Bedarf reaktiviert werden
+
+### 🐛 Bugfixes
+
+- **JavaScript-basierte Höhenangleichung:** CSS-basierte Lösung durch robusteren JS-Ansatz ersetzt
+  - `useHeightEqualization` Hook misst die natürlichen Höhen beider `.notion-box-shell` Elemente
+  - Setzt `minHeight` auf beide Boxen basierend auf der größeren Box
+  - **Kritisch:** ResizeObserver reagiert **nur auf Breitenänderungen** (Column Resizer)
+  - Verhindert Feedback-Schleife: Höhenänderungen triggern keinen erneuten Durchlauf
+  - `requestAnimationFrame` für korrekte Messung nach Reset
+  - Re-Entry-Schutz und Debounce verhindern Race Conditions
+  - Funktioniert zuverlässig unabhängig von CSS-Kaskaden und Tailwind-Klassen
+
+---
+
 ## [0.8.5] - 2025-12-18
 
 ### ✨ Features

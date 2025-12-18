@@ -72,7 +72,7 @@ const SortableRow = ({
   // Get the block ID from this row for sortable
   const blockIds = useMemo(() => row.blocks.map(b => b.id), [row.blocks]);
   
-  // Check if heights should be equalized for two-column layouts (auto-detection)
+  // Always equalize heights for two-column layouts - smaller box stretches to match larger one
   const isTwoColumn = row.blocks.length === 2;
   const shouldEqualizeHeights = useHeightEqualization(containerRef, isTwoColumn);
   

@@ -338,43 +338,57 @@ iframe[title*="Help Scout"] {
   /* Height equalization for two-column layouts in print */
   .block-row.two-columns.height-equalized {
     align-items: stretch !important;
+    margin-bottom: 1.5rem !important;
   }
   
-  /* Make draggable wrapper stretch its content - preserve inline flex-basis/maxWidth */
+  /* Draggable wrapper must stretch */
   .block-row.two-columns.height-equalized > .draggable-block {
     display: flex !important;
     flex-direction: column !important;
+    height: auto !important;
   }
   
-  /* Make content-box fill available height */
+  /* ContentBoxBlock fills available height */
   .block-row.two-columns.height-equalized .content-box-block {
-    flex: 1 !important;
+    flex: 1 1 auto !important;
     display: flex !important;
     flex-direction: column !important;
+    height: 100% !important;
+    margin-bottom: 0 !important;
   }
   
-  /* The icon+box wrapper needs to stretch */
+  /* The icon+box wrapper - use stretch */
   .block-row.two-columns.height-equalized .content-box-wrapper {
-    flex: 1 !important;
+    flex: 1 1 auto !important;
     align-items: stretch !important;
+    height: 100% !important;
+    margin-bottom: 0 !important;
   }
   
-  /* The box container (not the icon) needs to stretch */
+  /* Icon stays vertically centered */
+  .block-row.two-columns.height-equalized .icon-container {
+    align-self: center !important;
+  }
+  
+  /* The box container needs to fill height */
   .block-row.two-columns.height-equalized .content-box-container {
     display: flex !important;
     flex-direction: column !important;
+    flex: 1 1 auto !important;
+    height: 100% !important;
   }
   
-  /* The bordered box shell needs to fill height */
+  /* The bordered box shell fills height */
   .block-row.two-columns.height-equalized .notion-box-shell {
-    flex: 1 !important;
+    flex: 1 1 auto !important;
     display: flex !important;
     flex-direction: column !important;
+    height: 100% !important;
   }
   
   /* Content area fills remaining space */
   .block-row.two-columns.height-equalized .content-box-content {
-    flex: 1 !important;
+    flex: 1 1 auto !important;
   }
   
   .block-row.single-column {
@@ -917,46 +931,72 @@ body.export-ready .a4-page {
   gap: 20px;
 }
 
-/* Height equalization for two-column layouts when boxes are similar in height */
+/* =====================================================
+   HEIGHT EQUALIZATION FOR TWO-COLUMN LAYOUTS
+   =====================================================
+   Ensures both boxes in a two-column row always have the same height.
+   The smaller box stretches to match the taller one.
+   Uses !important to override Tailwind utility classes.
+   ===================================================== */
+
 .block-row.two-columns.height-equalized {
-  align-items: stretch;
+  align-items: stretch !important;
 }
 
-/* Make draggable wrapper stretch its content - but preserve its inline flex-basis/maxWidth */
+/* Draggable wrapper must stretch and pass height to children */
 .block-row.two-columns.height-equalized > .draggable-block {
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: column !important;
+  height: auto !important;
+  min-height: 0 !important;
 }
 
-/* Make content-box fill available height */
+/* ContentBoxBlock fills available height */
 .block-row.two-columns.height-equalized .content-box-block {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  margin-bottom: 0 !important; /* Remove margin to allow proper stretching */
 }
 
-/* The icon+box wrapper needs to stretch */
+/* The icon+box wrapper - MUST use stretch instead of center */
 .block-row.two-columns.height-equalized .content-box-wrapper {
-  flex: 1;
-  align-items: stretch;
+  flex: 1 1 auto !important;
+  align-items: stretch !important; /* Override Tailwind items-center */
+  height: 100% !important;
+  margin-bottom: 0 !important;
 }
 
-/* The box container (not the icon) needs to stretch */
+/* Icon container stays vertically centered even when wrapper stretches */
+.block-row.two-columns.height-equalized .icon-container {
+  align-self: center !important;
+}
+
+/* The box container needs to fill height */
 .block-row.two-columns.height-equalized .content-box-container {
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
 }
 
-/* The bordered box shell needs to fill height */
+/* The bordered box shell fills height */
 .block-row.two-columns.height-equalized .notion-box-shell {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
 }
 
 /* Content area fills remaining space */
 .block-row.two-columns.height-equalized .content-box-content {
-  flex: 1;
+  flex: 1 1 auto !important;
+}
+
+/* Add consistent margin after the row instead of on individual boxes */
+.block-row.two-columns.height-equalized {
+  margin-bottom: 1.5rem;
 }
 
 .block-row.single-column {
