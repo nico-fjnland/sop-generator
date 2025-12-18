@@ -1856,7 +1856,7 @@ export default function Account() {
       
       {/* Top-Right Toolbar (Zurück zum Editor & Account) - als Portal */}
       {user && createPortal(
-        <div className="fixed top-6 right-6 z-50 no-print flex items-center gap-2">
+        <div className="fixed top-6 right-6 z-50 no-print hidden lg:flex items-center gap-2">
           {/* Zurück zum Editor Button */}
           <Button
             variant="outline"

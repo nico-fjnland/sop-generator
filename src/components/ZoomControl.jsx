@@ -58,7 +58,7 @@ const ZoomControl = () => {
   const zoomBar = (
     <div 
       id="zoom-control-bar" 
-      className="fixed bottom-6 right-6 z-50 no-print"
+      className="fixed bottom-6 right-6 z-50 no-print hidden lg:block"
     >
       {/* Horizontal Zoom Bar */}
       <div className="bg-popover rounded-lg border border-border p-1 shadow-lg flex items-center gap-1">

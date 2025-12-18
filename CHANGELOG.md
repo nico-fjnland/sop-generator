@@ -17,12 +17,17 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   - Höhe: 32px (`h-8`), proportionale Breite
   
 - **Viewport-basierte Zoomstufe:** Initiale Zoomstufe wird basierend auf Bildschirmgröße berechnet
-  - >= 1920px: 150%
-  - >= 1536px: 125%
-  - >= 1280px: 100%
-  - >= 1024px: 90%
-  - >= 768px: 75%
-  - < 768px: 50%
+  - ab 1920px: 150%
+  - ab 1536px: 125%
+  - ab 1280px: 100%
+  - ab 1024px: 90%
+  - ab 768px: 75%
+  - unter 768px: Dynamisch berechnet (A4-Breite + 32px Abstand = Bildschirmbreite)
+
+- **Responsive UI-Elemente:** Ecken-Elemente werden bei kleinen Bildschirmen ausgeblendet
+  - ≤ 1024px: Logo, Account-Button, Zoombar und HelpButton ausgeblendet
+  - < 480px: Untere Toolbar ausgeblendet, stattdessen Hinweis "Mobile Bearbeitung nicht unterstützt"
+  - Neuer Tailwind-Breakpoint `xs: 480px` hinzugefügt
 
 - **StatusIndicator Blur-Animation:** Sanfter Blur-to-Sharp Effekt beim Ein-/Ausblenden
   - Frame und Header starten mit Blur (6px/4px) und Scale (0.95/0.97)

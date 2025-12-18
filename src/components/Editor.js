@@ -664,8 +664,16 @@ const Editor = () => {
   }, [rows, pageBreaks]);
 
   // Bottom Toolbar (zentriert am unteren Rand) - wrapped by StatusIndicator
+  const mobileHint = (
+    <div className="fixed bottom-6 left-4 right-4 z-50 no-print block xs:hidden">
+      <div className="flex items-center justify-center py-2 px-4 rounded-xl shadow-lg text-sm font-medium text-white text-center" style={{ backgroundColor: '#3399FF' }}>
+        <span style={{ textWrap: 'balance' }}>Mobile Bearbeitung nicht unterstützt. Bitte nutze ein größeres Endgerät.</span>
+      </div>
+    </div>
+  );
+
   const bottomToolbar = (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 no-print">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 no-print hidden xs:block">
       <StatusIndicator>
         <div className="flex items-center gap-0.5 py-1.5 pl-1.5 pr-2 bg-popover rounded-xl border border-border shadow-lg">
           {/* History & Reset Controls */}
@@ -739,7 +747,7 @@ const Editor = () => {
 
   // Top-Right Toolbar (Speichern & Account)
   const topRightToolbar = (
-    <div className="fixed top-6 right-6 z-50 no-print flex items-center gap-2">
+    <div className="fixed top-6 right-6 z-50 no-print hidden lg:flex items-center gap-2">
       {user ? (
         <>
           {/* Speichern Button - gleiche Höhe wie Zoombar, primary Farbe */}
@@ -791,6 +799,7 @@ const Editor = () => {
 
       {/* Toolbars als Portale zum body (außerhalb ZoomWrapper) */}
       {createPortal(bottomToolbar, document.body)}
+      {createPortal(mobileHint, document.body)}
       {createPortal(topRightToolbar, document.body)}
 
       <DragDropProvider 

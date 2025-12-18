@@ -32,7 +32,7 @@ const AppContent = () => {
       <div className="grain-overlay" />
       
       {/* Logo oben links - wechselt je nach Theme */}
-      <div className="fixed top-6 left-6 z-50 no-print">
+      <div className="fixed top-6 left-6 z-50 no-print hidden lg:block">
         {timeOfDay === 'night' ? (
           <svg className="h-8 w-auto" viewBox="0 0 946 160" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M932.122 45.2856H419.456C412.141 45.2856 406.212 51.2151 406.212 58.5295V118.763C406.212 126.077 412.141 132.006 419.456 132.006H932.122C939.437 132.006 945.366 126.077 945.366 118.763V58.5295C945.366 51.2151 939.437 45.2856 932.122 45.2856Z" fill="#3399FF"/>
