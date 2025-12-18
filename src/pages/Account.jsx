@@ -985,7 +985,7 @@ const ProfileView = React.memo(({
 
 export default function Account() {
   const { user, signOut, organization, organizationId, refreshOrganization, loading: authLoading, profile } = useAuth();
-  const { showSuccess, showError, showWarning, showSaving } = useStatus();
+  const { showSuccess, showError, showWarning, showSaving, showConfirm: showConfirmDialog } = useStatus();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const fileInputRef = useRef(null);
@@ -1288,9 +1288,9 @@ export default function Account() {
         await refreshOrganization();
       }
 
-      showSuccess('Profil erfolgreich aktualisiert');
+      showSuccess('Profil erfolgreich aktualisiert.');
     } catch (error) {
-      showError('Fehler beim Aktualisieren des Profils');
+      showError('Aktualisierung fehlgeschlagen. Bitte versuche es erneut.');
       console.error(error);
     } finally {
       setUpdating(false);
@@ -1356,7 +1356,7 @@ export default function Account() {
         logo_url: data.publicUrl, // In DB ohne Cache-Buster speichern
       });
       await refreshOrganization();
-      showSuccess('Firmenlogo erfolgreich aktualisiert');
+      showSuccess('Logo der Organisation erfolgreich aktualisiert.');
 
     } catch (error) {
       showError(error.message);
@@ -1366,13 +1366,17 @@ export default function Account() {
   };
 
   const removeCompanyLogo = async () => {
-    if (!window.confirm('Möchtest du das Firmenlogo wirklich entfernen?')) {
+    const confirmed = await showConfirmDialog('Möchtest du das Firmenlogo wirklich entfernen?', {
+      confirmLabel: 'Entfernen',
+      cancelLabel: 'Abbrechen'
+    });
+    if (!confirmed) {
       return;
     }
 
     try {
       if (!organizationId) {
-        throw new Error('Keine Organisation gefunden.');
+        throw new Error('Die Organisation konnte nicht gefunden werden.');
       }
 
       // Logo-Dateien aus dem brandmarks Bucket löschen
@@ -1404,9 +1408,9 @@ export default function Account() {
         logo_url: null,
       });
       await refreshOrganization();
-      showSuccess('Firmenlogo entfernt');
+      showSuccess('Logo der Organisation wurde entfernt.');
     } catch (error) {
-      showError('Fehler beim Entfernen des Logos');
+      showError('Löschen fehlgeschlagen. Bitte versuche es erneut.');
       console.error(error);
     }
   };
@@ -1414,7 +1418,7 @@ export default function Account() {
   const updateEmail = async (e) => {
     e.preventDefault();
     if (!newEmail || newEmail === user.email) {
-      showError('Bitte gib eine neue E-Mail-Adresse ein.');
+      showError('Bitte gib eine neue E-Mail Adresse ein.');
       return;
     }
 
@@ -1425,7 +1429,7 @@ export default function Account() {
       showSuccess('E-Mail-Adresse aktualisiert! Bitte überprüfe deine neue E-Mail.');
       setNewEmail('');
     } catch (error) {
-      showError('Fehler beim Aktualisieren der E-Mail: ' + error.message);
+      showError(`E-Mail konnte nicht aktualisiert werden. Fehler: ${error.message}. Bitte versuche es erneut.`);
     } finally {
       setUpdatingEmail(false);
     }
@@ -1454,7 +1458,7 @@ export default function Account() {
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
-      showError('Fehler beim Aktualisieren des Passworts: ' + error.message);
+      showError(`Passwort konnte nicht aktualisiert werden. Fehler: ${error.message}. Bitte versuche es erneut.`);
     } finally {
       setUpdatingPassword(false);
     }
@@ -1511,7 +1515,7 @@ export default function Account() {
         updated_at: new Date(),
       };
       await supabase.from('profiles').upsert(updates);
-      showSuccess('Avatar erfolgreich aktualisiert');
+      showSuccess('Dein Avatar wurde erfolgreich aktualisiert.');
 
     } catch (error) {
       showError(error.message);
@@ -1522,7 +1526,12 @@ export default function Account() {
 
   const handleDeleteDocument = async (id, e) => {
     e?.stopPropagation();
-    if (window.confirm('Möchtest du dieses Dokument wirklich löschen?')) {
+    const docToDelete = documents.find(doc => doc.id === id);
+    const confirmed = await showConfirmDialog(`Möchtest du „${docToDelete?.title || 'dieses Dokument'}" wirklich löschen?`, {
+      confirmLabel: 'Löschen',
+      cancelLabel: 'Abbrechen'
+    });
+    if (confirmed) {
       const { success } = await deleteDocument(id);
       if (success) {
         setDocuments(documents.filter(doc => doc.id !== id));
@@ -1531,9 +1540,9 @@ export default function Account() {
           newSet.delete(id);
           return newSet;
         });
-        showSuccess('Dokument gelöscht');
+        showSuccess(`„${docToDelete?.title || 'Dokument'}" wurde gelöscht.`);
       } else {
-        showError('Fehler beim Löschen des Dokuments');
+        showError('Löschen fehlgeschlagen. Bitte versuche es erneut.');
       }
     }
   };
@@ -1547,7 +1556,7 @@ export default function Account() {
     if (files.length === 0) return;
 
     if (!organizationId) {
-      showError('Keine Organisation gefunden.');
+      showError('Die Organisation konnte nicht gefunden werden.');
       return;
     }
 
@@ -1601,13 +1610,13 @@ export default function Account() {
     if (successCount > 0 && errorCount === 0) {
       showSuccess(
         successCount === 1 
-          ? 'Dokument erfolgreich importiert!' 
-          : `${successCount} Dokumente importiert!`
+          ? '1 SOP erfolgreich importiert.' 
+          : `${successCount} SOPs erfolgreich importiert.`
       );
     } else if (successCount > 0 && errorCount > 0) {
-      showWarning(`${successCount} importiert, ${errorCount} fehlgeschlagen`);
+      showWarning(`${successCount} importiert, ${errorCount} fehlgeschlagen.`);
     } else {
-      showError('Import fehlgeschlagen');
+      showError('Import fehlgeschlagen. Bitte versuche es erneut.');
     }
 
     // Input zurücksetzen
@@ -1646,7 +1655,7 @@ export default function Account() {
 
   const confirmDeleteAccount = async () => {
     if (deleteConfirmText !== 'LÖSCHEN') {
-      showError('Bitte gib "LÖSCHEN" ein, um fortzufahren');
+      showError('Bitte gib "LÖSCHEN" ein, um fortzufahren.');
       return;
     }
 
@@ -1687,11 +1696,11 @@ export default function Account() {
         throw error;
       }
 
-      showSuccess('Account wurde erfolgreich gelöscht');
+      showSuccess('Dein Account wurde unwiderruflich gelöscht.');
       window.location.href = '/';
     } catch (error) {
       console.error('Error deleting account:', error);
-      showError('Fehler beim Löschen des Accounts: ' + error.message);
+      showError(`Fehler beim Löschen des Accounts: ${error.message}.`);
       setIsDeletingAccount(false);
     }
   };
@@ -1714,10 +1723,10 @@ export default function Account() {
         doc.id === docId ? { ...doc, category } : doc
       ));
       
-      showSuccess(category ? 'Fachgebiet aktualisiert' : 'Fachgebiet entfernt');
+      showSuccess(category ? `Fachgebiet zu „${category}" geändert.` : 'Fachgebiet wurde entfernt.');
     } catch (error) {
       console.error('Error updating category:', error);
-      showError('Fehler beim Aktualisieren des Fachgebiets');
+      showError('Fachgebiet konnte nicht aktualisiert werden. Bitte versuche es erneut.');
     }
   };
 
@@ -1735,7 +1744,7 @@ export default function Account() {
 
   const handleBulkExport = () => {
     if (selectedDocs.size === 0) {
-      showError('Keine Dokumente ausgewählt');
+      showError('Keine Dokumente ausgewählt.');
       return;
     }
     setShowExportDialog(true);
@@ -1758,9 +1767,9 @@ export default function Account() {
 
       // Erfolgsmeldung
       if (selectedDocs.size === 1) {
-        showSuccess('Dokument als JSON exportiert');
+        showSuccess('JSON-Datei erfolgreich an Browser übergeben.');
       } else {
-        showSuccess(`${selectedDocs.size} Dokumente exportiert`);
+        showSuccess(`${selectedDocs.size} SOPs als ZIP-Datei an Browser übergeben.`);
       }
       
       // Wait a moment before closing to show completion
@@ -1773,7 +1782,7 @@ export default function Account() {
       
     } catch (error) {
       console.error('Bulk export error:', error);
-      showError('Fehler beim Exportieren der Dokumente');
+      showError('Export fehlgeschlagen. Bitte versuche es erneut.');
       setIsExporting(false);
       setExportProgress(null);
     }

@@ -7,6 +7,43 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.8.5] - 2025-12-18
+
+### ✨ Features
+
+- **Logo oben links:** Logo-Integration mit automatischem Theme-Wechsel
+  - Position: fixed, top-left (`top-6 left-6`) mit z-50
+  - Automatischer Wechsel zwischen heller und dunkler Logo-Version je nach Theme
+  - Höhe: 32px (`h-8`), proportionale Breite
+  
+- **Viewport-basierte Zoomstufe:** Initiale Zoomstufe wird basierend auf Bildschirmgröße berechnet
+  - >= 1920px: 150%
+  - >= 1536px: 125%
+  - >= 1280px: 100%
+  - >= 1024px: 90%
+  - >= 768px: 75%
+  - < 768px: 50%
+
+- **StatusIndicator Blur-Animation:** Sanfter Blur-to-Sharp Effekt beim Ein-/Ausblenden
+  - Frame und Header starten mit Blur (6px/4px) und Scale (0.95/0.97)
+  - Animiert zu scharf und voller Größe
+
+- **Bestätigungs-Dialoge im StatusIndicator:** Neue `showConfirm()` Funktion
+  - Promise-basierte API: `const confirmed = await showConfirm('Nachricht')`
+  - Anpassbare Button-Labels: `confirmLabel`, `cancelLabel`
+  - Roter Hintergrund für destruktive Aktionen
+  - Buttons: Abbrechen (transparent) und Bestätigen (weiß)
+
+### 🔄 Changed
+
+- **Status-Meldungen komplett überarbeitet:** Alle Meldungen sind jetzt sprechender und konsistenter
+  - Dynamische Inhalte: Nutzername, Dokumentname, Fachgebiet, Anzahl
+  - Einheitliche Formulierungen: "... fehlgeschlagen. Bitte versuche es erneut."
+  - Alle Browser-Alerts durch StatusIndicator ersetzt
+  - Alle `window.confirm` Dialoge durch native StatusIndicator-Dialoge ersetzt
+
+---
+
 ## [0.8.4] - 2025-12-17
 
 ### ✨ Features

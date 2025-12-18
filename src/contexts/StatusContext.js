@@ -24,6 +24,9 @@ export const STATUS_TYPES = {
   
   // Warning (yellow - Merke)
   warning: { type: 'warning', color: '#FAAD14', textColor: 'white', isLoading: false },
+  
+  // Confirm dialog (red - destructive action)
+  confirm: { type: 'confirm', color: '#EB5547', textColor: 'white', isLoading: false },
 };
 
 export const StatusProvider = ({ children }) => {
@@ -34,6 +37,7 @@ export const StatusProvider = ({ children }) => {
   const queueRef = useRef([]);
   const isProcessingRef = useRef(false);
   const currentStatusRef = useRef(null); // Ref to track current status synchronously
+  const confirmResolveRef = useRef(null); // Ref for confirm dialog promise
 
   const clearTimeouts = useCallback(() => {
     if (hideTimeoutRef.current) {
@@ -150,7 +154,49 @@ export const StatusProvider = ({ children }) => {
     showStatus('synced', message);
   }, [showStatus]);
 
+  // Confirm dialog - returns a Promise that resolves to true (confirmed) or false (cancelled)
+  const showConfirm = useCallback((message, options = {}) => {
+    return new Promise((resolve) => {
+      confirmResolveRef.current = resolve;
+      
+      const status = {
+        ...STATUS_TYPES.confirm,
+        message,
+        description: options.description,
+        confirmLabel: options.confirmLabel || 'Bestätigen',
+        cancelLabel: options.cancelLabel || 'Abbrechen',
+        persistent: true, // Don't auto-hide
+        isConfirm: true,
+      };
+      
+      showStatusInternal(status);
+    });
+  }, [showStatusInternal]);
+
+  // Handle confirm button click
+  const handleConfirm = useCallback(() => {
+    if (confirmResolveRef.current) {
+      confirmResolveRef.current(true);
+      confirmResolveRef.current = null;
+    }
+    hideStatus();
+  }, [hideStatus]);
+
+  // Handle cancel button click
+  const handleCancel = useCallback(() => {
+    if (confirmResolveRef.current) {
+      confirmResolveRef.current(false);
+      confirmResolveRef.current = null;
+    }
+    hideStatus();
+  }, [hideStatus]);
+
   const hide = useCallback(() => {
+    // If hiding a confirm dialog, treat as cancel
+    if (confirmResolveRef.current) {
+      confirmResolveRef.current(false);
+      confirmResolveRef.current = null;
+    }
     clearTimeouts();
     hideStatus();
   }, [clearTimeouts, hideStatus]);
@@ -167,6 +213,9 @@ export const StatusProvider = ({ children }) => {
     showSaving,
     showExporting,
     showSynced,
+    showConfirm,
+    handleConfirm,
+    handleCancel,
     hide,
   };
 

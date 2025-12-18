@@ -30,7 +30,7 @@ import { DragGhost } from './dnd/DropIndicator';
 const Editor = () => {
   const { user, signOut, organizationId, organization, profile } = useAuth();
   const { timeOfDay, toggleTime } = useTheme();
-  const { showSuccess, showError, showSaving, showExporting, showSynced } = useStatus();
+  const { showSuccess, showError, showSaving, showExporting, showSynced, showConfirm } = useStatus();
   const navigate = useNavigate();
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -123,14 +123,12 @@ const Editor = () => {
       
       if (error) {
         console.error('Logout error:', error);
-        showError('Fehler beim Ausloggen', {
-          description: error.message || 'Bitte versuchen Sie es erneut.',
-        });
+        showError('Ausloggen fehlgeschlagen. Bitte versuche es erneut.');
         return;
       }
       
       // Erfolgreicher Logout
-      showSuccess('Erfolgreich abgemeldet');
+      showSuccess(`${getDisplayName()} erfolgreich abgemeldet.`);
       // Erzwinge kompletten Reload um sicherzustellen, dass der State zurückgesetzt wird
       window.location.href = '/';
     } catch (error) {
@@ -180,7 +178,7 @@ const Editor = () => {
           }
         } catch (error) {
           console.error('Error loading document:', error);
-          alert('Fehler beim Laden des Dokuments.');
+          showError('Fehler beim Laden des Dokuments.');
         }
       };
       loadDoc();
@@ -190,21 +188,17 @@ const Editor = () => {
   // Save to Cloud
   const handleCloudSave = async () => {
     if (!user) {
-      showError('Anmeldung erforderlich', {
-        description: 'Bitte melde dich an, um Dokumente zu speichern.',
-      });
+      showError('Hierfür ist ein Account erforderlich. Bitte melde dich an.');
       return;
     }
 
     if (!organizationId) {
-      showError('Organisation nicht gefunden', {
-        description: 'Bitte aktualisiere die Seite und versuche es erneut.',
-      });
+      showError('Die Organisation konnte nicht gefunden werden.');
       return;
     }
 
     setIsCloudSaving(true);
-    showSaving('Speichere in Cloud...');
+    showSaving(`Speichere „${state.headerTitle}" in die Cloud …`);
     try {
       // Prepare content state to save
       const contentToSave = {
@@ -224,12 +218,10 @@ const Editor = () => {
 
       if (error) throw error;
       
-      showSuccess('Dokument in Cloud gespeichert');
+      showSuccess(`„${state.headerTitle}" unter Meine Leitfäden gespeichert.`);
     } catch (error) {
       console.error('Cloud save failed:', error);
-      showError('Fehler beim Speichern', {
-        description: 'Das Dokument konnte nicht gespeichert werden.',
-      });
+      showError('Speichern fehlgeschlagen. Bitte versuche es erneut.');
     } finally {
       setIsCloudSaving(false);
     }
@@ -262,13 +254,13 @@ const Editor = () => {
   // Handle Export
   const handleJsonExport = () => {
     setIsExporting(true);
-    showExporting('Exportiere JSON...');
+    showExporting(`Exportiere „${headerTitle}" als JSON-Datei …`);
     try {
       exportAsJson(state);
-      showSuccess('JSON-Datei heruntergeladen');
+      showSuccess('JSON-Datei erfolgreich an Browser übergeben.');
     } catch (error) {
       console.error('JSON export failed:', error);
-      showError('Fehler beim JSON-Export');
+      showError('JSON-Export fehlgeschlagen. Bitte versuche es erneut.');
     } finally {
       setIsExporting(false);
     }
@@ -276,15 +268,15 @@ const Editor = () => {
 
   const handleWordExport = async () => {
     setIsExporting(true);
-    showExporting('Exportiere Word...');
+    showExporting(`Exportiere „${headerTitle}" als Word-Dokument …`);
     try {
       // Wait a small tick to ensure any pending renders are done
       await new Promise(resolve => setTimeout(resolve, 100));
       await exportAsWord(containerRef.current, headerTitle, headerStand);
-      showSuccess('Word-Dokument heruntergeladen');
+      showSuccess('Word-Dokument erfolgreich an Browser übergeben.');
     } catch (error) {
       console.error('Word export failed:', error);
-      showError('Fehler beim Word-Export');
+      showError('Word-Export fehlgeschlagen. Bitte versuche es erneut.');
     } finally {
       setIsExporting(false);
     }
@@ -292,14 +284,14 @@ const Editor = () => {
 
   const handlePdfExport = async () => {
     setIsExporting(true);
-    showExporting('Exportiere PDF...');
+    showExporting(`Exportiere „${headerTitle}" als PDF-Datei …`);
     try {
       await new Promise(resolve => setTimeout(resolve, 100));
       await exportAsPdf(containerRef.current, headerTitle, headerStand);
-      showSuccess('PDF heruntergeladen');
+      showSuccess('PDF-Datei erfolgreich an Browser übergeben.');
     } catch (error) {
       console.error('PDF export failed:', error);
-      showError('Fehler beim PDF-Export');
+      showError('PDF-Export fehlgeschlagen. Bitte versuche es erneut.');
     } finally {
       setIsExporting(false);
     }
@@ -313,21 +305,30 @@ const Editor = () => {
     try {
       const newState = await importFromJson(file);
       setEditorState(newState);
-      showSuccess('JSON-Datei importiert');
+      showSuccess('JSON-Datei erfolgreich importiert.');
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     } catch (error) {
       console.error('Import failed:', error);
-      showError('Fehler beim Importieren', {
-        description: 'Das Dateiformat ist ungültig.',
-      });
+      showError('Import fehlgeschlagen. Bitte versuche es erneut.');
     }
   };
 
   const triggerImport = () => {
     fileInputRef.current?.click();
+  };
+
+  // Handle reset with confirmation
+  const handleReset = async () => {
+    const confirmed = await showConfirm('Möchtest du wirklich alles zurücksetzen? Alle Änderungen gehen verloren.', {
+      confirmLabel: 'Zurücksetzen',
+      cancelLabel: 'Abbrechen'
+    });
+    if (confirmed) {
+      reset();
+    }
   };
 
   // Column resizing state
@@ -671,8 +672,8 @@ const Editor = () => {
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={reset} 
-            title="Reset"
+            onClick={handleReset} 
+            title="Zurücksetzen"
             className="h-9 w-9 text-red-500 hover:text-red-600 hover:bg-red-50"
           >
             <Trash size={20} />

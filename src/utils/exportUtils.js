@@ -712,7 +712,7 @@ export const exportAsWord = async (containerRef, title = 'SOP Überschrift', sta
     downloadBlob(blob, `${filename}.docx`);
   } catch (err) {
     console.error('Error rendering page for Word:', err);
-    alert('Fehler beim Word-Export.');
+    throw new Error('Word-Export fehlgeschlagen.');
   } finally {
     // Clean up clone and styles
     removePrintClone({ clone, styleElement });
@@ -774,7 +774,7 @@ export const exportAsPdf = async (containerRef, title = 'SOP Überschrift', stan
     pdf.save(`${filename}.pdf`);
   } catch (err) {
     console.error('Error rendering page for PDF:', err);
-    alert('Fehler beim PDF-Export.');
+    throw new Error('PDF-Export fehlgeschlagen.');
   } finally {
     // Clean up clone and styles
     removePrintClone({ clone, styleElement });

@@ -190,17 +190,15 @@ export const useEditorHistory = ({ skipLocalStorage = false } = {}) => {
     });
   }, []);
 
-  // Reset function
+  // Reset function - no confirmation, caller should handle that
   const reset = useCallback(() => {
-    if (window.confirm('Sind Sie sicher, dass Sie alles zurücksetzen möchten? Alle Änderungen gehen verloren.')) {
-      const defaults = getInitialState();
-      setHistory({
-        past: [],
-        present: defaults,
-        future: []
-      });
-      localStorage.removeItem(STORAGE_KEY);
-    }
+    const defaults = getInitialState();
+    setHistory({
+      past: [],
+      present: defaults,
+      future: []
+    });
+    localStorage.removeItem(STORAGE_KEY);
   }, []);
 
   return {

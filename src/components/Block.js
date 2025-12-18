@@ -9,11 +9,13 @@ import ContentBoxBlock from './blocks/ContentBoxBlock';
 import FlowchartBlock from './blocks/FlowchartBlock';
 import SourceBlock from './blocks/SourceBlock';
 import { X } from '@phosphor-icons/react';
+import { useStatus } from '../contexts/StatusContext';
 
 const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideContentBox = false, usedCategories = [], isRightColumn = false, iconOnRight = false, onSortBlocks, dragHandleProps, isDragging, boxLabel }) => {
   const [showDeleteButton, setShowDeleteButton] = useState(false);
   const blockRef = useRef(null);
   const inputRef = useRef(null);
+  const { showConfirm } = useStatus();
 
   useEffect(() => {
     if (block.type === 'title' && inputRef.current) {
@@ -167,10 +169,13 @@ const Block = memo(({ block, onUpdate, onDelete, onAddAfter, isLast, isInsideCon
     }
   };
 
-  const handleDelete = () => {
-    // Prevent deleting the last title block
+  const handleDelete = async () => {
+    // Prevent deleting the last title block - ask for confirmation
     if (block.type === 'title') {
-      const shouldDelete = window.confirm('Möchten Sie wirklich den Titel löschen? Es wird automatisch ein neuer leerer Titel erstellt.');
+      const shouldDelete = await showConfirm('Möchtest du wirklich den Titel löschen? Es wird automatisch ein neuer leerer Titel erstellt.', {
+        confirmLabel: 'Löschen',
+        cancelLabel: 'Abbrechen'
+      });
       if (!shouldDelete) return;
     }
     onDelete(block.id);

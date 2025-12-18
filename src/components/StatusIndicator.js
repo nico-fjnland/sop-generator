@@ -10,7 +10,7 @@ import './StatusIndicator.css';
  * Uses StatusContext for global status management
  */
 const StatusIndicator = ({ children }) => {
-  const { currentStatus, isVisible, isHiding } = useStatus();
+  const { currentStatus, isVisible, isHiding, handleConfirm, handleCancel } = useStatus();
 
   const getStatusIcon = () => {
     if (!currentStatus) return null;
@@ -20,7 +20,8 @@ const StatusIndicator = ({ children }) => {
       case 'synced':
         return <Check size={16} weight="bold" />;
       case 'error':
-        return <X size={16} weight="bold" />;
+      case 'confirm':
+        return <Warning size={16} weight="bold" />;
       case 'warning':
         return <Warning size={16} weight="bold" />;
       case 'info':
@@ -38,11 +39,13 @@ const StatusIndicator = ({ children }) => {
     return currentStatus.color || '#39F';
   };
 
+  const isConfirmDialog = currentStatus?.isConfirm;
+
   return (
     <div className="status-indicator-wrapper">
       {/* The expanding frame behind the toolbar */}
       <div 
-        className={`status-frame ${isVisible ? 'visible' : ''} ${isHiding ? 'hiding' : ''}`}
+        className={`status-frame ${isVisible ? 'visible' : ''} ${isHiding ? 'hiding' : ''} ${isConfirmDialog ? 'confirm-dialog' : ''}`}
         style={{ backgroundColor: getBackgroundColor() }}
       >
         {/* Status text area at the top */}
@@ -53,6 +56,26 @@ const StatusIndicator = ({ children }) => {
           <span className="status-text">
             {currentStatus?.message || 'Synchronisiert'}
           </span>
+          
+          {/* Confirm dialog buttons - icon only */}
+          {isConfirmDialog && (
+            <div className="status-buttons">
+              <button 
+                className="status-btn status-btn-cancel"
+                onClick={handleCancel}
+                title={currentStatus.cancelLabel || 'Abbrechen'}
+              >
+                <X size={16} weight="bold" />
+              </button>
+              <button 
+                className="status-btn status-btn-confirm"
+                onClick={handleConfirm}
+                title={currentStatus.confirmLabel || 'Bestätigen'}
+              >
+                <Check size={16} weight="bold" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
       

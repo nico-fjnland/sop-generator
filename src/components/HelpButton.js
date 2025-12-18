@@ -114,7 +114,7 @@ const HelpButton = () => {
       window.Beacon('toggle');
     } else {
       // Show informative warning when Beacon is blocked
-      showWarning('Live-Chat nicht verfügbar', {
+      showWarning('Live-Chat aktuell nicht verfügbar.', {
         description: 'Ad-Blocker aktiv – E-Mail an support@example.com',
         duration: 4000,
       });
