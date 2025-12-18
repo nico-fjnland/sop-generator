@@ -223,7 +223,7 @@ const SourceBlock = ({
   return (
     <div
       ref={containerRef}
-      className="source-block mb-6 relative group z-auto"
+      className="source-block relative group z-auto"
       style={{
         pageBreakInside: 'avoid',
         breakInside: 'avoid',

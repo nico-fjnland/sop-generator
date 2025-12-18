@@ -329,16 +329,17 @@ iframe[title*="Help Scout"] {
   .block-row {
     display: flex !important;
     align-items: flex-start !important;
+    margin-bottom: 1.5rem !important; /* Consistent spacing between all rows */
   }
   
   .block-row.two-columns {
     gap: 16px !important;
+    margin-bottom: 1rem !important; /* 16px - 8px less than single-column */
   }
   
   /* Height equalization for two-column layouts in print */
   .block-row.two-columns.height-equalized {
     align-items: stretch !important;
-    margin-bottom: 1.5rem !important;
   }
   
   /* Draggable wrapper must stretch */
@@ -404,7 +405,7 @@ iframe[title*="Help Scout"] {
   .content-box-block {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    margin-bottom: 1.5rem !important; /* Increased spacing between boxes in print */
+    margin-bottom: 0 !important; /* Margin is now on block-row for consistency */
     display: block;
     overflow: visible !important; /* Allow icon to extend beyond container */
   }
@@ -925,10 +926,14 @@ body.export-ready .a4-page {
   display: flex;
   align-items: flex-start;
   position: relative; /* Needed for column resizer positioning */
+  margin-bottom: 1.5rem; /* Consistent spacing between all rows */
+  /* DEBUG: Uncomment to visualize row boundaries */
+  /* outline: 2px solid red; */
 }
 
 .block-row.two-columns {
   gap: 20px;
+  margin-bottom: 1rem; /* 16px - 8px less than single-column to compensate for height equalization */
 }
 
 /* =====================================================
@@ -994,10 +999,7 @@ body.export-ready .a4-page {
   flex: 1 1 auto !important;
 }
 
-/* Add consistent margin after the row instead of on individual boxes */
-.block-row.two-columns.height-equalized {
-  margin-bottom: 1.5rem;
-}
+/* Margin is now set on all .block-row elements consistently */
 
 .block-row.single-column {
   gap: 0;

@@ -7,6 +7,36 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.8.7] - 2025-12-18
+
+### ✨ Features
+
+- **Adaptive Favicons:** Automatischer Wechsel zwischen hellem und dunklem Favicon je nach Browser-Farbschema
+  - `favicon-dark.png` für helle Browser-Umgebungen (`prefers-color-scheme: light`)
+  - `favicon-light.png` für dunkle Browser-Umgebungen (`prefers-color-scheme: dark`)
+  - Fallback auf dunkles Favicon für ältere Browser
+
+- **Animierter Gradient im StatusIndicator:** Der StatusIndicator zeigt nun einen animierten Farbverlauf im Hintergrund
+  - Verwendet die `AnimatedGradient`-Komponente mit angepassten Farbpaletten
+  - Farbpaletten je nach Status-Typ:
+    - **Blau** (info, saving, exporting, synced): `#39F` + `#7BBFFF`
+    - **Grün** (success): `#52C41A` + `#85D95C`
+    - **Rot** (error, confirm): `#EB5547` + `#FF8A7A`
+    - **Gelb** (warning): `#FAAD14` + `#FFCC5C`
+  - Sanfter Übergangseffekt bei Farbwechseln (0.6s Transition auf SVG-Kreise und Hintergrundfarbe)
+
+### 🐛 Bugfixes
+
+- **Konsistente Abstände zwischen Zeilen:** Abstände zwischen allen Block-Typen sind jetzt einheitlich
+  - Früher: `margin-bottom` war auf einzelnen Blöcken vs. auf der Zeile → unterschiedliche Abstände
+  - Neu: `margin-bottom` wird konsistent auf allen `.block-row` Elementen gesetzt
+    - Single-column: `1.5rem` (24px)
+    - Two-column: `1rem` (16px) – kompensiert visuell die Höhenangleichung
+  - Entfernt: `mb-6` Tailwind-Klasse von `ContentBoxBlock`, `SourceBlock`, `TipTapTableBlock`
+  - Print-Styles ebenfalls angepasst
+
+---
+
 ## [0.8.6] - 2025-12-18
 
 ### 🔄 Changed

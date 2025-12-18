@@ -449,7 +449,7 @@ const ContentBoxBlock = ({
   return (
     <div 
       ref={containerRef}
-      className={`content-box-block mb-6 relative group z-auto ${isIconPressed ? 'scale-[0.995] opacity-90' : ''}`} 
+      className={`content-box-block relative group z-auto ${isIconPressed ? 'scale-[0.995] opacity-90' : ''}`} 
       style={{ 
         pageBreakInside: 'avoid', 
         breakInside: 'avoid',

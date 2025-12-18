@@ -580,7 +580,7 @@ const TipTapTableBlock = forwardRef(({
   return (
     <div 
       ref={containerRef}
-      className="tiptap-table-block-wrapper mb-6 relative group z-auto"
+      className="tiptap-table-block-wrapper relative group z-auto"
       style={{ 
         pageBreakInside: 'avoid', 
         breakInside: 'avoid',

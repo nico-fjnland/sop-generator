@@ -1,8 +1,24 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Check, Warning, X, Info } from '@phosphor-icons/react';
 import { Spinner } from './ui/spinner';
 import { useStatus } from '../contexts/StatusContext';
+import AnimatedGradient from './fancy/background/animated-gradient-with-svg';
 import './StatusIndicator.css';
+
+/**
+ * Color palettes for each status type
+ * Each palette contains the main color + a lighter variant
+ */
+const STATUS_GRADIENT_COLORS = {
+  // Blue palette (info, saving, exporting, synced)
+  blue: ['#39F', '#7BBFFF', '#39F'],
+  // Green palette (success)
+  green: ['#52C41A', '#85D95C', '#52C41A'],
+  // Red palette (error, confirm)
+  red: ['#EB5547', '#FF8A7A', '#EB5547'],
+  // Yellow palette (warning)
+  yellow: ['#FAAD14', '#FFCC5C', '#FAAD14'],
+};
 
 /**
  * StatusIndicator - A wrapper component that displays status as a frame around its children
@@ -39,6 +55,23 @@ const StatusIndicator = ({ children }) => {
     return currentStatus.color || '#39F';
   };
 
+  // Get gradient colors based on status type
+  const gradientColors = useMemo(() => {
+    if (!currentStatus) return STATUS_GRADIENT_COLORS.blue;
+    
+    switch (currentStatus.type) {
+      case 'success':
+        return STATUS_GRADIENT_COLORS.green;
+      case 'error':
+      case 'confirm':
+        return STATUS_GRADIENT_COLORS.red;
+      case 'warning':
+        return STATUS_GRADIENT_COLORS.yellow;
+      default:
+        return STATUS_GRADIENT_COLORS.blue;
+    }
+  }, [currentStatus?.type]);
+
   const isConfirmDialog = currentStatus?.isConfirm;
 
   return (
@@ -48,6 +81,14 @@ const StatusIndicator = ({ children }) => {
         className={`status-frame ${isVisible ? 'visible' : ''} ${isHiding ? 'hiding' : ''} ${isConfirmDialog ? 'confirm-dialog' : ''}`}
         style={{ backgroundColor: getBackgroundColor() }}
       >
+        {/* Animated gradient background */}
+        <div className="status-gradient-container">
+          <AnimatedGradient 
+            colors={gradientColors}
+            speed={8}
+            blur="medium"
+          />
+        </div>
         {/* Status text area at the top */}
         <div className="status-header">
           <span className="status-icon">
