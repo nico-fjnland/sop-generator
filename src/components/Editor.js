@@ -322,7 +322,7 @@ const Editor = () => {
 
   // Handle reset with confirmation
   const handleReset = async () => {
-    const confirmed = await showConfirm('Möchtest du wirklich alles zurücksetzen? Alle Änderungen gehen verloren.', {
+    const confirmed = await showConfirm('Möchtest du wirklich unwiderruflich löschen?', {
       confirmLabel: 'Zurücksetzen',
       cancelLabel: 'Abbrechen'
     });
