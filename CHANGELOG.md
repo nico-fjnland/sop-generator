@@ -7,6 +7,18 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.8.8] - 2025-12-19
+
+### 🐛 Bugfixes
+
+- **Undo für hinzugefügte Boxen repariert:** Das Rückgängigmachen einer neu hinzugefügten Box entfernt diese jetzt korrekt
+  - Vorher: Undo machte nur interne Content-Änderungen rückgängig, die Box blieb bestehen (wurde nur "kleiner")
+  - Jetzt: Undo entfernt die Box vollständig wie erwartet
+  - **Ursache:** Ein redundanter `useEffect` in `FlowchartBlock.js` wurde bei jedem Render ausgelöst (nicht nur nach echtem Resize), was sofort einen neuen History-Eintrag erstellte und den Undo-Eintrag für das Hinzufügen überschrieb
+  - **Lösung:** Entfernung des redundanten `useEffect` – der `handleMouseUp` im Resize-Handler speichert bereits korrekt beim Ende eines echten Resize-Vorgangs
+
+---
+
 ## [0.8.7] - 2025-12-18
 
 ### ✨ Features

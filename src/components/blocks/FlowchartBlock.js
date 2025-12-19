@@ -98,21 +98,6 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
     };
   }, [isResizing, nodes, edges, nodeIdCounter, height, saveToParent]);
 
-  // Save height changes after resize ends
-  useEffect(() => {
-    if (!isResizing && height) {
-      const flowData = {
-        nodes,
-        edges,
-        nodeIdCounter,
-        height,
-      };
-      onChange(flowData);
-    }
-    // Only run when isResizing changes to false
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isResizing]);
-
   return (
     <div ref={containerRef} className="flowchart-block-container" style={{ height: `${height}px` }}>
       {/* Preview with ReactFlowProvider */}
