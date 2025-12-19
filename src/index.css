@@ -41,6 +41,7 @@
   /* Prevent layout shift from scrollbar appearing/disappearing */
   html {
     overflow-y: scroll;
+    scrollbar-gutter: stable; /* Modern browsers: reserviert Platz für Scrollbar ohne sie immer anzuzeigen */
   }
   body {
     @apply bg-background text-foreground;
