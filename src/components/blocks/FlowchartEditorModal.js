@@ -1304,8 +1304,8 @@ const FlowchartEditorInner = ({
     [reactFlowInstance, addNode]
   );
 
-  // Handle save
-  const handleSave = useCallback(() => {
+  // Handle save - also generate static SVG for print
+  const handleSave = useCallback(async () => {
     const nodesToSave = nodes.map(({ data, ...node }) => ({
       ...node,
       data: {
@@ -1313,12 +1313,28 @@ const FlowchartEditorInner = ({
       },
     }));
     
+    // Generate static SVG for print export
+    let staticSvg = null;
+    if (reactFlowInstance) {
+      try {
+        // Get the SVG from React Flow
+        const svgElement = await reactFlowInstance.toSvg({
+          quality: 1,
+          includeEdges: true,
+        });
+        staticSvg = svgElement;
+      } catch (error) {
+        console.warn('Failed to generate static SVG:', error);
+      }
+    }
+    
     onSave({
       nodes: nodesToSave,
       edges,
       nodeIdCounter,
+      staticSvg, // Include the static SVG for print
     });
-  }, [nodes, edges, nodeIdCounter, onSave]);
+  }, [nodes, edges, nodeIdCounter, onSave, reactFlowInstance]);
 
   // Keyboard shortcuts
   useEffect(() => {

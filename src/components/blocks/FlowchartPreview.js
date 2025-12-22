@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useEffect, useRef } from 'react';
 import ReactFlow, {
   Position,
   Handle,
@@ -6,6 +6,7 @@ import ReactFlow, {
   useStore,
   Background,
   EdgeLabelRenderer,
+  useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { TreeStructure, ArrowCircleUp, ArrowCircleDown, ArrowCircleRight } from '@phosphor-icons/react';
@@ -328,7 +329,10 @@ const nodeTypes = {
   equal: StaticEqualNode,
 };
 
-const FlowchartPreview = ({ nodes, edges, height, onEditClick, accentColor }) => {
+const FlowchartPreviewInner = ({ nodes, edges, height, onEditClick, accentColor, onSvgGenerated }) => {
+  const reactFlowInstance = useReactFlow();
+  const svgGeneratedRef = useRef(false);
+  
   // Memoize nodes and edges to prevent unnecessary re-renders
   const displayNodes = useMemo(() => {
     return (nodes || []).map(node => ({
@@ -343,9 +347,42 @@ const FlowchartPreview = ({ nodes, edges, height, onEditClick, accentColor }) =>
 
   const buttonColor = accentColor || ALGORITHMUS_COLOR;
 
-  // Fit view on init to ensure centering
-  const onInit = useCallback((reactFlowInstance) => {
-    if (displayNodes.length > 0) {
+  // Generate SVG when nodes change or on mount - using useEffect instead of onInit
+  useEffect(() => {
+    if (displayNodes.length > 0 && onSvgGenerated && reactFlowInstance && !svgGeneratedRef.current) {
+      // Wait for React Flow to fully render
+      const timer = setTimeout(async () => {
+        try {
+          reactFlowInstance.fitView({ 
+            padding: 0.1, 
+            minZoom: 0.1, 
+            maxZoom: 1 
+          });
+          
+          // Wait a bit more for fitView to complete
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          const svg = await reactFlowInstance.toSvg({
+            quality: 1,
+            includeEdges: true,
+          });
+          
+          if (svg) {
+            svgGeneratedRef.current = true;
+            onSvgGenerated(svg);
+          }
+        } catch (error) {
+          console.warn('Failed to auto-generate static SVG:', error);
+        }
+      }, 500); // Wait for initial render
+      
+      return () => clearTimeout(timer);
+    }
+  }, [displayNodes.length, onSvgGenerated, reactFlowInstance]);
+
+  // Fit view on init
+  const onInit = useCallback(() => {
+    if (displayNodes.length > 0 && reactFlowInstance) {
       setTimeout(() => {
         reactFlowInstance.fitView({ 
           padding: 0.1, 
@@ -354,7 +391,7 @@ const FlowchartPreview = ({ nodes, edges, height, onEditClick, accentColor }) =>
         });
       }, 50);
     }
-  }, [displayNodes.length]);
+  }, [displayNodes.length, reactFlowInstance]);
 
   return (
     <div 
@@ -402,6 +439,12 @@ const FlowchartPreview = ({ nodes, edges, height, onEditClick, accentColor }) =>
       </div>
     </div>
   );
+};
+
+// Wrapper component that uses the inner component
+// The FlowchartBlock already provides ReactFlowProvider, so we can use useReactFlow
+const FlowchartPreview = (props) => {
+  return <FlowchartPreviewInner {...props} />;
 };
 
 export default FlowchartPreview;

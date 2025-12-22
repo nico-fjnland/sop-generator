@@ -47,8 +47,11 @@ async function generatePdfWithGotenberg(html: string, gotenbergUrl: string): Pro
   // Print background colors and images
   formData.append('printBackground', 'true')
   
+  // Emulate print media type - this applies @media print CSS rules
+  formData.append('emulatedMediaType', 'print')
+  
   // Wait for network to be idle (fonts, images loaded)
-  formData.append('waitDelay', '1s')
+  formData.append('waitDelay', '2s')
   
   // Prefer CSS page size if defined
   formData.append('preferCssPageSize', 'true')
@@ -154,8 +157,11 @@ async function generateSingleScreenshot(
   formData.append('format', 'png')
   formData.append('quality', '100')
   
+  // Emulate print media type - this applies @media print CSS rules
+  formData.append('emulatedMediaType', 'print')
+  
   // Wait for content to load
-  formData.append('waitDelay', '1s')
+  formData.append('waitDelay', '2s')
   
   // Optimize for quality, not speed
   formData.append('optimizeForSpeed', 'false')

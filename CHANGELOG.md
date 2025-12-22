@@ -7,6 +7,92 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.2] - 2025-12-22
+
+### 🐛 Bug Fixes
+
+- **Height-Equalization für zweispaltige Layouts:**
+  - `ensureHeightEqualization()` setzt jetzt Inline-Styles direkt auf alle Container
+  - Überschreibt Tailwind `items-center` mit `align-items: stretch`
+  - Alle Container in der Kette (row, draggable-block, content-box-wrapper, etc.) erhalten explizite Flex-Styles
+
+- **Flowchart Export:**
+  - SVG wird jetzt automatisch beim Rendern der Vorschau generiert (nicht nur beim Speichern)
+  - Verwendet `useReactFlow()` Hook + `useEffect` statt `onInit` Callback
+  - Funktioniert auch für aus Cache/Cloud/Import geladene Flowcharts
+  - Statisches SVG wird im Content gespeichert für Print-Export
+
+- **Quellen-Block:**
+  - Symmetrische Einrückung: 14px margin-left und 14px margin-right
+
+- **Tabellen-Überschrift:**
+  - Überschrift und Icon um 14px von links/rechts eingerückt (`.mb-2` Selektor)
+  - Tabellen-Inhalt selbst behält volle Breite
+
+- **Text-Formatierung:**
+  - `.tiptap-heading` hat keine Unterstreichung mehr (entspricht Editor-Darstellung)
+  - Links werden ohne Unterstreichung gerendert (`text-decoration: none`)
+
+### 🔧 Technical
+
+- Edge Function Version 36 deployed
+- `FlowchartPreview.js`: Neuer `FlowchartPreviewInner` mit `useReactFlow()` Hook
+- `htmlSerializer.js`: Neue `ensureHeightEqualization()` Funktion mit Inline-Styles
+
+---
+
+## [0.9.1] - 2025-12-22
+
+### 🐛 Bug Fixes
+
+- **PDF/Word Export - Konsistentes Rendering wie im Editor:**
+  - **Logo-Platzhalter:** Wird im PDF nicht angezeigt (nur echte Logos)
+  - **Zweispaltiges Layout:** Korrektes 50/50 Layout, Boxen sind bündig mit einspaltigen Boxen
+  - **Height-Equalized:** Automatische Höhenanpassung funktioniert korrekt im Export
+  - **Content-Box Ränder:** Border-Farben werden korrekt übernommen (inline-styles)
+  - **Box-Ausrichtung:** 
+    - Rechter Rand der rechten Box in zweispaltigem Layout ist bündig mit einspaltigen Boxen
+    - Tabellen und Quellen beginnen am linken Rand der Boxen (16px margin-left)
+    - Rechter Rand von Tabellen/Quellen ist bündig mit Content-Boxen (14px margin-right)
+  - **Quellen-Block:** Keine Hintergrundfarbe mehr, gleiche Breite wie Content-Boxen
+  - **Footer:** Styles korrekt übernommen
+
+- **Internes Zwei-/Dreispalten-Layout (Disposition etc.):**
+  - CSS Grid für `.two-column` und `.three-column` auf `content-box-content`
+  - Layout wird jetzt korrekt im PDF exportiert
+  
+- **Tabellen-Styling komplett überarbeitet:**
+  - **Abgerundete Ecken:** Wrapper mit `border-radius: 6px`
+  - **Kopfzeile blau:** Header-Hintergrund `#003366` statt grau
+  - **Korrekte Breite:** Gleiche Breite wie einzeilige Content-Boxen (nur `margin-right: 14px`)
+  - **Zellen-Padding:** `6px 14px` für kompakte Darstellung
+  - **Border-Handling:** `border-separate` mit korrekten Rändern
+
+- **Auszeichnung (Highlight-Item):**
+  - Pfeil-Icon wird im PDF angezeigt (CSS-Mask mit SVG)
+  - Korrekte vertikale Positionierung (`top: 0`)
+
+- **Plus-Icon neben Stand:** Korrekte vertikale Zentrierung
+
+- **Trailing Paragraph:** Leere letzte Absätze im Editor werden ausgeblendet (weniger unterer Abstand)
+  
+- **HTML-Serialisierung komplett überarbeitet (`htmlSerializer.js`):**
+  - `.no-print` und `.icon-container` Elemente werden physisch entfernt
+  - `.sop-header-logo-editable` (Editor-Logo-Container) wird entfernt
+  - Print-only Elemente (`hidden print:block/flex`) werden sichtbar gemacht
+  - Vollständige CSS-Regeln für alle Komponenten integriert
+
+- **Gotenberg Rendering verbessert:**
+  - `emulatedMediaType: print` für korrekte CSS @media print Regeln
+  - `waitDelay` auf 2s erhöht für bessere Font- und Bildladung
+
+### 🔧 Technical
+
+- Edge Function Version 13 deployed
+- Tabellen-Padding-Override für inline-styles aus TipTapTableBlock.js
+
+---
+
 ## [0.9.0] - 2025-12-22
 
 ### ✨ Features
@@ -15,7 +101,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   - Konsistentes PDF-Rendering unabhängig vom Browser des Benutzers
   - PDF-Export nutzt Gotenberg's Chromium-basierte HTML-zu-PDF Konvertierung
   - Word-Export nutzt Gotenberg Screenshots für pixelgenaue Darstellung
-  - Gotenberg läuft als Docker Container auf Railway (~$5-10/Monat)
+  - Gotenberg läuft als Docker Container auf Railway 
   - Client-seitiger Fallback bleibt für den Fall, dass Gotenberg nicht erreichbar ist
 
 ### 🔄 Changed
@@ -26,9 +112,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
   - Neue `generateScreenshotsWithGotenberg()` Funktion für Word-Export
   - Environment Variable `GOTENBERG_URL` statt `BROWSER_WS_ENDPOINT`
 
-### 📁 Files Added
 
-- `railway-gotenberg-setup.md` - Schritt-für-Schritt Anleitung für Railway/Gotenberg Deployment
 
 ### 🔧 Technical
 

@@ -32,6 +32,9 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
     }
   });
 
+  // State for static SVG (used for print)
+  const [staticSvg, setStaticSvg] = useState(null);
+
   // Load saved content on mount
   useEffect(() => {
     if (content && typeof content === 'object' && content.nodes) {
@@ -39,17 +42,21 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
       setEdges(content.edges || []);
       setNodeIdCounter(content.nodeIdCounter || 2);
       setHeight(content.height || 450);
+      if (content.staticSvg) {
+        setStaticSvg(content.staticSvg);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Save changes to parent
-  const saveToParent = useCallback((newNodes, newEdges, newNodeIdCounter, newHeight) => {
+  const saveToParent = useCallback((newNodes, newEdges, newNodeIdCounter, newHeight, newStaticSvg = null) => {
     const flowData = {
       nodes: newNodes,
       edges: newEdges,
       nodeIdCounter: newNodeIdCounter,
       height: newHeight,
+      staticSvg: newStaticSvg,
     };
     onChange(flowData);
   }, [onChange]);
@@ -59,8 +66,24 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
     setNodes(data.nodes);
     setEdges(data.edges);
     setNodeIdCounter(data.nodeIdCounter);
-    saveToParent(data.nodes, data.edges, data.nodeIdCounter, height);
+    if (data.staticSvg) {
+      setStaticSvg(data.staticSvg);
+    }
+    saveToParent(data.nodes, data.edges, data.nodeIdCounter, height, data.staticSvg);
   }, [height, saveToParent]);
+
+  // Handle auto-generated SVG from preview - ALWAYS update for print export
+  // This ensures flowcharts loaded from cache/cloud/import also have an SVG
+  const handleSvgGenerated = useCallback((svg) => {
+    if (svg) {
+      // Only save to parent if SVG actually changed (avoid infinite loops)
+      if (svg !== staticSvg) {
+        setStaticSvg(svg);
+        // Save to parent with the new SVG
+        saveToParent(nodes, edges, nodeIdCounter, height, svg);
+      }
+    }
+  }, [staticSvg, nodes, edges, nodeIdCounter, height, saveToParent]);
 
   // Handle edit click
   const handleEditClick = useCallback(() => {
@@ -100,16 +123,53 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
 
   return (
     <div ref={containerRef} className="flowchart-block-container" style={{ height: `${height}px` }}>
-      {/* Preview with ReactFlowProvider */}
-      <ReactFlowProvider>
-        <FlowchartPreview
-          nodes={nodes}
-          edges={edges}
-          height={height - 12} // Subtract resize handle height
-          onEditClick={handleEditClick}
-          accentColor={accentColor}
+      {/* Preview with ReactFlowProvider - hidden in print */}
+      <div className="no-print">
+        <ReactFlowProvider>
+          <FlowchartPreview
+            nodes={nodes}
+            edges={edges}
+            height={height - 12} // Subtract resize handle height
+            onEditClick={handleEditClick}
+            accentColor={accentColor}
+            onSvgGenerated={handleSvgGenerated}
+          />
+        </ReactFlowProvider>
+      </div>
+      
+      {/* Static SVG for print - only visible in print */}
+      {staticSvg && (
+        <div 
+          className="flowchart-static-print hidden print:block"
+          style={{ 
+            width: '100%', 
+            height: `${height - 12}px`,
+            overflow: 'hidden',
+          }}
+          dangerouslySetInnerHTML={{ __html: staticSvg }}
         />
-      </ReactFlowProvider>
+      )}
+      
+      {/* Fallback message if no static SVG - only visible in print */}
+      {!staticSvg && (
+        <div 
+          className="flowchart-no-svg hidden print:flex"
+          style={{ 
+            width: '100%', 
+            height: `${height - 12}px`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#f5f5f5',
+            border: '1px dashed #ccc',
+            borderRadius: '6px',
+            color: '#999',
+            fontSize: '12px',
+          }}
+        >
+          Flowchart: Bitte im Editor speichern, um es im Export anzuzeigen
+        </div>
+      )}
       
       {/* Resize Handle */}
       <div 
