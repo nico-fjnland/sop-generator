@@ -72,18 +72,7 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
     saveToParent(data.nodes, data.edges, data.nodeIdCounter, height, data.staticSvg);
   }, [height, saveToParent]);
 
-  // Handle auto-generated SVG from preview - ALWAYS update for print export
-  // This ensures flowcharts loaded from cache/cloud/import also have an SVG
-  const handleSvgGenerated = useCallback((svg) => {
-    if (svg) {
-      // Only save to parent if SVG actually changed (avoid infinite loops)
-      if (svg !== staticSvg) {
-        setStaticSvg(svg);
-        // Save to parent with the new SVG
-        saveToParent(nodes, edges, nodeIdCounter, height, svg);
-      }
-    }
-  }, [staticSvg, nodes, edges, nodeIdCounter, height, saveToParent]);
+  // NOTE: Auto SVG generation removed - SVG is now generated manually in FlowchartEditorModal when user saves
 
   // Handle edit click
   const handleEditClick = useCallback(() => {
@@ -132,7 +121,6 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
             height={height - 12} // Subtract resize handle height
             onEditClick={handleEditClick}
             accentColor={accentColor}
-            onSvgGenerated={handleSvgGenerated}
           />
         </ReactFlowProvider>
       </div>

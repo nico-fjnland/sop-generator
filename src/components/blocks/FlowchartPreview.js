@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import ReactFlow, {
   Position,
   Handle,
@@ -6,7 +6,6 @@ import ReactFlow, {
   useStore,
   Background,
   EdgeLabelRenderer,
-  useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { TreeStructure, ArrowCircleUp, ArrowCircleDown, ArrowCircleRight } from '@phosphor-icons/react';
@@ -329,9 +328,7 @@ const nodeTypes = {
   equal: StaticEqualNode,
 };
 
-const FlowchartPreviewInner = ({ nodes, edges, height, onEditClick, accentColor, onSvgGenerated }) => {
-  const reactFlowInstance = useReactFlow();
-  const svgGeneratedRef = useRef(false);
+const FlowchartPreviewInner = ({ nodes, edges, height, onEditClick, accentColor }) => {
   
   // Memoize nodes and edges to prevent unnecessary re-renders
   const displayNodes = useMemo(() => {
@@ -347,51 +344,21 @@ const FlowchartPreviewInner = ({ nodes, edges, height, onEditClick, accentColor,
 
   const buttonColor = accentColor || ALGORITHMUS_COLOR;
 
-  // Generate SVG when nodes change or on mount - using useEffect instead of onInit
-  useEffect(() => {
-    if (displayNodes.length > 0 && onSvgGenerated && reactFlowInstance && !svgGeneratedRef.current) {
-      // Wait for React Flow to fully render
-      const timer = setTimeout(async () => {
-        try {
-          reactFlowInstance.fitView({ 
-            padding: 0.1, 
-            minZoom: 0.1, 
-            maxZoom: 1 
-          });
-          
-          // Wait a bit more for fitView to complete
-          await new Promise(resolve => setTimeout(resolve, 300));
-          
-          const svg = await reactFlowInstance.toSvg({
-            quality: 1,
-            includeEdges: true,
-          });
-          
-          if (svg) {
-            svgGeneratedRef.current = true;
-            onSvgGenerated(svg);
-          }
-        } catch (error) {
-          console.warn('Failed to auto-generate static SVG:', error);
-        }
-      }, 500); // Wait for initial render
-      
-      return () => clearTimeout(timer);
-    }
-  }, [displayNodes.length, onSvgGenerated, reactFlowInstance]);
+  // NOTE: Automatic SVG generation removed - reactFlowInstance.toSvg is not available in React Flow v11
+  // Static SVG is now generated manually in FlowchartEditorModal when user saves
 
-  // Fit view on init
-  const onInit = useCallback(() => {
-    if (displayNodes.length > 0 && reactFlowInstance) {
+  // Fit view on init - use the instance passed to the callback
+  const onInit = useCallback((instance) => {
+    if (displayNodes.length > 0 && instance) {
       setTimeout(() => {
-        reactFlowInstance.fitView({ 
+        instance.fitView({ 
           padding: 0.1, 
           minZoom: 0.1, 
           maxZoom: 1 
         });
       }, 50);
     }
-  }, [displayNodes.length, reactFlowInstance]);
+  }, [displayNodes.length]);
 
   return (
     <div 

@@ -210,7 +210,7 @@ const replaceInputsWithValues = (clone) => {
 const ensureHeightEqualization = (clone) => {
   // Find all two-column rows and ensure they have height-equalized class
   const twoColumnRows = clone.querySelectorAll('.block-row.two-columns');
-  twoColumnRows.forEach(row => {
+  twoColumnRows.forEach((row, rowIndex) => {
     // Always add height-equalized class to two-column rows
     if (!row.classList.contains('height-equalized')) {
       row.classList.add('height-equalized');
@@ -256,13 +256,19 @@ const ensureHeightEqualization = (clone) => {
       container.style.height = '100%';
     });
     
-    // Find notion-box-shell elements
+    // Find notion-box-shell elements and PRESERVE their minHeight
     const shells = row.querySelectorAll('.notion-box-shell');
     shells.forEach(shell => {
+      // Store the current minHeight before overriding
+      const currentMinHeight = shell.style.minHeight;
       shell.style.display = 'flex';
       shell.style.flexDirection = 'column';
       shell.style.flex = '1';
       shell.style.height = '100%';
+      // Preserve the minHeight if it was set by useHeightEqualization
+      if (currentMinHeight && currentMinHeight !== '50px') {
+        shell.style.minHeight = currentMinHeight;
+      }
     });
     
     // Keep icons centered
@@ -271,6 +277,7 @@ const ensureHeightEqualization = (clone) => {
       icon.style.alignSelf = 'center';
     });
   });
+  
 };
 
 /**
@@ -600,14 +607,14 @@ export const serializeToHTML = async (containerRef) => {
       min-width: 0 !important;
     }
     
-    /* The main box with colored border - preserve inline border-color! */
+    /* The main box with colored border - preserve inline border-color AND minHeight! */
     .notion-box-shell {
       background: white !important;
       border-width: 1.8px !important;
       border-style: solid !important;
       /* border-color is set inline and must be preserved */
       border-radius: 6px !important;
-      min-height: 50px !important;
+      /* DO NOT set min-height here - inline minHeight from useHeightEqualization must be preserved */
       width: 100% !important;
       position: relative !important;
     }
@@ -722,18 +729,23 @@ export const serializeToHTML = async (containerRef) => {
     }
     
     /* ============================================
-       SOURCE BLOCK - NO BACKGROUND COLOR
+       SOURCE BLOCK - Align with table content (16px left, 14px right)
        ============================================ */
     .source-block {
-      /* No extra margin - use content padding instead */
-      margin-left: 0 !important;
-      margin-right: 0 !important;
+      /* Same margins as tables: 16px left (icon width - overlap), 14px right */
+      margin-left: 16px !important;
+      margin-right: 14px !important;
       page-break-inside: avoid !important;
       break-inside: avoid !important;
-      /* NO background color for source blocks */
     }
     
-    /* Source box content: 14px text padding on both sides */
+    /* Remove any border from source box container (hover state shouldn't show in print) */
+    .source-box-container {
+      border: none !important;
+      background: transparent !important;
+    }
+    
+    /* Source box content: Remove horizontal padding so text aligns with table headers */
     .source-box-content {
       padding-left: 14px !important;
       padding-right: 14px !important;

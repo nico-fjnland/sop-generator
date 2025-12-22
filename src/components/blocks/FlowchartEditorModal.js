@@ -1304,6 +1304,254 @@ const FlowchartEditorInner = ({
     [reactFlowInstance, addNode]
   );
 
+  // Generate static SVG from current nodes and edges for print export
+  // Matches the exact styles from FlowchartBlock.css
+  const generateStaticSvg = useCallback(() => {
+    if (nodes.length === 0) return null;
+    
+    // Calculate bounding box
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    nodes.forEach(node => {
+      const width = node.width || node.measured?.width || 150;
+      const height = node.height || node.measured?.height || 40;
+      minX = Math.min(minX, node.position.x);
+      minY = Math.min(minY, node.position.y);
+      maxX = Math.max(maxX, node.position.x + width);
+      maxY = Math.max(maxY, node.position.y + height);
+    });
+    
+    const padding = 20;
+    const viewBox = `${minX - padding} ${minY - padding} ${maxX - minX + padding * 2} ${maxY - minY + padding * 2}`;
+    
+    // Node type styles - matching FlowchartBlock.css exactly
+    // Text color = border color (as per the CSS)
+    const nodeStyles = {
+      start: { fill: '#E8FAF9', stroke: '#47D1C6', textColor: '#47D1C6', strokeStyle: 'solid' },
+      phase: { fill: '#E5F2FF', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
+      positive: { fill: '#ECF9EB', stroke: '#52C41A', textColor: '#52C41A', strokeStyle: 'solid' },
+      negative: { fill: '#FCEAE8', stroke: '#EB5547', textColor: '#EB5547', strokeStyle: 'solid' },
+      neutral: { fill: '#FFF7E6', stroke: '#FAAD14', textColor: '#B27700', strokeStyle: 'solid' },
+      high: { fill: 'white', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
+      low: { fill: 'white', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
+      equal: { fill: 'white', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
+      label: { fill: 'transparent', stroke: 'none', textColor: '#6b7280', strokeStyle: 'none' },
+      comment: { fill: 'white', stroke: '#3399FF', textColor: '#3399FF', strokeStyle: 'dashed' },
+    };
+    
+    // Strip HTML tags for SVG text
+    const stripHtml = (html) => {
+      if (!html) return '';
+      return html.replace(/<[^>]*>/g, '').trim();
+    };
+    
+    // SVG path data for Phosphor icons (filled, 256x256 viewBox scaled to 18x18)
+    const iconPaths = {
+      // ArrowCircleUp - filled
+      high: 'M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm37.66,101.66a8,8,0,0,1-11.32,0L136,107.31V168a8,8,0,0,1-16,0V107.31l-18.34,18.35a8,8,0,0,1-11.32-11.32l32-32a8,8,0,0,1,11.32,0l32,32A8,8,0,0,1,165.66,125.66Z',
+      // ArrowCircleDown - filled
+      low: 'M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm37.66,109.66-32,32a8,8,0,0,1-11.32,0l-32-32a8,8,0,0,1,11.32-11.32L120,140.69V88a8,8,0,0,1,16,0v52.69l18.34-18.35a8,8,0,0,1,11.32,11.32Z',
+      // ArrowCircleRight - filled  
+      equal: 'M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm45.66,109.66-32,32a8,8,0,0,1-11.32-11.32L148.69,136H88a8,8,0,0,1,0-16h60.69l-18.35-18.34a8,8,0,0,1,11.32-11.32l32,32A8,8,0,0,1,173.66,133.66Z',
+    };
+    
+    const iconColors = {
+      high: '#EB5547',
+      low: '#3399FF', 
+      equal: '#FAAD14',
+    };
+
+    // Generate node elements
+    const nodeElements = nodes.map(node => {
+      const width = node.width || node.measured?.width || 150;
+      const height = node.height || node.measured?.height || 40;
+      const style = nodeStyles[node.type] || nodeStyles.phase;
+      const label = stripHtml(node.data?.label || '');
+      const x = node.position.x;
+      const y = node.position.y;
+      // All nodes have rx=4 except label which has no border
+      const rx = 4;
+      
+      // For label node - no rect, just text
+      if (node.type === 'label') {
+        return `
+          <g transform="translate(${x}, ${y})">
+            <text 
+              x="${width / 2}" 
+              y="${height / 2}" 
+              text-anchor="middle" 
+              dominant-baseline="middle" 
+              fill="${style.textColor}"
+              font-family="Roboto, sans-serif"
+              font-size="12"
+              font-weight="400"
+            >${label}</text>
+          </g>
+        `;
+      }
+      
+      // Stroke dasharray for comment node
+      const strokeDasharray = style.strokeStyle === 'dashed' ? 'stroke-dasharray="4,2"' : '';
+      
+      // Check if node has icon (high, low, equal)
+      const hasIcon = ['high', 'low', 'equal'].includes(node.type);
+      const iconPath = iconPaths[node.type];
+      const iconColor = iconColors[node.type];
+      
+      // Calculate text and icon positions for nodes with icons
+      // Match CSS: gap: 2px, icon at end, text fills remaining space
+      const iconSize = 18;
+      const gap = 1; // Minimal gap between text and icon
+      const padding = 6; // Inner padding from node edges
+      
+      // For nodes with icons: text is centered in left area, icon is at right with small padding
+      const iconX = hasIcon ? width - iconSize - padding : 0;
+      // Text center: account for icon and gap if present
+      const textX = hasIcon ? (width - iconSize - gap - padding) / 2 + padding : width / 2;
+      
+      return `
+        <g transform="translate(${x}, ${y})">
+          <rect 
+            width="${width}" 
+            height="${height}" 
+            rx="${rx}" 
+            fill="${style.fill}" 
+            stroke="${style.stroke}" 
+            stroke-width="1.5"
+            ${strokeDasharray}
+          />
+          <text 
+            x="${textX}" 
+            y="${height / 2}" 
+            text-anchor="middle" 
+            dominant-baseline="middle" 
+            fill="${style.textColor}"
+            font-family="Roboto, sans-serif"
+            font-size="12"
+            font-weight="400"
+          >${label}</text>
+          ${hasIcon ? `
+            <g transform="translate(${iconX}, ${(height - iconSize) / 2})">
+              <svg width="${iconSize}" height="${iconSize}" viewBox="0 0 256 256">
+                <path d="${iconPath}" fill="${iconColor}"/>
+              </svg>
+            </g>
+          ` : ''}
+        </g>
+      `;
+    }).join('');
+    
+    // Generate edge elements with arrows
+    const edgeElements = edges.map(edge => {
+      const sourceNode = nodes.find(n => n.id === edge.source);
+      const targetNode = nodes.find(n => n.id === edge.target);
+      if (!sourceNode || !targetNode) return '';
+      
+      const sourceWidth = sourceNode.width || sourceNode.measured?.width || 150;
+      const sourceHeight = sourceNode.height || sourceNode.measured?.height || 40;
+      const targetWidth = targetNode.width || targetNode.measured?.width || 150;
+      const targetHeight = targetNode.height || targetNode.measured?.height || 40;
+      
+      const sourceCenter = {
+        x: sourceNode.position.x + sourceWidth / 2,
+        y: sourceNode.position.y + sourceHeight / 2,
+      };
+      const targetCenter = {
+        x: targetNode.position.x + targetWidth / 2,
+        y: targetNode.position.y + targetHeight / 2,
+      };
+      
+      // Calculate start/end points on node edges
+      const dx = targetCenter.x - sourceCenter.x;
+      const dy = targetCenter.y - sourceCenter.y;
+      
+      let startX, startY, endX, endY;
+      
+      if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal connection
+        if (dx > 0) {
+          startX = sourceNode.position.x + sourceWidth;
+          startY = sourceCenter.y;
+          endX = targetNode.position.x;
+          endY = targetCenter.y;
+        } else {
+          startX = sourceNode.position.x;
+          startY = sourceCenter.y;
+          endX = targetNode.position.x + targetWidth;
+          endY = targetCenter.y;
+        }
+      } else {
+        // Vertical connection
+        if (dy > 0) {
+          startX = sourceCenter.x;
+          startY = sourceNode.position.y + sourceHeight;
+          endX = targetCenter.x;
+          endY = targetNode.position.y;
+        } else {
+          startX = sourceCenter.x;
+          startY = sourceNode.position.y;
+          endX = targetCenter.x;
+          endY = targetNode.position.y + targetHeight;
+        }
+      }
+      
+      // Create smooth step path
+      const midY = (startY + endY) / 2;
+      const path = Math.abs(dx) > Math.abs(dy) 
+        ? `M ${startX} ${startY} L ${(startX + endX) / 2} ${startY} L ${(startX + endX) / 2} ${endY} L ${endX} ${endY}`
+        : `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
+      
+      // Edge label
+      const labelX = (startX + endX) / 2;
+      const labelY = (startY + endY) / 2;
+      const label = edge.data?.label ? stripHtml(edge.data.label) : '';
+      
+      return `
+        <g>
+          <path 
+            d="${path}" 
+            fill="none" 
+            stroke="#003366" 
+            stroke-width="1.5"
+            marker-end="url(#arrowhead)"
+          />
+          ${label ? `
+            <rect x="${labelX - 20}" y="${labelY - 8}" width="40" height="16" fill="white" stroke="#e5e7eb" rx="3"/>
+            <text x="${labelX}" y="${labelY}" text-anchor="middle" dominant-baseline="middle" fill="#374151" font-size="11" font-family="Quicksand, sans-serif" font-weight="500">${label}</text>
+          ` : ''}
+        </g>
+      `;
+    }).join('');
+    
+    return `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" style="width: 100%; height: 100%;">
+        <defs>
+          <!-- Arrow marker matching ReactFlow style - open arrowhead -->
+          <marker 
+            id="arrowhead" 
+            markerWidth="15" 
+            markerHeight="15" 
+            viewBox="-10 -10 20 20"
+            refX="0" 
+            refY="0" 
+            orient="auto-start-reverse"
+            markerUnits="strokeWidth"
+          >
+            <polyline 
+              stroke="#003366" 
+              stroke-linecap="round" 
+              stroke-linejoin="round" 
+              stroke-width="1" 
+              fill="none" 
+              points="-5,-4 0,0 -5,4"
+            />
+          </marker>
+        </defs>
+        ${edgeElements}
+        ${nodeElements}
+      </svg>
+    `;
+  }, [nodes, edges]);
+
   // Handle save - also generate static SVG for print
   const handleSave = useCallback(async () => {
     const nodesToSave = nodes.map(({ data, ...node }) => ({
@@ -1313,20 +1561,8 @@ const FlowchartEditorInner = ({
       },
     }));
     
-    // Generate static SVG for print export
-    let staticSvg = null;
-    if (reactFlowInstance) {
-      try {
-        // Get the SVG from React Flow
-        const svgElement = await reactFlowInstance.toSvg({
-          quality: 1,
-          includeEdges: true,
-        });
-        staticSvg = svgElement;
-      } catch (error) {
-        console.warn('Failed to generate static SVG:', error);
-      }
-    }
+    // Generate static SVG for print export using manual rendering
+    const staticSvg = generateStaticSvg();
     
     onSave({
       nodes: nodesToSave,
@@ -1334,7 +1570,7 @@ const FlowchartEditorInner = ({
       nodeIdCounter,
       staticSvg, // Include the static SVG for print
     });
-  }, [nodes, edges, nodeIdCounter, onSave, reactFlowInstance]);
+  }, [nodes, edges, nodeIdCounter, onSave, generateStaticSvg]);
 
   // Keyboard shortcuts
   useEffect(() => {

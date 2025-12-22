@@ -11,9 +11,25 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ### 🐛 Bug Fixes
 
-- **Quellen-Block Text-Einrückung:**
-  - Text innerhalb der Quellen-Box wird jetzt um 14px von beiden Rändern eingerückt
-  - `.source-box-content` erhält `padding-left: 14px` und `padding-right: 14px`
+- **Quellen-Block Ausrichtung:**
+  - Quellen-Text ist jetzt auf gleicher Höhe wie Tabellen-Inhalte und Überschriften
+  - `margin-left: 16px`, `margin-right: 14px` (wie Tabellen)
+  - Inneres Padding: `14px` auf beiden Seiten
+
+- **Flowchart SVG-Export (Print):**
+  - Icons für High/Low/Equal Nodes werden jetzt im SVG korrekt gerendert
+  - Pfeile (Arrows) als offene Pfeilspitzen (polyline) wie im Editor
+  - Minimaler Abstand (1px gap) zwischen Text und Icon in Nodes
+  - Korrekte Farbgebung für alle Node-Typen
+
+- **Height Equalization:**
+  - Zweispaltige Content-Boxen haben jetzt gleiche Höhe im Print-Export
+
+### 🔧 Technical
+
+- `FlowchartEditorModal.js`: Manueller SVG-Generator mit korrekten Node-Styles und Icons
+- `htmlSerializer.js`: Quellen-Block verwendet gleiche Margins wie Tabellen
+- `htmlSerializer.js`: Height Equalization mit Inline-Styles für Print
 
 ---
 
