@@ -725,12 +725,18 @@ export const serializeToHTML = async (containerRef) => {
        SOURCE BLOCK - NO BACKGROUND COLOR
        ============================================ */
     .source-block {
-      /* Indent 14px on both sides */
-      margin-left: 14px !important;
-      margin-right: 14px !important;
+      /* No extra margin - use content padding instead */
+      margin-left: 0 !important;
+      margin-right: 0 !important;
       page-break-inside: avoid !important;
       break-inside: avoid !important;
       /* NO background color for source blocks */
+    }
+    
+    /* Source box content: 14px text padding on both sides */
+    .source-box-content {
+      padding-left: 14px !important;
+      padding-right: 14px !important;
     }
     
     /* ============================================

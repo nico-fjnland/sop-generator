@@ -7,6 +7,16 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.3] - 2025-12-22
+
+### 🐛 Bug Fixes
+
+- **Quellen-Block Text-Einrückung:**
+  - Text innerhalb der Quellen-Box wird jetzt um 14px von beiden Rändern eingerückt
+  - `.source-box-content` erhält `padding-left: 14px` und `padding-right: 14px`
+
+---
+
 ## [0.9.2] - 2025-12-22
 
 ### 🐛 Bug Fixes
