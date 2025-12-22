@@ -3,6 +3,20 @@ import jsPDF from 'jspdf';
 import { toPng, toJpeg } from 'html-to-image';
 import { getDocument } from '../services/documentService';
 import JSZip from 'jszip';
+import { exportDocumentServerSide, downloadBlob as downloadBlobService } from '../services/exportService';
+
+/**
+ * Waits for all fonts to be fully loaded before proceeding with export.
+ * This ensures consistent font rendering across browsers.
+ * @returns {Promise<void>}
+ */
+const waitForFonts = async () => {
+  if (document.fonts && document.fonts.ready) {
+    await document.fonts.ready;
+  }
+  // Additional wait time for font rendering to stabilize
+  await new Promise(resolve => setTimeout(resolve, 200));
+};
 
 /**
  * Fetches and prepares font CSS for html-to-image.
@@ -15,7 +29,7 @@ const fetchFontCSS = async () => {
   if (cachedFontCSS) return cachedFontCSS;
   
   try {
-    // Fetch Google Fonts CSS directly as text
+    // Fetch Google Fonts CSS directly as text with all required weights
     const fontUrl = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap';
     const response = await fetch(fontUrl);
     
@@ -27,13 +41,43 @@ const fetchFontCSS = async () => {
     return cachedFontCSS;
   } catch (error) {
     console.warn('Could not fetch Google Fonts CSS, using fallback:', error.message);
-    // Return fallback font-face rules for system fonts
+    // Return fallback font-face rules for system fonts with all weights
     return `
+      @font-face {
+        font-family: 'Roboto';
+        font-style: normal;
+        font-weight: 300;
+        src: local('Roboto Light'), local('Roboto-Light'), local('Arial');
+      }
       @font-face {
         font-family: 'Roboto';
         font-style: normal;
         font-weight: 400;
         src: local('Roboto'), local('Roboto-Regular'), local('Arial');
+      }
+      @font-face {
+        font-family: 'Roboto';
+        font-style: normal;
+        font-weight: 500;
+        src: local('Roboto Medium'), local('Roboto-Medium'), local('Arial');
+      }
+      @font-face {
+        font-family: 'Roboto';
+        font-style: normal;
+        font-weight: 600;
+        src: local('Roboto SemiBold'), local('Roboto-SemiBold'), local('Arial');
+      }
+      @font-face {
+        font-family: 'Roboto';
+        font-style: normal;
+        font-weight: 700;
+        src: local('Roboto Bold'), local('Roboto-Bold'), local('Arial');
+      }
+      @font-face {
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 300;
+        src: local('Inter Light'), local('Inter-Light'), local('-apple-system'), local('BlinkMacSystemFont'), local('Arial');
       }
       @font-face {
         font-family: 'Inter';
@@ -42,10 +86,46 @@ const fetchFontCSS = async () => {
         src: local('Inter'), local('Inter-Regular'), local('-apple-system'), local('BlinkMacSystemFont'), local('Arial');
       }
       @font-face {
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 500;
+        src: local('Inter Medium'), local('Inter-Medium'), local('-apple-system'), local('BlinkMacSystemFont'), local('Arial');
+      }
+      @font-face {
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 600;
+        src: local('Inter SemiBold'), local('Inter-SemiBold'), local('-apple-system'), local('BlinkMacSystemFont'), local('Arial');
+      }
+      @font-face {
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 700;
+        src: local('Inter Bold'), local('Inter-Bold'), local('-apple-system'), local('BlinkMacSystemFont'), local('Arial');
+      }
+      @font-face {
         font-family: 'Quicksand';
         font-style: normal;
         font-weight: 400;
         src: local('Quicksand'), local('Quicksand-Regular'), local('Arial');
+      }
+      @font-face {
+        font-family: 'Quicksand';
+        font-style: normal;
+        font-weight: 500;
+        src: local('Quicksand Medium'), local('Quicksand-Medium'), local('Arial');
+      }
+      @font-face {
+        font-family: 'Quicksand';
+        font-style: normal;
+        font-weight: 600;
+        src: local('Quicksand SemiBold'), local('Quicksand-SemiBold'), local('Arial');
+      }
+      @font-face {
+        font-family: 'Quicksand';
+        font-style: normal;
+        font-weight: 700;
+        src: local('Quicksand Bold'), local('Quicksand-Bold'), local('Arial');
       }
     `;
   }
@@ -406,12 +486,69 @@ const createPrintClone = (containerRef) => {
       flex: 1 !important;
       min-width: 0 !important;
       max-width: calc(100% - 155.4px - 28px) !important; /* Full width minus logo width minus header padding */
+      align-items: flex-start !important; /* Ensure left alignment */
     }
     
+    /* Stand text container - ensure left alignment, remove ALL padding that causes misalignment */
     .export-clone .sop-header > div.flex.flex-col > div.flex.items-center {
       padding-left: 0 !important;
       padding-right: 0 !important;
-      width: auto !important;
+      padding: 0 !important;
+      width: 100% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important; /* Left align */
+      margin: 0 !important;
+      gap: 4px !important; /* Gap between icon and text */
+    }
+    
+    /* Stand icon - ensure proper alignment */
+    .export-clone .sop-header > div.flex.flex-col > div.flex.items-center > div {
+      flex-shrink: 0 !important;
+      width: 11px !important;
+      height: 11px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    
+    /* Stand text - explicit font styles for consistent rendering, reduce weight for Firefox */
+    .export-clone .sop-header span[style*="fontFamily"],
+    .export-clone .sop-header input[style*="fontFamily"],
+    .export-clone .sop-header .sop-header-editable {
+      font-family: 'Quicksand', sans-serif !important;
+      font-weight: 500 !important; /* Reduced from 600 to prevent Firefox rendering issues */
+      font-size: 12px !important;
+      letter-spacing: 2px !important;
+      text-transform: uppercase !important;
+      line-height: 12px !important;
+      color: #003366 !important;
+      margin: 0 !important;
+      padding: 2px 4px !important;
+      text-align: left !important;
+      display: inline-block !important;
+    }
+    
+    /* Title container - ensure left alignment with NO padding */
+    .export-clone .sop-header > div.flex.flex-col > div:not(.flex.items-center) {
+      width: 100% !important;
+      text-align: left !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+    
+    /* Title - ensure left alignment with minimal padding */
+    .export-clone .sop-header .sop-header-title-editable,
+    .export-clone .sop-header .hidden.print\\:block[style*="fontSize"],
+    .export-clone .sop-header textarea[style*="fontSize"] {
+      text-align: left !important;
+      margin: 0 !important;
+      padding: 4px 0 !important; /* Only top/bottom padding, no left/right */
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
     }
     
     /* Logo container - ensure right alignment */
@@ -455,31 +592,73 @@ const createPrintClone = (containerRef) => {
       margin-left: auto !important;
     }
     
+    /* Caption container - use transform instead of negative top for better browser compatibility */
     .export-clone .content-box-block .caption-container {
       left: 26px !important;
       top: 0 !important;
-      margin-top: -10px !important;
+      margin-top: 0 !important;
       position: absolute !important;
-      transform: none !important;
+      transform: translateY(-10px) !important;
+      -webkit-transform: translateY(-10px) !important;
+      -moz-transform: translateY(-10px) !important;
+      z-index: 20 !important;
+      display: block !important;
     }
     
+    /* Caption box - explicit flexbox centering for text with proper border radius */
     .export-clone .content-box-block .caption-container .caption-box-print,
     .export-clone .content-box-block .caption-box-print[class*="print:block"],
-    .export-clone .content-box-block .caption-container .hidden.print\\:block {
+    .export-clone .content-box-block .caption-container .hidden.print\\:block,
+    .export-clone .content-box-block .caption-box-print {
       border: 2px solid white !important;
-      border-radius: 4px !important;
-      -webkit-border-radius: 4px !important;
-      -moz-border-radius: 4px !important;
+      border-width: 2px !important;
+      border-style: solid !important;
+      border-color: white !important;
+      border-radius: 6px !important;
+      -webkit-border-radius: 6px !important;
+      -moz-border-radius: 6px !important;
+      border-top-left-radius: 6px !important;
+      border-top-right-radius: 6px !important;
+      border-bottom-left-radius: 6px !important;
+      border-bottom-right-radius: 6px !important;
+      display: flex !important;
+      -webkit-display: flex !important;
+      align-items: center !important;
+      -webkit-align-items: center !important;
+      justify-content: center !important;
+      -webkit-justify-content: center !important;
+      padding: 4px 8px !important;
+      box-sizing: border-box !important;
+      -webkit-box-sizing: border-box !important;
+      -moz-box-sizing: border-box !important;
+      width: auto !important;
+      height: auto !important;
+      min-width: 0 !important;
+      margin: 0 !important;
     }
     
+    /* Caption text - explicit font styles for consistent rendering and centering */
     .export-clone .content-box-block .caption-box-print p,
     .export-clone .content-box-block .caption-container .caption-box-print p,
     .export-clone .content-box-block div.caption-box-print p,
     .export-clone .content-box-block .caption-box-print p.font-semibold,
     .export-clone .content-box-block .caption-box-print p.italic,
     .export-clone .content-box-block .caption-box-print p.text-white {
+      font-family: 'Roboto', sans-serif !important;
+      font-weight: 600 !important;
+      font-style: italic !important;
       font-size: 9px !important;
       line-height: 9px !important;
+      letter-spacing: 1.05px !important;
+      text-transform: uppercase !important;
+      color: white !important;
+      white-space: nowrap !important;
+      margin: 0 auto !important;
+      padding: 0 !important;
+      text-align: center !important;
+      display: block !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
     }
     
     /* Flowchart Block Export Styles */
@@ -579,6 +758,258 @@ const createPrintClone = (containerRef) => {
       opacity: 0 !important;
       color: transparent !important;
     }
+    
+    /* Content box wrapper - ensure proper width calculation */
+    .export-clone .content-box-wrapper {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      -webkit-box-sizing: border-box !important;
+      -moz-box-sizing: border-box !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+    
+    /* Content box container - ensure proper width for text wrapping */
+    .export-clone .content-box-block .content-box-container {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      -webkit-box-sizing: border-box !important;
+      -moz-box-sizing: border-box !important;
+      position: relative !important;
+      flex: 1 1 auto !important;
+      min-width: 0 !important;
+    }
+    
+    /* Content box - ensure proper width for text wrapping */
+    .export-clone .content-box-block .content-box-content {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      -webkit-box-sizing: border-box !important;
+      -moz-box-sizing: border-box !important;
+      overflow: visible !important;
+      padding-top: 24px !important;
+      padding-right: 26px !important;
+      padding-bottom: 20px !important;
+      padding-left: 26px !important;
+      display: block !important;
+    }
+    
+    /* Two-column layout - ensure proper width calculation */
+    .export-clone .block-row.two-columns .content-box-block .content-box-content {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    
+    /* TipTap Editor wrapper - ensure proper width */
+    .export-clone .tiptap-wrapper {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      -webkit-box-sizing: border-box !important;
+      -moz-box-sizing: border-box !important;
+      display: block !important;
+      position: relative !important;
+    }
+    
+    /* TipTap Editor - explicit text wrapping for consistent rendering across browsers */
+    .export-clone .tiptap-wrapper * {
+      box-sizing: border-box !important;
+      -webkit-box-sizing: border-box !important;
+      -moz-box-sizing: border-box !important;
+    }
+    
+    /* Prevent browser font size adjustments */
+    .export-clone {
+      -webkit-text-size-adjust: 100% !important;
+      -moz-text-size-adjust: 100% !important;
+      text-size-adjust: 100% !important;
+    }
+    
+    .export-clone .tiptap-editor {
+      font-family: 'Roboto', sans-serif !important;
+      font-size: 11px !important;
+      -webkit-font-size: 11px !important;
+      -moz-font-size: 11px !important;
+      line-height: 1.5 !important;
+      font-weight: 400 !important;
+      color: #003366 !important;
+      overflow-wrap: break-word !important;
+      word-wrap: break-word !important;
+      word-break: break-word !important;
+      hyphens: none !important;
+      -webkit-hyphens: none !important;
+      -moz-hyphens: none !important;
+      white-space: normal !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      display: block !important;
+      box-sizing: border-box !important;
+      -webkit-box-sizing: border-box !important;
+      -moz-box-sizing: border-box !important;
+      -webkit-text-size-adjust: 100% !important;
+      -moz-text-size-adjust: 100% !important;
+      text-size-adjust: 100% !important;
+    }
+    
+    .export-clone .tiptap-editor p {
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow-wrap: break-word !important;
+      word-wrap: break-word !important;
+      word-break: break-word !important;
+      white-space: normal !important;
+      line-height: 1.5 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      display: block !important;
+      font-size: 11px !important;
+      -webkit-text-size-adjust: 100% !important;
+      -moz-text-size-adjust: 100% !important;
+      text-size-adjust: 100% !important;
+    }
+    
+    /* Small font (9px) - ensure proper wrapping with explicit width and size */
+    .export-clone .tiptap-editor span[style*="font-size: 9px"],
+    .export-clone .tiptap-editor span[style*="fontSize: 9px"],
+    .export-clone .tiptap-editor [style*="font-size: 9px"],
+    .export-clone .tiptap-editor [style*="fontSize: 9px"] {
+      font-size: 9px !important;
+      -webkit-font-size: 9px !important;
+      -moz-font-size: 9px !important;
+      line-height: 1.5 !important;
+      overflow-wrap: break-word !important;
+      word-wrap: break-word !important;
+      word-break: break-word !important;
+      white-space: normal !important;
+      display: inline !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      -webkit-text-size-adjust: 100% !important;
+      -moz-text-size-adjust: 100% !important;
+      text-size-adjust: 100% !important;
+    }
+    
+    /* Heading font (11px) - ensure proper wrapping */
+    .export-clone .tiptap-editor .tiptap-heading,
+    .export-clone .tiptap-editor span[style*="font-size: 11px"],
+    .export-clone .tiptap-editor span[style*="fontSize: 11px"],
+    .export-clone .tiptap-editor [style*="font-size: 11px"],
+    .export-clone .tiptap-editor [style*="fontSize: 11px"] {
+      font-size: 11px !important;
+      -webkit-font-size: 11px !important;
+      -moz-font-size: 11px !important;
+      line-height: 1.8 !important;
+      overflow-wrap: break-word !important;
+      word-wrap: break-word !important;
+      word-break: break-word !important;
+      white-space: normal !important;
+      display: inline !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      -webkit-text-size-adjust: 100% !important;
+      -moz-text-size-adjust: 100% !important;
+      text-size-adjust: 100% !important;
+    }
+    
+    /* All inline elements - ensure proper wrapping and consistent font size */
+    .export-clone .tiptap-editor span:not([style*="font-size"]):not([style*="fontSize"]),
+    .export-clone .tiptap-editor strong,
+    .export-clone .tiptap-editor em,
+    .export-clone .tiptap-editor u {
+      overflow-wrap: break-word !important;
+      word-wrap: break-word !important;
+      word-break: break-word !important;
+      white-space: normal !important;
+      max-width: 100% !important;
+      font-size: inherit !important;
+      -webkit-text-size-adjust: 100% !important;
+      -moz-text-size-adjust: 100% !important;
+      text-size-adjust: 100% !important;
+    }
+    
+    /* List items - ensure consistent font size */
+    .export-clone .tiptap-editor .bullet-list li,
+    .export-clone .tiptap-editor .ordered-list li {
+      font-size: 11px !important;
+      -webkit-font-size: 11px !important;
+      -moz-font-size: 11px !important;
+      -webkit-text-size-adjust: 100% !important;
+      -moz-text-size-adjust: 100% !important;
+      text-size-adjust: 100% !important;
+    }
+    
+    /* Bullet lists - ensure proper spacing and alignment, reduce padding to bring bullets closer to text */
+    .export-clone .tiptap-editor .bullet-list {
+      margin: 0 !important;
+      padding-left: 16px !important; /* Reduced padding to bring bullets closer to text */
+      padding-right: 0 !important;
+      list-style-type: disc !important;
+      list-style-position: outside !important;
+      text-indent: 0 !important;
+    }
+    
+    .export-clone .tiptap-editor .bullet-list li {
+      margin: 0 0 2px 0 !important;
+      padding: 0 !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      list-style-type: disc !important;
+      list-style-position: outside !important;
+      overflow-wrap: break-word !important;
+      word-wrap: break-word !important;
+      word-break: break-word !important;
+      white-space: normal !important;
+      text-indent: 0 !important;
+      margin-left: 0 !important;
+    }
+    
+    .export-clone .tiptap-editor .bullet-list li::marker {
+      margin-right: 0 !important;
+      padding-right: 0 !important;
+    }
+    
+    .export-clone .tiptap-editor .bullet-list li:last-child {
+      margin-bottom: 0 !important;
+    }
+    
+    /* Ordered lists - ensure proper spacing and alignment */
+    .export-clone .tiptap-editor .ordered-list {
+      margin: 0 !important;
+      padding-left: 16px !important; /* Reduced padding to bring numbers closer to text */
+      padding-right: 0 !important;
+      list-style-type: decimal !important;
+      list-style-position: outside !important;
+      text-indent: 0 !important;
+    }
+    
+    .export-clone .tiptap-editor .ordered-list li {
+      margin: 0 0 2px 0 !important;
+      padding: 0 !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      list-style-type: decimal !important;
+      list-style-position: outside !important;
+      overflow-wrap: break-word !important;
+      word-wrap: break-word !important;
+      word-break: break-word !important;
+      white-space: normal !important;
+      text-indent: 0 !important;
+      margin-left: 0 !important;
+    }
+    
+    .export-clone .tiptap-editor .ordered-list li::marker {
+      margin-right: 0 !important;
+      padding-right: 0 !important;
+    }
+    
+    .export-clone .tiptap-editor .ordered-list li:last-child {
+      margin-bottom: 0 !important;
+    }
   `;
   
   // Insert clone and styles into document
@@ -634,23 +1065,19 @@ const generateFilename = (title, stand) => {
 };
 
 /**
- * Exports the current editor content as a Word document (DOCX).
- * Uses html-to-image for better CSS/Tailwind compatibility.
- * @param {HTMLElement} containerRef - Ref to the editor container element.
- * @param {string} title - The SOP title for filename
- * @param {string} stand - The stand/version for filename
+ * Client-side Word export (fallback)
+ * @private
  */
-export const exportAsWord = async (containerRef, title = 'SOP Überschrift', stand = 'STAND 12/22') => {
-  if (!containerRef) return;
-  
+const exportAsWordClientSide = async (containerRef, title, stand) => {
   // Pre-fetch font CSS to avoid Firefox cross-origin issues
   const fontEmbedCSS = await fetchFontCSS();
   
   // Create invisible clone with print styles
   const { clone, styleElement } = createPrintClone(containerRef);
   
-  // Wait for clone to render
-  await new Promise(resolve => setTimeout(resolve, 100));
+  // Wait for clone to render and fonts to load
+  await new Promise(resolve => setTimeout(resolve, 300));
+  await waitForFonts();
   
   const pages = Array.from(clone.querySelectorAll('.a4-page'));
   
@@ -720,23 +1147,56 @@ export const exportAsWord = async (containerRef, title = 'SOP Überschrift', sta
 };
 
 /**
- * Exports the current editor content as a PDF file.
- * Uses html-to-image for better CSS/Tailwind compatibility.
+ * Exports the current editor content as a Word document (DOCX).
+ * Tries server-side rendering first, falls back to client-side if needed.
  * @param {HTMLElement} containerRef - Ref to the editor container element.
  * @param {string} title - The SOP title for filename
  * @param {string} stand - The stand/version for filename
+ * @param {string} documentId - Optional document ID for caching
  */
-export const exportAsPdf = async (containerRef, title = 'SOP Überschrift', stand = 'STAND 12/22') => {
+export const exportAsWord = async (containerRef, title = 'SOP Überschrift', stand = 'STAND 12/22', documentId = null) => {
   if (!containerRef) return;
+  
+  try {
+    // Try server-side export first
+    const blob = await exportDocumentServerSide(
+      containerRef,
+      'docx',
+      { title, stand, documentId },
+      true // useCache
+    );
+    
+    const filename = generateFilename(title, stand);
+    downloadBlobService(blob, `${filename}.docx`);
+    console.log('Word export completed (server-side)');
+  } catch (serverError) {
+    console.warn('Server-side Word export failed, falling back to client-side:', serverError);
+    
+    // Fallback to client-side export
+    try {
+      await exportAsWordClientSide(containerRef, title, stand);
+      console.log('Word export completed (client-side fallback)');
+    } catch (clientError) {
+      console.error('Both server-side and client-side Word export failed:', clientError);
+      throw new Error('Word-Export fehlgeschlagen. Bitte versuche es erneut.');
+    }
+  }
+};
 
+/**
+ * Client-side PDF export (fallback)
+ * @private
+ */
+const exportAsPdfClientSide = async (containerRef, title, stand) => {
   // Pre-fetch font CSS to avoid Firefox cross-origin issues
   const fontEmbedCSS = await fetchFontCSS();
-
+  
   // Create invisible clone with print styles
   const { clone, styleElement } = createPrintClone(containerRef);
   
-  // Wait for clone to render
-  await new Promise(resolve => setTimeout(resolve, 100));
+  // Wait for clone to render and fonts to load
+  await new Promise(resolve => setTimeout(resolve, 300));
+  await waitForFonts();
   
   const pages = Array.from(clone.querySelectorAll('.a4-page'));
   
@@ -778,6 +1238,43 @@ export const exportAsPdf = async (containerRef, title = 'SOP Überschrift', stan
   } finally {
     // Clean up clone and styles
     removePrintClone({ clone, styleElement });
+  }
+};
+
+/**
+ * Exports the current editor content as a PDF file.
+ * Tries server-side rendering first, falls back to client-side if needed.
+ * @param {HTMLElement} containerRef - Ref to the editor container element.
+ * @param {string} title - The SOP title for filename
+ * @param {string} stand - The stand/version for filename
+ * @param {string} documentId - Optional document ID for caching
+ */
+export const exportAsPdf = async (containerRef, title = 'SOP Überschrift', stand = 'STAND 12/22', documentId = null) => {
+  if (!containerRef) return;
+  
+  try {
+    // Try server-side export first
+    const blob = await exportDocumentServerSide(
+      containerRef,
+      'pdf',
+      { title, stand, documentId },
+      true // useCache
+    );
+    
+    const filename = generateFilename(title, stand);
+    downloadBlobService(blob, `${filename}.pdf`);
+    console.log('PDF export completed (server-side)');
+  } catch (serverError) {
+    console.warn('Server-side PDF export failed, falling back to client-side:', serverError);
+    
+    // Fallback to client-side export
+    try {
+      await exportAsPdfClientSide(containerRef, title, stand);
+      console.log('PDF export completed (client-side fallback)');
+    } catch (clientError) {
+      console.error('Both server-side and client-side PDF export failed:', clientError);
+      throw new Error('PDF-Export fehlgeschlagen. Bitte versuche es erneut.');
+    }
   }
 };
 

@@ -1,6 +1,6 @@
 # SOP Editor - Vollständige Projektdokumentation
 
-> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.8.0)  
+> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.9.0)  
 > **Stack:** React 18 + Supabase + TailwindCSS  
 > **Zielgruppe:** Medizinisches Personal zur Erstellung von Standard Operating Procedures (SOPs)  
 > **Changelog:** [`CHANGELOG.md`](./CHANGELOG.md)
@@ -597,10 +597,17 @@ const newState = await importFromJson(file)
 ### PDF Export
 
 ```javascript
-await exportAsPdf(containerRef, title, stand)
+await exportAsPdf(containerRef, title, stand, documentId)
 // Erstellt: titel-stand.pdf
 ```
 
+**Server-seitig (primär via Gotenberg):**
+- Konsistentes Rendering via Chromium (browserunabhängig)
+- A4-Format mit korrekten Seitenrändern
+- Automatisches Caching in Supabase Storage
+- Fallback auf Client-seitig bei Verbindungsproblemen
+
+**Client-seitig (Fallback):**
 - Hochauflösend (476 DPI, pixelRatio 6)
 - JPEG-Kompression
 - Pro Seite ein Bild
@@ -608,13 +615,40 @@ await exportAsPdf(containerRef, title, stand)
 ### Word Export
 
 ```javascript
-await exportAsWord(containerRef, title, stand)
+await exportAsWord(containerRef, title, stand, documentId)
 // Erstellt: titel-stand.docx
 ```
 
+**Server-seitig (primär via Gotenberg):**
+- Screenshots jeder A4-Seite via Gotenberg Screenshot API
+- PNG-Bilder in Word-Dokument eingebettet
+- Seitenumbrüche zwischen Seiten
+- Automatisches Caching in Supabase Storage
+
+**Client-seitig (Fallback):**
 - Hochauflösend (476 DPI)
 - PNG-Bilder eingebettet
 - Seitenumbrüche zwischen Seiten
+
+### Gotenberg Service
+
+Die serverseitige PDF/Word-Generierung nutzt **Gotenberg** - einen Open-Source HTML-zu-PDF Konverter.
+
+**Setup:**
+- Läuft als Docker Container auf Railway
+- Supabase Edge Function (`export-document`) ruft Gotenberg API auf
+- Environment Variable `GOTENBERG_URL` in Supabase Secrets
+
+**Kosten:** ~$5-10/Monat auf Railway
+
+**Architektur:**
+```
+Frontend → Edge Function → Gotenberg → PDF/Screenshots → Word
+                               ↓
+                       Supabase Storage (Cache)
+```
+
+Siehe `railway-gotenberg-setup.md` für detaillierte Installationsanleitung.
 
 ### Bulk Export
 
@@ -1038,7 +1072,7 @@ Für die beste Nutzererfahrung empfehlen wir:
 - **Firefox** als Alternative
 - **Safari** auf macOS/iOS
 
-> **Hinweis:** Die Export-Funktionen (PDF/Word) nutzen `html-to-image` für die Bildgenerierung. Die Qualität kann je nach Browser-Rendering leicht variieren.
+> **Hinweis:** Die Export-Funktionen (PDF/Word) nutzen primär Gotenberg für serverseite Konvertierung. Bei Verbindungsproblemen wird auf `html-to-image` für die clientseitige Bildgenerierung zurückgegriffen.
 
 ---
 

@@ -272,7 +272,7 @@ const Editor = () => {
     try {
       // Wait a small tick to ensure any pending renders are done
       await new Promise(resolve => setTimeout(resolve, 100));
-      await exportAsWord(containerRef.current, headerTitle, headerStand);
+      await exportAsWord(containerRef.current, headerTitle, headerStand, documentId);
       showSuccess('Word-Dokument erfolgreich an Browser übergeben.');
     } catch (error) {
       console.error('Word export failed:', error);
@@ -287,7 +287,7 @@ const Editor = () => {
     showExporting(`Exportiere „${headerTitle}" als PDF-Datei …`);
     try {
       await new Promise(resolve => setTimeout(resolve, 100));
-      await exportAsPdf(containerRef.current, headerTitle, headerStand);
+      await exportAsPdf(containerRef.current, headerTitle, headerStand, documentId);
       showSuccess('PDF-Datei erfolgreich an Browser übergeben.');
     } catch (error) {
       console.error('PDF export failed:', error);

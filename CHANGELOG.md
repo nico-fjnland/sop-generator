@@ -7,6 +7,38 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.0] - 2025-12-22
+
+### ✨ Features
+
+- **Gotenberg Integration für PDF/Word Export:** Migration von Puppeteer zu Gotenberg
+  - Konsistentes PDF-Rendering unabhängig vom Browser des Benutzers
+  - PDF-Export nutzt Gotenberg's Chromium-basierte HTML-zu-PDF Konvertierung
+  - Word-Export nutzt Gotenberg Screenshots für pixelgenaue Darstellung
+  - Gotenberg läuft als Docker Container auf Railway (~$5-10/Monat)
+  - Client-seitiger Fallback bleibt für den Fall, dass Gotenberg nicht erreichbar ist
+
+### 🔄 Changed
+
+- **Edge Function refactored:** `supabase/functions/export-document/index.ts`
+  - Puppeteer-Code komplett entfernt
+  - Neue `generatePdfWithGotenberg()` Funktion für PDF-Export
+  - Neue `generateScreenshotsWithGotenberg()` Funktion für Word-Export
+  - Environment Variable `GOTENBERG_URL` statt `BROWSER_WS_ENDPOINT`
+
+### 📁 Files Added
+
+- `railway-gotenberg-setup.md` - Schritt-für-Schritt Anleitung für Railway/Gotenberg Deployment
+
+### 🔧 Technical
+
+- **Neue Environment Variable:** `GOTENBERG_URL` muss in Supabase Edge Function Secrets gesetzt werden
+- **Gotenberg API Endpunkte:**
+  - `/forms/chromium/convert/html` für PDF-Generierung
+  - `/forms/chromium/screenshot/html` für Screenshot-Generierung
+
+---
+
 ## [0.8.8] - 2025-12-19
 
 ### 🐛 Bugfixes
