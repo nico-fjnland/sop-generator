@@ -7,6 +7,72 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.4] - 2025-12-22
+
+### ✨ Changed
+
+- **Tabellen-Zellen Padding:**
+  - Vertikales Padding von `0.375rem` (≈6px) auf `4px` reduziert
+  - Kompaktere Darstellung der Tabellenzellen
+  - Gilt für Editor, Print und Export
+
+- **SOP Header Logo-Ausrichtung:**
+  - Logo bleibt bei mehrzeiligen Überschriften am oberen Rand der Spalte ausgerichtet
+  - Keine vertikale Zentrierung mehr - Logo bleibt oben fixiert
+  - Header-Container verwendet `align-items: flex-start` statt `center`
+  - Gilt für Editor, Print und Export
+
+- **Header-Container Alignment:**
+  - Header bleibt immer oben ausgerichtet und expandiert nur nach unten
+  - Verhindert "Springen" des Headers nach oben bei mehrzeiligen Überschriften
+  - Beide Spalten (Titel und Logo) sind oben ausgerichtet
+
+- **Höhenanpassung bei Boxen:**
+  - Boxen passen sich wieder ihrer natürlichen Höhe an, wenn sie von zweispaltig zu einspaltig wechseln
+  - `minHeight` wird zurückgesetzt, wenn Layout einspaltig wird
+  - Verhindert, dass Boxen in angepasster Höhe bleiben
+
+- **Maximale Anzahl Algorithmus-Boxen:**
+  - Limit von 1 auf 5 erhöht
+  - Es können jetzt bis zu 5 "Diag. Algorithmus"-Boxen pro Dokument erstellt werden
+
+### 🎨 Flowchart Editor
+
+- **Neuer Node-Typ "Aktion":**
+  - Gleiche Form wie "Phase" (Rechteck mit abgerundeten Ecken)
+  - Weißer Hintergrund statt hellblau
+  - Dunkelblauer Rahmen (#003366)
+
+- **Neue Icons für Phase und Aktion:**
+  - "Phase" zeigt jetzt ein Rechteck mit "P"
+  - "Aktion" zeigt ein Rechteck mit "A"
+  - Bessere visuelle Unterscheidung in der Toolbar
+
+- **Verbesserte Node-Positionierung:**
+  - Neue Nodes erscheinen in der Mitte des Viewports
+  - Spiral-Suche für freie Position bei Kollision
+  - Keine Überlappungen mehr beim Hinzufügen neuer Nodes
+
+- **Flowchart zurücksetzen:**
+  - Neuer Button (Mülleimer-Icon) in der Toolbar
+  - Setzt das Flowchart auf den Ausgangszustand zurück (nur Start-Node)
+  - Button ist deaktiviert, wenn keine Änderungen vorhanden sind
+  - Selektives Löschen-Button entfernt (Radierer erfüllt diese Funktion)
+
+### 🔧 Technical
+
+- `TipTapTableBlock.css`: Padding-Werte angepasst (4px vertikal, responsive 3px)
+- `SOPHeader.js`: `alignItems` von `center` auf `flex-start` geändert
+- `useHeightEqualization.js`: Reset-Logik für einspaltige Layouts hinzugefügt
+- `ContentBoxBlock.js`: `maxUsage` für `algorithmus` von 1 auf 5 erhöht
+- `htmlSerializer.js`: Print-Styles für Header-Alignment angepasst
+- `exportUtils.js`: Export-Styles für Header-Alignment angepasst
+- `FlowchartEditorModal.js`: Neuer Node-Typ `AktionNode`, Collision-Detection, Reset-Funktion
+- `FlowchartEditorModal.css`: Letter-Icons für Phase/Aktion Toolbar-Items
+- `FlowchartBlock.css`: Styling für `.flowchart-node-aktion`
+
+---
+
 ## [0.9.3] - 2025-12-22
 
 ### 🐛 Bug Fixes

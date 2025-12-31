@@ -82,7 +82,18 @@ const useHeightEqualization = (
   }, [containerRef, isTwoColumn]);
 
   useEffect(() => {
-    if (!containerRef?.current || !isTwoColumn) {
+    if (!containerRef?.current) {
+      return;
+    }
+
+    // If not two-column, reset minHeight to let boxes size naturally
+    if (!isTwoColumn) {
+      const boxes = containerRef.current.querySelectorAll('.notion-box-shell');
+      boxes.forEach(box => {
+        box.style.minHeight = '';
+      });
+      // Reset width tracking so next two-column switch works correctly
+      lastWidthsRef.current = { w1: 0, w2: 0 };
       return;
     }
 

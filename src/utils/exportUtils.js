@@ -557,7 +557,7 @@ const createPrintClone = (containerRef) => {
       flex-shrink: 0 !important;
       flex-grow: 0 !important;
       display: flex !important;
-      align-items: center !important;
+      align-items: flex-start !important;
       justify-content: flex-end !important;
       width: 155.4px !important;
       margin-left: auto !important;
@@ -568,7 +568,7 @@ const createPrintClone = (containerRef) => {
       width: 155.4px !important;
       height: 65.2px !important;
       display: flex !important;
-      align-items: center !important;
+      align-items: flex-start !important;
       justify-content: flex-end !important;
     }
     
@@ -577,7 +577,7 @@ const createPrintClone = (containerRef) => {
       width: 100% !important;
       height: 100% !important;
       display: flex !important;
-      align-items: center !important;
+      align-items: flex-start !important;
       justify-content: flex-end !important;
     }
     
@@ -588,7 +588,7 @@ const createPrintClone = (containerRef) => {
       height: 54.12px !important;
       width: auto !important;
       object-fit: contain !important;
-      object-position: right center !important;
+      object-position: right top !important;
       margin-left: auto !important;
     }
     

@@ -82,7 +82,7 @@ export const CATEGORIES = [
     shortLabel: 'Diag. Algorithmus',
     color: '#47D1C6', 
     bgColor: '#E8FAF9',
-    maxUsage: 1,
+    maxUsage: 5,
     hideFromCategoryChange: true // Only addable via "Inhalt hinzufügen", not changeable
   },
   { 

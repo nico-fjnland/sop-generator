@@ -464,7 +464,7 @@ export const serializeToHTML = async (containerRef) => {
     .sop-header {
       display: flex !important;
       justify-content: space-between !important;
-      align-items: center !important;
+      align-items: flex-start !important;
       width: 100% !important;
       padding: 8px 14px !important;
       gap: 24px !important;
@@ -538,7 +538,7 @@ export const serializeToHTML = async (containerRef) => {
       height: 70px !important;
       width: auto !important;
       object-fit: contain !important;
-      object-position: right center !important;
+      object-position: right top !important;
     }
     
     /* ============================================

@@ -134,7 +134,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
     <div className="sop-header mb-4" style={{ 
       display: 'flex', 
       justifyContent: 'space-between', 
-      alignItems: 'center',
+      alignItems: 'flex-start',
       width: '100%',
       paddingTop: '8px',
       paddingBottom: '8px',
@@ -297,7 +297,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
       </div>
 
       {/* Right side: Logo */}
-      <div className="flex items-center justify-end" style={{ 
+      <div className="flex items-start justify-end" style={{ 
         paddingLeft: '14px',
         flexShrink: 0
       }}>
@@ -320,7 +320,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               width: '100%', 
               height: '100%',
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               justifyContent: 'flex-end',
               cursor: companyLogo || logo ? 'default' : 'pointer'
             }}
@@ -335,7 +335,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                   height: '70px', 
                   width: 'auto',
                   objectFit: 'contain',
-                  objectPosition: 'right center'
+                  objectPosition: 'right top'
                 }} 
               />
             ) : logo ? (
@@ -348,7 +348,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                     height: '70px', 
                     width: 'auto',
                     objectFit: 'contain',
-                    objectPosition: 'right center'
+                    objectPosition: 'right top'
                   }} 
                 />
                 {/* Delete button - appears on hover */}
@@ -370,7 +370,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               /* Placeholder Logo - nur im Editor sichtbar, nicht beim Drucken */
               /* Farben angepasst an muted-foreground Grautöne */
               <div 
-                className="flex items-center justify-end"
+                className="flex items-start justify-end"
                 style={{ 
                   width: '100%', 
                   height: '100%'
@@ -403,7 +403,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                   width: '100%', 
                   height: '100%', 
                   objectFit: 'contain',
-                  objectPosition: 'right center'
+                  objectPosition: 'right top'
                 }} 
               />
             ) : logo ? (
@@ -414,7 +414,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                   width: '100%', 
                   height: '100%', 
                   objectFit: 'contain',
-                  objectPosition: 'right center'
+                  objectPosition: 'right top'
                 }} 
               />
             ) : null}

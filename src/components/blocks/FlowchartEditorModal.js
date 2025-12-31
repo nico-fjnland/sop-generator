@@ -500,6 +500,22 @@ const PhaseNode = ({ data, selected }) => {
   );
 };
 
+const AktionNode = ({ data, selected }) => {
+  return (
+    <div className={`flowchart-node flowchart-node-aktion ${selected ? 'selected' : ''}`}>
+      <NodeHandles selected={selected} />
+      <div className="flowchart-node-content">
+        <FlowchartNodeEditor
+          content={data.label}
+          onChange={data.onChange}
+          placeholder="Aktion"
+          onToolbarUpdate={data.onToolbarUpdate}
+        />
+      </div>
+    </div>
+  );
+};
+
 const LabelNode = ({ data, selected }) => {
   return (
     <div className={`flowchart-node flowchart-node-label ${selected ? 'selected' : ''}`}>
@@ -640,6 +656,7 @@ const EqualNode = ({ data, selected }) => {
 const nodeTypes = {
   start: StartNode,
   phase: PhaseNode,
+  aktion: AktionNode,
   label: LabelNode,
   comment: CommentNode,
   positive: PositiveNode,
@@ -678,6 +695,7 @@ const NODE_TYPE_GROUPS = [
     items: [
       { type: 'start', label: 'Start', icon: Circle, color: '#47D1C6', bgColor: '#E8FAF9' },
       { type: 'phase', label: 'Phase', icon: Square, color: '#003366', bgColor: '#E5F2FF' },
+      { type: 'aktion', label: 'Aktion', icon: Square, color: '#003366', bgColor: '#FFFFFF' },
     ]
   },
   {
@@ -955,6 +973,28 @@ const FlowchartEditorInner = ({
       maxZoom: 0.857,
     });
   }, [fitView]);
+
+  // Reset Flowchart to initial state (only Start node)
+  const handleResetFlowchart = useCallback(() => {
+    const initialNode = {
+      id: '1',
+      type: 'start',
+      position: { x: 250, y: 50 },
+      data: {
+        label: 'Start',
+        onChange: (newLabel) => handleNodeLabelChange('1', newLabel),
+        onToolbarUpdate: handleToolbarUpdate,
+      },
+    };
+    setNodes([initialNode]);
+    setEdges([]);
+    setNodeIdCounter(2);
+    setTimeout(() => saveToHistory(), 100);
+  }, [setNodes, setEdges, handleNodeLabelChange, handleToolbarUpdate, saveToHistory]);
+
+  // Check if flowchart has been modified (more than just a Start node or has edges)
+  const hasFlowchartChanges = nodes.length > 1 || edges.length > 0 || 
+    (nodes.length === 1 && nodes[0].type !== 'start');
 
   // Helper line logic
   const getHelperLines = useCallback((change, nodes) => {
@@ -1247,6 +1287,7 @@ const FlowchartEditorInner = ({
   const nodeTypeLabels = {
     start: 'Start',
     phase: 'Phase',
+    aktion: 'Aktion',
     label: 'Beschriftung',
     comment: 'Kommentar',
     positive: 'Positiv',
@@ -1257,15 +1298,132 @@ const FlowchartEditorInner = ({
     equal: 'Gleich',
   };
 
+  // Helper function to check if a position collides with existing nodes
+  const checkCollision = useCallback((x, y, nodeWidth, nodeHeight, existingNodes) => {
+    const padding = 30; // Increased padding around nodes to avoid overlap
+    for (const node of existingNodes) {
+      const existingWidth = node.width ?? node.measured?.width ?? 150;
+      const existingHeight = node.height ?? node.measured?.height ?? 40;
+      
+      // Check if rectangles overlap with padding
+      if (
+        x < node.position.x + existingWidth + padding &&
+        x + nodeWidth + padding > node.position.x &&
+        y < node.position.y + existingHeight + padding &&
+        y + nodeHeight + padding > node.position.y
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }, []);
+
+  // Find free position using spiral search from center
+  const findFreePosition = useCallback((centerX, centerY, nodeWidth, nodeHeight, existingNodes) => {
+    const step = 80; // Step size for spiral search
+    const maxRadius = 1000; // Maximum search radius
+    let radius = 0;
+    let angle = 0;
+    
+    // Start at center
+    let x = centerX - nodeWidth / 2;
+    let y = centerY - nodeHeight / 2;
+    
+    // Check center first
+    if (!checkCollision(x, y, nodeWidth, nodeHeight, existingNodes)) {
+      return { x, y };
+    }
+    
+    // Spiral search outward
+    while (radius < maxRadius) {
+      radius += step;
+      const positionsPerCircle = Math.max(8, Math.floor(radius / 20)); // More positions as radius increases
+      
+      for (let i = 0; i < positionsPerCircle; i++) {
+        angle = (i * Math.PI * 2) / positionsPerCircle;
+        x = centerX - nodeWidth / 2 + Math.cos(angle) * radius;
+        y = centerY - nodeHeight / 2 + Math.sin(angle) * radius;
+        
+        if (!checkCollision(x, y, nodeWidth, nodeHeight, existingNodes)) {
+          return { x, y };
+        }
+      }
+    }
+    
+    // Fallback: return center position (will overlap but better than random)
+    return { x: centerX - nodeWidth / 2, y: centerY - nodeHeight / 2 };
+  }, [checkCollision]);
+
   // Add node function
   const addNode = useCallback((type, position = null) => {
+    let finalPosition;
+    
+    if (position) {
+      // Use provided position (e.g., from drag & drop)
+      finalPosition = position;
+    } else {
+      // Calculate center of viewport
+      if (!reactFlowInstance || !reactFlowWrapper.current) {
+        // Fallback if reactFlowInstance not ready
+        finalPosition = {
+          x: Math.random() * 300 + 100,
+          y: Math.random() * 300 + 100,
+        };
+      } else {
+        const viewport = reactFlowWrapper.current.getBoundingClientRect();
+        const centerX = viewport.width / 2;
+        const centerY = viewport.height / 2;
+        
+        // Convert screen coordinates to flow coordinates
+        const flowPosition = reactFlowInstance.screenToFlowPosition({
+          x: centerX,
+          y: centerY,
+        });
+        
+        // Default node dimensions
+        const nodeWidth = 150;
+        const nodeHeight = 40;
+        
+        // Use current nodes state to check collisions and find free position
+        setNodes((currentNodes) => {
+          const freePosition = findFreePosition(
+            flowPosition.x,
+            flowPosition.y,
+            nodeWidth,
+            nodeHeight,
+            currentNodes
+          );
+          
+          const newNode = {
+            id: `${nodeIdCounter}`,
+            type,
+            position: freePosition,
+            data: {
+              label: nodeTypeLabels[type] || type.charAt(0).toUpperCase() + type.slice(1),
+              onChange: (newLabel) => handleNodeLabelChange(`${nodeIdCounter}`, newLabel),
+              onToolbarUpdate: handleToolbarUpdate,
+            },
+          };
+          
+          // Update nodeIdCounter after adding node
+          setTimeout(() => {
+            setNodeIdCounter((prev) => prev + 1);
+            saveToHistory();
+          }, 100);
+          
+          return [...currentNodes, newNode];
+        });
+        
+        // Return early since setNodes handles the update
+        return;
+      }
+    }
+
+    // For drag & drop or fallback position
     const newNode = {
       id: `${nodeIdCounter}`,
       type,
-      position: position || {
-        x: Math.random() * 300 + 100,
-        y: Math.random() * 300 + 100,
-      },
+      position: finalPosition,
       data: {
         label: nodeTypeLabels[type] || type.charAt(0).toUpperCase() + type.slice(1),
         onChange: (newLabel) => handleNodeLabelChange(`${nodeIdCounter}`, newLabel),
@@ -1276,7 +1434,7 @@ const FlowchartEditorInner = ({
     setNodes((nds) => [...nds, newNode]);
     setNodeIdCounter((prev) => prev + 1);
     setTimeout(() => saveToHistory(), 100);
-  }, [nodeIdCounter, setNodes, handleNodeLabelChange, handleToolbarUpdate, saveToHistory]);
+  }, [nodeIdCounter, setNodes, handleNodeLabelChange, handleToolbarUpdate, saveToHistory, reactFlowInstance, findFreePosition]);
 
   // Handle drop from sidebar
   const onDragOver = useCallback((event) => {
@@ -1328,6 +1486,7 @@ const FlowchartEditorInner = ({
     const nodeStyles = {
       start: { fill: '#E8FAF9', stroke: '#47D1C6', textColor: '#47D1C6', strokeStyle: 'solid' },
       phase: { fill: '#E5F2FF', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
+      aktion: { fill: '#FFFFFF', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
       positive: { fill: '#ECF9EB', stroke: '#52C41A', textColor: '#52C41A', strokeStyle: 'solid' },
       negative: { fill: '#FCEAE8', stroke: '#EB5547', textColor: '#EB5547', strokeStyle: 'solid' },
       neutral: { fill: '#FFF7E6', stroke: '#FAAD14', textColor: '#B27700', strokeStyle: 'solid' },
@@ -1720,6 +1879,7 @@ const FlowchartEditorInner = ({
                 switch (node.type) {
                   case 'start': return accentColor;
                   case 'phase': return '#003366';
+                  case 'aktion': return '#003366';
                   case 'positive': return '#52C41A';
                   case 'negative': return '#EB5547';
                   case 'neutral': return '#B27700';
@@ -1859,21 +2019,21 @@ const FlowchartEditorInner = ({
         <div className="flowchart-toolbar-container">
           {/* Top row: Tools and Actions (gray, smaller) */}
           <div className="flowchart-toolbar-actions">
-            {/* Delete */}
-            <button 
-              onClick={handleDeleteSelected} 
-              disabled={!hasSelection} 
-              title="Löschen"
-              className="flowchart-toolbar-btn"
-            >
-              <Trash size={16} weight="regular" />
-            </button>
             <button 
               onClick={() => setInteractionMode('eraser')} 
               title="Radierer (E)"
               className={`flowchart-toolbar-btn ${interactionMode === 'eraser' ? 'active' : ''}`}
             >
               <EraserIcon size={16} weight="regular" />
+            </button>
+            {/* Reset Flowchart */}
+            <button 
+              onClick={handleResetFlowchart} 
+              disabled={!hasFlowchartChanges}
+              title="Flowchart zurücksetzen"
+              className="flowchart-toolbar-btn"
+            >
+              <Trash size={16} weight="regular" />
             </button>
             <div className="flowchart-toolbar-separator" />
             {/* Undo/Redo */}
@@ -1935,6 +2095,22 @@ const FlowchartEditorInner = ({
                 <div className="flowchart-toolbar-group">
                   {group.items.map((config) => {
                     const Icon = config.icon;
+                    // Custom icons with letters for Phase and Aktion
+                    const renderIcon = () => {
+                      if (config.type === 'phase' || config.type === 'aktion') {
+                        const letter = config.type === 'phase' ? 'P' : 'A';
+                        return (
+                          <div className="flowchart-toolbar-letter-icon" style={{ 
+                            color: config.color,
+                            borderColor: config.color,
+                            background: config.bgColor,
+                          }}>
+                            {letter}
+                          </div>
+                        );
+                      }
+                      return <Icon size={20} weight="regular" style={{ color: config.color }} />;
+                    };
                     return (
                       <div
                         key={config.type}
@@ -1951,7 +2127,7 @@ const FlowchartEditorInner = ({
                           '--node-bg': config.bgColor,
                         }}
                       >
-                        <Icon size={20} weight="regular" style={{ color: config.color }} />
+                        {renderIcon()}
                       </div>
                     );
                   })}

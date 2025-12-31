@@ -128,6 +128,17 @@
   font-weight: 400;
 }
 
+/* Aktion Node - Dark Blue with White Background */
+.flowchart-node-aktion {
+  border-color: #003366;
+  background: #FFFFFF;
+}
+
+.flowchart-node-aktion .flowchart-node-input {
+  color: #003366;
+  font-weight: 400;
+}
+
 /* Label Node - No border, just text */
 .flowchart-node-label {
   border: none;
@@ -444,6 +455,10 @@
 }
 
 .flowchart-node-phase .flowchart-node-static-text {
+  color: #003366;
+}
+
+.flowchart-node-aktion .flowchart-node-static-text {
   color: #003366;
 }
 

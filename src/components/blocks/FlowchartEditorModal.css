@@ -259,7 +259,7 @@
 .flowchart-toolbar-group {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 0;
 }
 
 /* Separator between groups */
@@ -293,6 +293,21 @@
 .flowchart-toolbar-node-item:active {
   cursor: grabbing;
   transform: scale(0.95);
+}
+
+/* Letter icon for Phase (P) and Aktion (A) */
+.flowchart-toolbar-letter-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1.2px solid;
+  border-radius: 3px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 /* Select mode cursor for canvas */
@@ -430,6 +445,12 @@
   .flowchart-toolbar-node-item svg {
     width: 18px;
     height: 18px;
+  }
+  
+  .flowchart-toolbar-letter-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
   }
 }
 
@@ -704,6 +725,10 @@
 }
 
 .flowchart-node-phase .flowchart-node-tiptap-editor {
+  color: #003366;
+}
+
+.flowchart-node-aktion .flowchart-node-tiptap-editor {
   color: #003366;
 }
 
