@@ -60,21 +60,22 @@
 
 /* Custom Node Styles */
 .flowchart-node {
-  padding: 4px 8px;
+  --node-border-color: transparent;
+  padding: 4px 6px;
   border-radius: 4px;
-  border: 1.5px solid;
+  border: none;
   background: white;
   font-family: 'Roboto', sans-serif;
   font-size: 11px; /* Same as body text in ContentBox */
   min-width: auto;
   width: auto;
   display: inline-block;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 0 0 1px var(--node-border-color), 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
 }
 
 .flowchart-node.selected {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 0 0 1px var(--node-border-color), 0 4px 12px rgba(0, 0, 0, 0.15);
   transform: scale(1.02);
 }
 
@@ -108,7 +109,7 @@
 
 /* Start Node - Teal/Cyan */
 .flowchart-node-start {
-  border-color: #47D1C6;
+  --node-border-color: #47D1C6;
   background: #E8FAF9;
 }
 
@@ -119,7 +120,7 @@
 
 /* Phase Node - Dark Blue */
 .flowchart-node-phase {
-  border-color: #003366;
+  --node-border-color: #003366;
   background: #E5F2FF;
 }
 
@@ -130,7 +131,7 @@
 
 /* Aktion Node - Dark Blue with White Background */
 .flowchart-node-aktion {
-  border-color: #003366;
+  --node-border-color: #003366;
   background: #FFFFFF;
 }
 
@@ -144,7 +145,7 @@
   border: none;
   background: transparent;
   box-shadow: none;
-  padding: 2px 4px;
+  padding: 4px 6px;
   min-width: auto;
 }
 
@@ -156,9 +157,14 @@
 
 /* Comment Node - Blue dashed border */
 .flowchart-node-comment {
-  border-color: #3399FF;
-  border-style: dashed;
+  --node-border-color: transparent;
+  border: 1px dashed #3399FF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   background: white;
+}
+
+.flowchart-node-comment.selected {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .flowchart-node-comment .flowchart-node-input {
@@ -168,7 +174,7 @@
 
 /* Positive Node - Green */
 .flowchart-node-positive {
-  border-color: #52C41A;
+  --node-border-color: #52C41A;
   background: #ECF9EB;
 }
 
@@ -179,7 +185,7 @@
 
 /* Negative Node - Red */
 .flowchart-node-negative {
-  border-color: #EB5547;
+  --node-border-color: #EB5547;
   background: #FCEAE8;
 }
 
@@ -190,7 +196,7 @@
 
 /* Neutral Node - Yellow/Orange */
 .flowchart-node-neutral {
-  border-color: #FAAD14;
+  --node-border-color: #FAAD14;
   background: #FFF7E6;
 }
 
@@ -201,7 +207,7 @@
 
 /* High Node - Dark Blue border with red arrow icon */
 .flowchart-node-high {
-  border-color: #003366;
+  --node-border-color: #003366;
   background: white;
 }
 
@@ -212,7 +218,7 @@
 
 /* Low Node - Dark Blue border with blue arrow icon */
 .flowchart-node-low {
-  border-color: #003366;
+  --node-border-color: #003366;
   background: white;
 }
 
@@ -223,7 +229,7 @@
 
 /* Equal Node - Dark Blue border with yellow arrow icon */
 .flowchart-node-equal {
-  border-color: #003366;
+  --node-border-color: #003366;
   background: white;
 }
 
@@ -315,12 +321,12 @@
 /* Edge Styles */
 .react-flow__edge-path {
   stroke: #003366;
-  stroke-width: 1.5;
+  stroke-width: 1;
 }
 
 .react-flow__edge.selected .react-flow__edge-path {
   stroke: #47D1C6;
-  stroke-width: 2;
+  stroke-width: 1.5;
 }
 
 .react-flow__edge .react-flow__edge-path {

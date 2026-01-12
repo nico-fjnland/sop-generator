@@ -70,6 +70,53 @@ async function generatePdfWithGotenberg(html: string, gotenbergUrl: string): Pro
 }
 
 /**
+ * Extracts complete .a4-page div elements from HTML by counting opening/closing tags
+ * This handles nested divs correctly unlike regex
+ * @param html - The HTML content
+ * @returns Array of HTML strings, one per .a4-page element
+ */
+function extractA4Pages(html: string): string[] {
+  const pages: string[] = []
+  const a4PagePattern = /<div[^>]*class="[^"]*a4-page[^"]*"[^>]*>/gi
+  let match
+  
+  while ((match = a4PagePattern.exec(html)) !== null) {
+    const startIndex = match.index
+    const startTag = match[0]
+    
+    // Count opening and closing div tags to find the matching closing tag
+    let depth = 1
+    let currentIndex = startIndex + startTag.length
+    
+    while (depth > 0 && currentIndex < html.length) {
+      const nextOpenDiv = html.indexOf('<div', currentIndex)
+      const nextCloseDiv = html.indexOf('</div>', currentIndex)
+      
+      // If no more tags found, break
+      if (nextCloseDiv === -1) break
+      
+      // If next open div comes before next close div, we're going deeper
+      if (nextOpenDiv !== -1 && nextOpenDiv < nextCloseDiv) {
+        depth++
+        currentIndex = nextOpenDiv + 4 // Move past '<div'
+      } else {
+        depth--
+        if (depth === 0) {
+          // Found the matching closing tag
+          const endIndex = nextCloseDiv + 6 // Include '</div>'
+          const pageHtml = html.substring(startIndex, endIndex)
+          pages.push(pageHtml)
+          break
+        }
+        currentIndex = nextCloseDiv + 6 // Move past '</div>'
+      }
+    }
+  }
+  
+  return pages
+}
+
+/**
  * Generates screenshots from HTML using Gotenberg for Word export
  * Each .a4-page element becomes a separate screenshot
  * @param html - The HTML content
@@ -79,13 +126,8 @@ async function generatePdfWithGotenberg(html: string, gotenbergUrl: string): Pro
 async function generateScreenshotsWithGotenberg(html: string, gotenbergUrl: string): Promise<Uint8Array[]> {
   const screenshots: Uint8Array[] = []
   
-  // Parse HTML to find all .a4-page elements
-  // We need to create separate requests for each page since Gotenberg
-  // takes screenshots of the full page, not individual elements
-  
-  // First, let's try to extract individual pages from the HTML
-  // We'll wrap each page in its own HTML document
-  const pageMatches = html.match(/<div[^>]*class="[^"]*a4-page[^"]*"[^>]*>[\s\S]*?<\/div>(?=\s*<div[^>]*class="[^"]*a4-page|$)/gi)
+  // Extract all .a4-page elements from HTML (handles nested divs correctly)
+  const pageMatches = extractA4Pages(html)
   
   if (!pageMatches || pageMatches.length === 0) {
     // Fallback: take one screenshot of the entire page

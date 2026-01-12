@@ -196,7 +196,7 @@ function FloatingEdge({ id, source, target, markerEnd, style, data, selected }) 
         className="react-flow__edge-path"
         d={edgePath}
         markerEnd={markerEnd}
-        style={style}
+        style={{ ...style, strokeWidth: 1 }}
       />
       {/* Invisible wider path for easier clicking */}
       <path
@@ -1317,7 +1317,7 @@ const FlowchartEditorInner = ({
           color: '#003366',
         },
         style: { 
-          strokeWidth: 1.5,
+          strokeWidth: 1,
           stroke: '#003366',
         },
       }));
@@ -1335,7 +1335,7 @@ const FlowchartEditorInner = ({
             color: '#003366',
           },
           style: { 
-            strokeWidth: 1.5,
+            strokeWidth: 1,
             stroke: '#003366',
           },
         };
@@ -1382,7 +1382,7 @@ const FlowchartEditorInner = ({
                 color: '#003366',
               },
               style: {
-                strokeWidth: 1.5,
+                strokeWidth: 1,
                 stroke: '#003366',
               },
             }))
@@ -1689,7 +1689,7 @@ const FlowchartEditorInner = ({
             rx="${rx}" 
             fill="${style.fill}" 
             stroke="${style.stroke}" 
-            stroke-width="1.5"
+            stroke-width="1"
             ${strokeDasharray}
           />
           <text 
@@ -1784,7 +1784,7 @@ const FlowchartEditorInner = ({
             d="${path}" 
             fill="none" 
             stroke="#003366" 
-            stroke-width="1.5"
+            stroke-width="1"
             marker-end="url(#arrowhead)"
           />
           ${label ? `
@@ -1949,7 +1949,7 @@ const FlowchartEditorInner = ({
             type: 'floating',
             animated: false,
             style: { 
-              strokeWidth: 1.5,
+              strokeWidth: 1,
               stroke: '#003366',
             },
             markerEnd: {

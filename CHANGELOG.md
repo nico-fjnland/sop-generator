@@ -7,6 +7,32 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.6] - 2026-01-09
+
+### 🔧 Fixed
+
+- **Flowchart Viewport-Persistenz:**
+  - Viewport-Position (x, y, zoom) wird jetzt beim Speichern persistiert
+  - Beim Neuladen der Seite wird die gespeicherte Position wiederhergestellt
+  - Verhindert, dass Flowcharts nach dem Neuladen aus der vorgesehenen Box "springen"
+  - Viewport wird automatisch aktualisiert, wenn sich die Position ändert
+
+- **Word Export: Letzte Seite fehlte:**
+  - Word-Export erfasst jetzt alle Seiten korrekt, einschließlich der letzten Seite mit Flowchart
+  - Das Problem trat auf, weil die Regex für die Seitenerkennung verschachtelte divs nicht korrekt verarbeitete
+  - Neue `extractA4Pages` Funktion verwendet Tag-Zähler statt fehlerhafter Regex
+  - PDF-Export war nicht betroffen, da dieser die gesamte HTML direkt konvertiert
+
+### 🔧 Technical
+
+- `FlowchartPreview.js`: Viewport-Position wird in `updateViewport` gespeichert und über `onViewportChange` Callback an Parent weitergegeben
+- `FlowchartPreview.js`: `onInit` prüft auf gespeicherte Viewport-Position und stellt sie sofort wieder her, falls vorhanden
+- `FlowchartBlock.js`: Viewport wird im Flowchart-Datenobjekt gespeichert (`viewport: { x, y, zoom }`)
+- `FlowchartBlock.js`: `handleViewportChange` Callback speichert Viewport-Änderungen automatisch
+- `supabase/functions/export-document/index.ts`: Ersetzt fehlerhafte Regex durch `extractA4Pages` Funktion, die Öffnungs- und Schließungstags zählt, um verschachtelte `.a4-page` Elemente korrekt zu extrahieren
+
+---
+
 ## [0.9.5] - 2026-01-09
 
 ### 🔧 Fixed

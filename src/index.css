@@ -44,7 +44,8 @@
     scrollbar-gutter: stable; /* Modern browsers: reserviert Platz für Scrollbar ohne sie immer anzuzeigen */
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background: transparent; /* Allow AnimatedBackgroundGradient to show through */
     margin: 0;
     font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen',
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',

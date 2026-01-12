@@ -356,12 +356,12 @@
 /* Edge styles */
 .flowchart-editor-modal .react-flow__edge-path {
   stroke: #003366;
-  stroke-width: 1.5;
+  stroke-width: 1;
 }
 
 .flowchart-editor-modal .react-flow__edge.selected .react-flow__edge-path {
   stroke: var(--accent-color, #47D1C6);
-  stroke-width: 2;
+  stroke-width: 1.5;
 }
 
 /* Custom Dot Background - moves with viewport like tldraw/Miro */

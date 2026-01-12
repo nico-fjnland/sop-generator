@@ -23,6 +23,7 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
   const [dynamicHeight, setDynamicHeight] = useState(MIN_HEIGHT);
   const [containerWidth, setContainerWidth] = useState(500);
   const [accentColor, setAccentColor] = useState(DEFAULT_COLOR);
+  const [savedViewport, setSavedViewport] = useState(null);
   const containerRef = useRef(null);
   
   // Get accent color from CSS variable
@@ -89,20 +90,30 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
       if (content.staticSvg) {
         setStaticSvg(content.staticSvg);
       }
+      if (content.viewport) {
+        setSavedViewport(content.viewport);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Save changes to parent
-  const saveToParent = useCallback((newNodes, newEdges, newNodeIdCounter, newStaticSvg = null) => {
+  const saveToParent = useCallback((newNodes, newEdges, newNodeIdCounter, newStaticSvg = null, newViewport = null) => {
     const flowData = {
       nodes: newNodes,
       edges: newEdges,
       nodeIdCounter: newNodeIdCounter,
       staticSvg: newStaticSvg,
+      viewport: newViewport,
     };
     onChange(flowData);
   }, [onChange]);
+  
+  // Handle viewport change from preview
+  const handleViewportChange = useCallback((viewport) => {
+    setSavedViewport(viewport);
+    saveToParent(nodes, edges, nodeIdCounter, staticSvg, viewport);
+  }, [nodes, edges, nodeIdCounter, staticSvg, saveToParent]);
 
   // Handle save from modal
   const handleSaveFromModal = useCallback((data) => {
@@ -137,6 +148,8 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
             onHeightChange={handleHeightChange}
             onEditClick={handleEditClick}
             accentColor={accentColor}
+            savedViewport={savedViewport}
+            onViewportChange={handleViewportChange}
           />
         </ReactFlowProvider>
       </div>

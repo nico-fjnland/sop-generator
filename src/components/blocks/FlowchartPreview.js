@@ -171,7 +171,7 @@ function FloatingEdgePreview({ id, source, target, markerEnd, style, data }) {
         className="react-flow__edge-path"
         d={edgePath}
         markerEnd={markerEnd}
-        style={style}
+        style={{ ...style, strokeWidth: 1 }}
       />
       {hasLabel && (
         <EdgeLabelRenderer>
@@ -380,7 +380,7 @@ const nodeTypes = {
   equal: StaticEqualNode,
 };
 
-const FlowchartPreviewInner = ({ nodes, edges, containerWidth, onHeightChange, onEditClick, accentColor }) => {
+const FlowchartPreviewInner = ({ nodes, edges, containerWidth, onHeightChange, onEditClick, accentColor, savedViewport, onViewportChange }) => {
   const reactFlowInstance = useRef(null);
   const hasInitialized = useRef(false);
   const lastHeightRef = useRef(MIN_HEIGHT);
@@ -439,12 +439,19 @@ const FlowchartPreviewInner = ({ nodes, edges, containerWidth, onHeightChange, o
     // Offset Y: Start from top with some padding
     const offsetY = PADDING / 2 - currentBounds.minY * currentZoom;
     
-    instance.setViewport({
+    const viewport = {
       x: offsetX,
       y: offsetY,
       zoom: currentZoom,
-    });
-  }, [displayNodes.length, containerWidth]);
+    };
+    
+    instance.setViewport(viewport);
+    
+    // Notify parent about viewport change so it can be saved
+    if (onViewportChange) {
+      onViewportChange(viewport);
+    }
+  }, [displayNodes.length, containerWidth, measuredNodes.length, displayNodes.length, onViewportChange]);
 
   // Update viewport when measured nodes change (after ReactFlow measures them)
   useEffect(() => {
@@ -458,6 +465,14 @@ const FlowchartPreviewInner = ({ nodes, edges, containerWidth, onHeightChange, o
   // Initialize viewport on first load
   const onInit = useCallback((instance) => {
     reactFlowInstance.current = instance;
+    
+    // If we have a saved viewport, restore it immediately
+    if (savedViewport && savedViewport.x !== undefined && savedViewport.y !== undefined && savedViewport.zoom !== undefined) {
+      hasInitialized.current = true;
+      instance.setViewport(savedViewport);
+      return;
+    }
+    
     // Delay to allow nodes to be measured, then update viewport
     setTimeout(() => {
       hasInitialized.current = true;
@@ -468,7 +483,7 @@ const FlowchartPreviewInner = ({ nodes, edges, containerWidth, onHeightChange, o
         updateViewport(instance, newBounds, zoom);
       }
     }, 150);
-  }, [containerWidth, updateViewport]);
+  }, [containerWidth, updateViewport, displayNodes.length, savedViewport]);
 
   return (
     <div 
