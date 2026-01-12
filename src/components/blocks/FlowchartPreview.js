@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useEffect, useRef } from 'react';
 import ReactFlow, {
   Position,
   Handle,
@@ -12,6 +12,58 @@ import { TreeStructure, ArrowCircleUp, ArrowCircleDown, ArrowCircleRight } from 
 
 // Default color for Algorithmus category
 const ALGORITHMUS_COLOR = '#47D1C6';
+
+// Constants for height calculation
+const MIN_HEIGHT = 200; // Minimum height for empty/small flowcharts
+const PADDING = 40; // Padding around the flowchart content
+
+// Calculate the bounding box of all nodes
+const calculateFlowchartBounds = (nodes) => {
+  if (!nodes || nodes.length === 0) {
+    return { width: 0, height: 0, minX: 0, minY: 0 };
+  }
+  
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  
+  nodes.forEach(node => {
+    const width = node.width || node.measured?.width || 150;
+    const height = node.height || node.measured?.height || 40;
+    minX = Math.min(minX, node.position.x);
+    minY = Math.min(minY, node.position.y);
+    maxX = Math.max(maxX, node.position.x + width);
+    maxY = Math.max(maxY, node.position.y + height);
+  });
+  
+  const contentPadding = 20;
+  return {
+    width: maxX - minX + contentPadding * 2,
+    height: maxY - minY + contentPadding * 2,
+    minX: minX - contentPadding,
+    minY: minY - contentPadding,
+  };
+};
+
+// Calculate zoom level and required height
+// Default zoom is 1.0 (no scaling), only scale down if flowchart is wider than container
+const calculateZoomAndHeight = (nodes, containerWidth) => {
+  const bounds = calculateFlowchartBounds(nodes);
+  
+  if (bounds.width === 0) {
+    return { zoom: 1, height: MIN_HEIGHT, bounds };
+  }
+  
+  // Standard: Zoom 1.0 (no scaling)
+  // Only scale down if flowchart is wider than container
+  const zoom = bounds.width > containerWidth 
+    ? containerWidth / bounds.width  // Scale down to fit width
+    : 1.0;                           // Keep natural size
+  
+  // Calculate height based on zoom
+  const scaledHeight = bounds.height * zoom;
+  const requiredHeight = Math.max(MIN_HEIGHT, scaledHeight + PADDING);
+  
+  return { zoom, height: requiredHeight, bounds };
+};
 
 // Helper function to get the position on the node edge for a given side
 function getHandleCoordsByPosition(node, handlePosition) {
@@ -328,7 +380,18 @@ const nodeTypes = {
   equal: StaticEqualNode,
 };
 
-const FlowchartPreviewInner = ({ nodes, edges, height, onEditClick, accentColor }) => {
+const FlowchartPreviewInner = ({ nodes, edges, containerWidth, onHeightChange, onEditClick, accentColor }) => {
+  const reactFlowInstance = useRef(null);
+  const hasInitialized = useRef(false);
+  const lastHeightRef = useRef(MIN_HEIGHT);
+  
+  // Get measured nodes from ReactFlow's internal store
+  // This updates when nodes are measured after rendering
+  const measuredNodes = useStore(useCallback((state) => {
+    const nodeInternals = state.nodeInternals;
+    if (!nodeInternals || nodeInternals.size === 0) return [];
+    return Array.from(nodeInternals.values());
+  }, []));
   
   // Memoize nodes and edges to prevent unnecessary re-renders
   const displayNodes = useMemo(() => {
@@ -344,26 +407,73 @@ const FlowchartPreviewInner = ({ nodes, edges, height, onEditClick, accentColor 
 
   const buttonColor = accentColor || ALGORITHMUS_COLOR;
 
-  // NOTE: Automatic SVG generation removed - reactFlowInstance.toSvg is not available in React Flow v11
-  // Static SVG is now generated manually in FlowchartEditorModal when user saves
+  // Calculate zoom and height based on MEASURED flowchart bounds and container width
+  // Uses measured nodes from ReactFlow store for accurate dimensions
+  const { zoom: calculatedZoom, height: calculatedHeight, bounds } = useMemo(() => {
+    // Use measured nodes if available, otherwise fall back to display nodes
+    const nodesForCalculation = measuredNodes.length > 0 ? measuredNodes : displayNodes;
+    return calculateZoomAndHeight(nodesForCalculation, containerWidth || 500);
+  }, [measuredNodes, displayNodes, containerWidth]);
 
-  // Fit view on init - use the instance passed to the callback
-  const onInit = useCallback((instance) => {
-    if (displayNodes.length > 0 && instance) {
-      setTimeout(() => {
-        instance.fitView({ 
-          padding: 0.1, 
-          minZoom: 0.1, 
-          maxZoom: 1 
-        });
-      }, 50);
+  // Notify parent about required height (only when it actually changes)
+  useEffect(() => {
+    if (onHeightChange && calculatedHeight > 0 && calculatedHeight !== lastHeightRef.current) {
+      lastHeightRef.current = calculatedHeight;
+      onHeightChange(calculatedHeight);
     }
-  }, [displayNodes.length]);
+  }, [calculatedHeight, onHeightChange]);
+
+  // Set viewport manually instead of using fitView
+  // This ensures zoom 1.0 by default, only scaling down when needed
+  const updateViewport = useCallback((instance, currentBounds, currentZoom) => {
+    if (!instance || displayNodes.length === 0) return;
+    
+    const effectiveWidth = containerWidth || 500;
+    
+    // Calculate offset to center the flowchart horizontally
+    // At zoom 1.0, we want the flowchart centered in the container
+    // At lower zoom, we want the scaled flowchart centered
+    const scaledContentWidth = currentBounds.width * currentZoom;
+    const offsetX = (effectiveWidth - scaledContentWidth) / 2 - currentBounds.minX * currentZoom;
+    
+    // Offset Y: Start from top with some padding
+    const offsetY = PADDING / 2 - currentBounds.minY * currentZoom;
+    
+    instance.setViewport({
+      x: offsetX,
+      y: offsetY,
+      zoom: currentZoom,
+    });
+  }, [displayNodes.length, containerWidth]);
+
+  // Update viewport when measured nodes change (after ReactFlow measures them)
+  useEffect(() => {
+    if (reactFlowInstance.current && hasInitialized.current && measuredNodes.length > 0) {
+      // Recalculate with measured nodes
+      const { zoom, bounds: newBounds } = calculateZoomAndHeight(measuredNodes, containerWidth || 500);
+      updateViewport(reactFlowInstance.current, newBounds, zoom);
+    }
+  }, [measuredNodes, containerWidth, updateViewport]);
+
+  // Initialize viewport on first load
+  const onInit = useCallback((instance) => {
+    reactFlowInstance.current = instance;
+    // Delay to allow nodes to be measured, then update viewport
+    setTimeout(() => {
+      hasInitialized.current = true;
+      // Get fresh measured nodes and calculate viewport
+      const nodeInternals = instance.getNodes();
+      if (nodeInternals.length > 0) {
+        const { zoom, bounds: newBounds } = calculateZoomAndHeight(nodeInternals, containerWidth || 500);
+        updateViewport(instance, newBounds, zoom);
+      }
+    }, 150);
+  }, [containerWidth, updateViewport]);
 
   return (
     <div 
       className="flowchart-preview-container" 
-      style={{ height: `${height}px` }}
+      style={{ height: `${calculatedHeight}px` }}
     >
       <div className="flowchart-preview-wrapper">
         <ReactFlow
@@ -379,18 +489,18 @@ const FlowchartPreviewInner = ({ nodes, edges, height, onEditClick, accentColor 
           zoomOnPinch={false}
           zoomOnDoubleClick={false}
           preventScrolling={false}
-          fitView
-          fitViewOptions={{ 
-            padding: 0.1, 
-            minZoom: 0.1, 
-            maxZoom: 1,
-            includeHiddenNodes: false,
-          }}
+          // Don't use fitView - we control viewport manually
+          fitView={false}
           onInit={onInit}
           proOptions={{ hideAttribution: true }}
           className="flowchart-preview-canvas"
         >
-          <Background />
+          <Background 
+            variant="dots"
+            gap={14}
+            size={1}
+            color="rgba(0, 0, 0, 0.1)"
+          />
         </ReactFlow>
         
         {/* Edit Overlay */}

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useState, useLayoutEffect } from 'react';
 import { Check, Warning, X, Info } from '@phosphor-icons/react';
 import { Spinner } from './ui/spinner';
 import { useStatus } from '../contexts/StatusContext';
@@ -20,6 +20,9 @@ const STATUS_GRADIENT_COLORS = {
   yellow: ['#FAAD14', '#FFCC5C', '#FAAD14'],
 };
 
+// Padding around the header content
+const HEADER_PADDING = 16; // 8px top + 8px bottom
+
 /**
  * StatusIndicator - A wrapper component that displays status as a frame around its children
  * The frame expands from behind the toolbar with status text in the top border
@@ -27,6 +30,16 @@ const STATUS_GRADIENT_COLORS = {
  */
 const StatusIndicator = ({ children }) => {
   const { currentStatus, isVisible, isHiding, handleConfirm, handleCancel } = useStatus();
+  const headerRef = useRef(null);
+  const [headerHeight, setHeaderHeight] = useState(24); // Default min-height
+
+  // Measure header height when content changes
+  useLayoutEffect(() => {
+    if (headerRef.current && isVisible) {
+      const height = headerRef.current.offsetHeight;
+      setHeaderHeight(height);
+    }
+  }, [currentStatus?.message, isVisible]);
 
   const getStatusIcon = () => {
     if (!currentStatus) return null;
@@ -74,12 +87,18 @@ const StatusIndicator = ({ children }) => {
 
   const isConfirmDialog = currentStatus?.isConfirm;
 
+  // Calculate dynamic frame height based on header content
+  const frameStyle = {
+    backgroundColor: getBackgroundColor(),
+    '--header-height': `${headerHeight + HEADER_PADDING}px`,
+  };
+
   return (
     <div className="status-indicator-wrapper">
       {/* The expanding frame behind the toolbar */}
       <div 
         className={`status-frame ${isVisible ? 'visible' : ''} ${isHiding ? 'hiding' : ''} ${isConfirmDialog ? 'confirm-dialog' : ''}`}
-        style={{ backgroundColor: getBackgroundColor() }}
+        style={frameStyle}
       >
         {/* Animated gradient background */}
         <div className="status-gradient-container">
@@ -90,7 +109,7 @@ const StatusIndicator = ({ children }) => {
           />
         </div>
         {/* Status text area at the top */}
-        <div className="status-header">
+        <div className="status-header" ref={headerRef}>
           <span className="status-icon">
             {getStatusIcon()}
           </span>

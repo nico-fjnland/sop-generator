@@ -7,6 +7,78 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.5] - 2026-01-09
+
+### 🔧 Fixed
+
+- **Flowchart Editor Grid-Verbesserungen:**
+  - Grid bewegt sich jetzt korrekt beim Panning mit dem Canvas (wie bei tldraw/Miro)
+  - Grid bleibt beim Zoomen mit den Nodes synchronisiert (korrekte Offset-Berechnung mit positivem Modulo)
+  - Engmaschiges 14x14px Raster für präzise Node-Ausrichtung
+
+### 🗑️ Removed
+
+- **Client-seitiger PDF/Word Export entfernt:**
+  - Der clientseitige Fallback-Export wurde vollständig entfernt
+  - PDF und Word Export erfolgen jetzt ausschließlich über den serverseitigen Gotenberg-Service
+  - Bei Server-Nichtverfügbarkeit wird eine kontextbezogene Fehlermeldung angezeigt
+
+- **Flowchart Editor: "Alles anzeigen" Button entfernt**
+
+### ✨ Improved
+
+- **Kontextbezogene Export-Fehlermeldungen:**
+  - Keine Internetverbindung: "Keine Internetverbindung. Bitte überprüfe deine Verbindung..."
+  - Server nicht erreichbar: "Der Export-Server ist nicht erreichbar..."
+  - Timeout: "Der Export hat zu lange gedauert..."
+  - Authentifizierungsfehler: "Du bist nicht angemeldet oder deine Sitzung ist abgelaufen..."
+  - Rate-Limiting: "Zu viele Anfragen. Bitte warte einen Moment..."
+  - Dokument zu groß: "Das Dokument ist zu groß für den Export..."
+  - Server-Fehler: "Der Export-Server hat einen Fehler gemeldet..."
+
+- **Flowchart-Darstellung in ContentBox optimiert:**
+  - Node-Textgröße auf 11px angepasst (entspricht Fließtext in anderen Boxen)
+  - Dynamische Höhenanpassung der ContentBox basierend auf Flowchart-Inhalt
+  - Flowchart wird nur skaliert, wenn es breiter als die Box ist (Standard: Zoom 1.0)
+  - Manueller Resize-Handle entfernt (Höhe passt sich automatisch an)
+  - Flowcharts werden nicht mehr an den Rändern abgeschnitten
+
+### 📦 Dependencies Removed
+
+- `docx` - Wurde nur für clientseitigen Word-Export verwendet
+- `jspdf` - Wurde nur für clientseitigen PDF-Export verwendet
+- `html-to-image` - Wurde nur für clientseitige Screenshot-Erstellung verwendet
+
+### 🔧 Technical
+
+- `FlowchartEditorModal.js`: `CustomDotBackground`-Komponente mit korrekter Viewport-Synchronisation
+- `FlowchartEditorModal.js`: Mathematisch korrekte Pattern-Offset-Berechnung für Zoom und Pan
+- `exportUtils.js`: Stark vereinfacht, ~1000 Zeilen Code entfernt
+- Entfernte Funktionen: `exportAsWordClientSide`, `exportAsPdfClientSide`, `createPrintClone`, `removePrintClone`, `captureWithFallback`, `getHtmlToImageOptions`, `fetchFontCSS`, `waitForFonts`
+- `exportService.js`: Neue `ExportError`-Klasse mit Fehlercode und benutzerfreundlicher Meldung
+- `exportService.js`: Automatische Erkennung von Netzwerk-, Timeout-, Auth- und Server-Fehlern
+- `exportService.js`: 60-Sekunden Timeout für Export-Anfragen
+- `Editor.js`: Export-Handler zeigen jetzt die spezifische Fehlermeldung im StatusIndicator an
+- `StatusIndicator.js`: Dynamische Höhenberechnung basierend auf Inhalt (kein fester Wert mehr)
+- `StatusIndicator.css`: Längere Fehlermeldungen werden zweizeilig dargestellt, Frame-Höhe passt sich automatisch an
+- `FlowchartPreview.js`: Neue `calculateFlowchartBounds` und `calculateZoomAndHeight` Funktionen
+- `FlowchartPreview.js`: Manuelle Viewport-Steuerung statt automatischem `fitView`
+- `FlowchartPreview.js`: Verwendet `useStore` für gemessene Node-Dimensionen
+- `FlowchartBlock.js`: `containerWidth` via ResizeObserver gemessen
+- `FlowchartBlock.js`: Dynamische Höhe über `onHeightChange` Callback
+- `FlowchartBlock.css` + `FlowchartEditorModal.css`: Node font-size von 12px auf 11px geändert
+
+### 🎨 Flowchart Editor
+
+- **Doppelklick-zum-Editieren für Nodes:**
+  - Einfacher Klick auf Node: Node wird ausgewählt (zum Verschieben, Verbinden, Löschen)
+  - Doppelklick auf Node: Text-Editiermodus wird aktiviert
+  - Escape-Taste oder Klick außerhalb der Node: Editiermodus beenden
+  - Visuelles Feedback: Accent-farbiger Rahmen und subtiler Schatten im Editiermodus
+  - Standard UX-Pattern wie in Figma, Miro und draw.io
+
+---
+
 ## [0.9.4] - 2025-12-22
 
 ### ✨ Changed

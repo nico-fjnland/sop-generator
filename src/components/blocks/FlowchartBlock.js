@@ -12,13 +12,16 @@ const initialEdges = [];
 // Default algorithmus color
 const DEFAULT_COLOR = '#47D1C6';
 
+// Minimum height for the flowchart container
+const MIN_HEIGHT = 200;
+
 const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) => {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
   const [nodeIdCounter, setNodeIdCounter] = useState(2);
-  const [height, setHeight] = useState(450);
-  const [isResizing, setIsResizing] = useState(false);
+  const [dynamicHeight, setDynamicHeight] = useState(MIN_HEIGHT);
+  const [containerWidth, setContainerWidth] = useState(500);
   const [accentColor, setAccentColor] = useState(DEFAULT_COLOR);
   const containerRef = useRef(null);
   
@@ -32,6 +35,39 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
     }
   });
 
+  // Measure container width using ResizeObserver
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const measureWidth = () => {
+      if (containerRef.current) {
+        const width = containerRef.current.offsetWidth;
+        if (width > 0) {
+          setContainerWidth(width);
+        }
+      }
+    };
+
+    // Initial measurement
+    measureWidth();
+
+    // Set up ResizeObserver for dynamic updates
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const width = entry.contentRect.width;
+        if (width > 0) {
+          setContainerWidth(width);
+        }
+      }
+    });
+
+    resizeObserver.observe(containerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   // State for static SVG (used for print)
   const [staticSvg, setStaticSvg] = useState(null);
 
@@ -41,7 +77,6 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
       setNodes(content.nodes);
       setEdges(content.edges || []);
       setNodeIdCounter(content.nodeIdCounter || 2);
-      setHeight(content.height || 450);
       if (content.staticSvg) {
         setStaticSvg(content.staticSvg);
       }
@@ -50,12 +85,11 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
   }, []);
 
   // Save changes to parent
-  const saveToParent = useCallback((newNodes, newEdges, newNodeIdCounter, newHeight, newStaticSvg = null) => {
+  const saveToParent = useCallback((newNodes, newEdges, newNodeIdCounter, newStaticSvg = null) => {
     const flowData = {
       nodes: newNodes,
       edges: newEdges,
       nodeIdCounter: newNodeIdCounter,
-      height: newHeight,
       staticSvg: newStaticSvg,
     };
     onChange(flowData);
@@ -69,56 +103,29 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
     if (data.staticSvg) {
       setStaticSvg(data.staticSvg);
     }
-    saveToParent(data.nodes, data.edges, data.nodeIdCounter, height, data.staticSvg);
-  }, [height, saveToParent]);
-
-  // NOTE: Auto SVG generation removed - SVG is now generated manually in FlowchartEditorModal when user saves
+    saveToParent(data.nodes, data.edges, data.nodeIdCounter, data.staticSvg);
+  }, [saveToParent]);
 
   // Handle edit click
   const handleEditClick = useCallback(() => {
     setIsEditorOpen(true);
   }, []);
 
-  // Handle resize
-  const handleMouseDown = useCallback((e) => {
-    e.preventDefault();
-    setIsResizing(true);
+  // Handle height change from FlowchartPreview
+  const handleHeightChange = useCallback((newHeight) => {
+    setDynamicHeight(newHeight);
   }, []);
 
-  useEffect(() => {
-    if (!isResizing) return;
-
-    const handleMouseMove = (e) => {
-      setHeight((prevHeight) => {
-        const newHeight = Math.max(200, Math.min(1200, prevHeight + e.movementY));
-        return newHeight;
-      });
-    };
-
-    const handleMouseUp = () => {
-      setIsResizing(false);
-      // Save the new height
-      saveToParent(nodes, edges, nodeIdCounter, height);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isResizing, nodes, edges, nodeIdCounter, height, saveToParent]);
-
   return (
-    <div ref={containerRef} className="flowchart-block-container" style={{ height: `${height}px` }}>
+    <div ref={containerRef} className="flowchart-block-container" style={{ height: `${dynamicHeight}px` }}>
       {/* Preview with ReactFlowProvider - hidden in print */}
-      <div className="no-print">
+      <div className="no-print" style={{ height: '100%' }}>
         <ReactFlowProvider>
           <FlowchartPreview
             nodes={nodes}
             edges={edges}
-            height={height - 12} // Subtract resize handle height
+            containerWidth={containerWidth}
+            onHeightChange={handleHeightChange}
             onEditClick={handleEditClick}
             accentColor={accentColor}
           />
@@ -131,7 +138,7 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
           className="flowchart-static-print hidden print:block"
           style={{ 
             width: '100%', 
-            height: `${height - 12}px`,
+            height: `${dynamicHeight}px`,
             overflow: 'hidden',
           }}
           dangerouslySetInnerHTML={{ __html: staticSvg }}
@@ -144,7 +151,7 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
           className="flowchart-no-svg hidden print:flex"
           style={{ 
             width: '100%', 
-            height: `${height - 12}px`,
+            height: `${dynamicHeight}px`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -158,15 +165,6 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
           Flowchart: Bitte im Editor speichern, um es im Export anzuzeigen
         </div>
       )}
-      
-      {/* Resize Handle */}
-      <div 
-        className="flowchart-resize-handle no-print"
-        onMouseDown={handleMouseDown}
-        style={{ cursor: isResizing ? 'ns-resize' : 'ns-resize' }}
-      >
-        <div className="flowchart-resize-line" />
-      </div>
 
       {/* Editor Modal */}
       <FlowchartEditorModal

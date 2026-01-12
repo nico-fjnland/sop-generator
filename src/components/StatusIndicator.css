@@ -47,7 +47,8 @@
 }
 
 .status-frame.visible {
-  height: calc(100% + 40px);
+  /* Height dynamically calculated based on header content */
+  height: calc(100% + var(--header-height, 38px));
   opacity: 1;
   filter: blur(0);
   transform: scale(1);
@@ -68,15 +69,16 @@
 /* Status header at the top of the frame */
 .status-header {
   position: absolute;
-  top: 6px;
+  top: 8px;
   left: 0;
   right: 0;
   min-height: 24px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-start;
   gap: 8px;
-  padding: 0 12px;
+  padding: 0 14px;
+  box-sizing: border-box;
   
   /* Hidden initially - with blur effect */
   opacity: 0;
@@ -109,10 +111,11 @@
   font-weight: 500;
   color: white !important;
   white-space: normal;
+  word-wrap: break-word;
   text-wrap: balance;
   letter-spacing: 0.01em;
   flex: 1;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .status-icon {
@@ -121,6 +124,8 @@
   justify-content: center;
   color: white !important;
   flex-shrink: 0;
+  /* Align icon with first line of text */
+  margin-top: 1px;
 }
 
 .status-icon svg {
@@ -146,10 +151,18 @@
   border-width: 2px;
 }
 
-/* Confirm dialog - larger frame for multi-line text */
+/* Confirm dialog - enable pointer events for buttons */
 .status-frame.confirm-dialog.visible {
-  height: calc(100% + 52px);
   pointer-events: auto;
+}
+
+/* Center align items when buttons are present */
+.status-frame.confirm-dialog .status-header {
+  align-items: center;
+}
+
+.status-frame.confirm-dialog .status-icon {
+  margin-top: 0;
 }
 
 /* Button container */

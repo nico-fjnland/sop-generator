@@ -1,11 +1,11 @@
 /* Flowchart Block Container - used inside Algorithmus box without padding */
 .flowchart-block-container {
   width: 100%;
-  min-height: 300px;
+  min-height: 200px; /* Minimum height for empty/small flowcharts */
   margin: 0;
   border: none;
   border-radius: 4px 4px 0 0; /* Rounded corners at top to match box */
-  overflow: hidden; /* Prevent canvas from extending beyond container */
+  overflow: hidden; /* Keep content within bounds */
   position: relative;
   background: white;
 }
@@ -65,7 +65,7 @@
   border: 1.5px solid;
   background: white;
   font-family: 'Roboto', sans-serif;
-  font-size: 12px;
+  font-size: 11px; /* Same as body text in ContentBox */
   min-width: auto;
   width: auto;
   display: inline-block;
@@ -89,7 +89,7 @@
   outline: none;
   background: transparent;
   font-family: 'Roboto', sans-serif;
-  font-size: 12px;
+  font-size: 11px; /* Same as body text in ContentBox */
   text-align: center;
   font-weight: 400;
   padding: 0;
@@ -151,7 +151,7 @@
 .flowchart-node-label .flowchart-node-input {
   color: #6b7280;
   font-weight: 400;
-  font-size: 12px;
+  font-size: 11px; /* Same as body text in ContentBox */
 }
 
 /* Comment Node - Blue dashed border */
@@ -345,8 +345,8 @@
   background: #3b82f6;
 }
 
-/* Background Pattern */
-.react-flow__background {
+/* Background Pattern - Only for Preview */
+.flowchart-preview-canvas .react-flow__background {
   background-color: white;
 }
 
@@ -415,8 +415,8 @@
   min-height: 200px;
   margin: 0;
   border: none;
-  border-radius: 4px 4px 0 0;
-  overflow: hidden;
+  border-radius: 4px 4px 0 0; /* Match parent container */
+  overflow: hidden; /* Keep content within bounds */
   position: relative;
   background: white;
 }
@@ -441,7 +441,7 @@
 /* Static text display for preview nodes */
 .flowchart-node-static-text {
   font-family: 'Roboto', sans-serif;
-  font-size: 12px;
+  font-size: 11px; /* Same as body text in ContentBox */
   text-align: center;
   font-weight: 400;
   line-height: 1.5;

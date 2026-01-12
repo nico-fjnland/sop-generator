@@ -364,9 +364,10 @@
   stroke-width: 2;
 }
 
-/* Background */
-.flowchart-editor-modal .react-flow__background {
-  background-color: white;
+/* Custom Dot Background - moves with viewport like tldraw/Miro */
+.flowchart-editor-modal .custom-dot-background {
+  z-index: 0;
+  background: white;
 }
 
 /* ============================================
@@ -698,7 +699,7 @@
   border: none;
   background: transparent;
   font-family: 'Roboto', sans-serif;
-  font-size: 12px;
+  font-size: 11px; /* Same as body text in ContentBox */
   font-weight: 400;
   line-height: 1.5;
   text-align: center;
@@ -792,4 +793,29 @@
 
 .flowchart-node-editor-wrapper:focus-within .flowchart-node-tiptap-editor ::selection {
   background: rgba(0, 51, 102, 0.2);
+}
+
+/* ============================================
+   EDITING STATE - Visual feedback
+   ============================================ */
+
+/* Visual indicator when node is in edit mode */
+.flowchart-node.editing {
+  box-shadow: 0 0 0 2px var(--accent-color, #47D1C6), 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Cursor change to indicate editable text when in edit mode */
+.flowchart-node.editing .flowchart-node-content {
+  cursor: text;
+}
+
+/* Subtle background highlight for the editor area when editing */
+.flowchart-node.editing .flowchart-node-editor-wrapper {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 2px;
+}
+
+/* Show hint on non-editing nodes when hovering */
+.flowchart-node:not(.editing) .flowchart-node-content {
+  cursor: default;
 }

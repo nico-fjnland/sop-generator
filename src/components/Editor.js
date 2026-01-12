@@ -276,7 +276,8 @@ const Editor = () => {
       showSuccess('Word-Dokument erfolgreich an Browser übergeben.');
     } catch (error) {
       console.error('Word export failed:', error);
-      showError('Word-Export fehlgeschlagen. Bitte versuche es erneut.');
+      // Use the specific error message (contains user-friendly context)
+      showError(error.message);
     } finally {
       setIsExporting(false);
     }
@@ -291,7 +292,8 @@ const Editor = () => {
       showSuccess('PDF-Datei erfolgreich an Browser übergeben.');
     } catch (error) {
       console.error('PDF export failed:', error);
-      showError('PDF-Export fehlgeschlagen. Bitte versuche es erneut.');
+      // Use the specific error message (contains user-friendly context)
+      showError(error.message);
     } finally {
       setIsExporting(false);
     }

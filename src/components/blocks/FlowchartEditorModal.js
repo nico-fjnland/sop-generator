@@ -1,7 +1,6 @@
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import ReactFlow, {
-  Background,
   MiniMap,
   useNodesState,
   useEdgesState,
@@ -36,7 +35,6 @@ import {
   MinusCircle, 
   ArrowCounterClockwise, 
   ArrowClockwise, 
-  ArrowsOut,
   ArrowsIn,
   Tag,
   ChatCircleText,
@@ -246,6 +244,65 @@ const edgeTypes = {
 };
 
 // ============================================
+// CUSTOM DOT BACKGROUND - Moves with viewport like tldraw/Miro
+// ============================================
+
+const CustomDotBackground = ({ gap = 14, dotSize = 1, color = 'rgba(0, 0, 0, 0.1)' }) => {
+  const { x, y, zoom } = useViewport();
+  
+  // Der Gap im Screen-Koordinatensystem skaliert mit dem Zoom
+  const scaledGap = gap * zoom;
+  
+  // Das Pattern muss bei Screen-Position (x, y) beginnen
+  // Modulo sorgt dafür, dass es sich korrekt wiederholt
+  // Positive Modulo für negative Werte (wichtig für korrektes Verhalten)
+  const patternX = ((x % scaledGap) + scaledGap) % scaledGap;
+  const patternY = ((y % scaledGap) + scaledGap) % scaledGap;
+  
+  // Dot-Größe skaliert ebenfalls mit Zoom, aber mit Minimum für Sichtbarkeit
+  const scaledDotSize = Math.max(0.5, dotSize * zoom);
+  
+  return (
+    <svg
+      className="react-flow__background custom-dot-background"
+      style={{
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        pointerEvents: 'none',
+      }}
+    >
+      <defs>
+        <pattern
+          id="dot-pattern"
+          x={patternX}
+          y={patternY}
+          width={scaledGap}
+          height={scaledGap}
+          patternUnits="userSpaceOnUse"
+        >
+          <circle
+            cx={scaledGap / 2}
+            cy={scaledGap / 2}
+            r={scaledDotSize}
+            fill={color}
+          />
+        </pattern>
+      </defs>
+      <rect
+        x="0"
+        y="0"
+        width="100%"
+        height="100%"
+        fill="url(#dot-pattern)"
+      />
+    </svg>
+  );
+};
+
+// ============================================
 // TIPTAP EXTENSIONS FOR FLOWCHART NODES
 // ============================================
 
@@ -311,6 +368,7 @@ const FlowchartNodeEditor = ({
   placeholder,
   onToolbarUpdate,
   onFocusChange,
+  editable = false, // Default to false - require double-click to edit
 }) => {
   const editorRef = useRef(null);
   
@@ -343,6 +401,7 @@ const FlowchartNodeEditor = ({
       HeadingFont,
     ],
     content: content || '',
+    editable: editable, // Control editability based on double-click state
     editorProps: {
       attributes: {
         class: 'flowchart-node-tiptap-editor',
@@ -404,6 +463,19 @@ const FlowchartNodeEditor = ({
       }
     },
   });
+
+  // Focus editor when entering edit mode (editable becomes true)
+  useEffect(() => {
+    if (editable && editor && !editor.isDestroyed) {
+      // Update editable state
+      editor.setEditable(true);
+      // Focus at the end of content
+      editor.commands.focus('end');
+    } else if (!editable && editor && !editor.isDestroyed) {
+      // Disable editing
+      editor.setEditable(false);
+    }
+  }, [editable, editor]);
 
   // Sync content from parent
   useEffect(() => {
@@ -470,7 +542,7 @@ const NodeHandles = ({ selected }) => {
 
 const StartNode = ({ data, selected }) => {
   return (
-    <div className={`flowchart-node flowchart-node-start ${selected ? 'selected' : ''}`}>
+    <div className={`flowchart-node flowchart-node-start ${selected ? 'selected' : ''} ${data.isEditing ? 'editing' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
         <FlowchartNodeEditor
@@ -478,6 +550,8 @@ const StartNode = ({ data, selected }) => {
           onChange={data.onChange}
           placeholder="Start"
           onToolbarUpdate={data.onToolbarUpdate}
+          editable={data.isEditing}
+          onFocusChange={data.onFocusChange}
         />
       </div>
     </div>
@@ -486,7 +560,7 @@ const StartNode = ({ data, selected }) => {
 
 const PhaseNode = ({ data, selected }) => {
   return (
-    <div className={`flowchart-node flowchart-node-phase ${selected ? 'selected' : ''}`}>
+    <div className={`flowchart-node flowchart-node-phase ${selected ? 'selected' : ''} ${data.isEditing ? 'editing' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
         <FlowchartNodeEditor
@@ -494,6 +568,8 @@ const PhaseNode = ({ data, selected }) => {
           onChange={data.onChange}
           placeholder="Phase"
           onToolbarUpdate={data.onToolbarUpdate}
+          editable={data.isEditing}
+          onFocusChange={data.onFocusChange}
         />
       </div>
     </div>
@@ -502,7 +578,7 @@ const PhaseNode = ({ data, selected }) => {
 
 const AktionNode = ({ data, selected }) => {
   return (
-    <div className={`flowchart-node flowchart-node-aktion ${selected ? 'selected' : ''}`}>
+    <div className={`flowchart-node flowchart-node-aktion ${selected ? 'selected' : ''} ${data.isEditing ? 'editing' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
         <FlowchartNodeEditor
@@ -510,6 +586,8 @@ const AktionNode = ({ data, selected }) => {
           onChange={data.onChange}
           placeholder="Aktion"
           onToolbarUpdate={data.onToolbarUpdate}
+          editable={data.isEditing}
+          onFocusChange={data.onFocusChange}
         />
       </div>
     </div>
@@ -518,7 +596,7 @@ const AktionNode = ({ data, selected }) => {
 
 const LabelNode = ({ data, selected }) => {
   return (
-    <div className={`flowchart-node flowchart-node-label ${selected ? 'selected' : ''}`}>
+    <div className={`flowchart-node flowchart-node-label ${selected ? 'selected' : ''} ${data.isEditing ? 'editing' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
         <FlowchartNodeEditor
@@ -526,6 +604,8 @@ const LabelNode = ({ data, selected }) => {
           onChange={data.onChange}
           placeholder="Beschriftung"
           onToolbarUpdate={data.onToolbarUpdate}
+          editable={data.isEditing}
+          onFocusChange={data.onFocusChange}
         />
       </div>
     </div>
@@ -534,7 +614,7 @@ const LabelNode = ({ data, selected }) => {
 
 const CommentNode = ({ data, selected }) => {
   return (
-    <div className={`flowchart-node flowchart-node-comment ${selected ? 'selected' : ''}`}>
+    <div className={`flowchart-node flowchart-node-comment ${selected ? 'selected' : ''} ${data.isEditing ? 'editing' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
         <FlowchartNodeEditor
@@ -542,6 +622,8 @@ const CommentNode = ({ data, selected }) => {
           onChange={data.onChange}
           placeholder="Kommentar"
           onToolbarUpdate={data.onToolbarUpdate}
+          editable={data.isEditing}
+          onFocusChange={data.onFocusChange}
         />
       </div>
     </div>
@@ -550,7 +632,7 @@ const CommentNode = ({ data, selected }) => {
 
 const PositiveNode = ({ data, selected }) => {
   return (
-    <div className={`flowchart-node flowchart-node-positive ${selected ? 'selected' : ''}`}>
+    <div className={`flowchart-node flowchart-node-positive ${selected ? 'selected' : ''} ${data.isEditing ? 'editing' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
         <FlowchartNodeEditor
@@ -558,6 +640,8 @@ const PositiveNode = ({ data, selected }) => {
           onChange={data.onChange}
           placeholder="Positiv"
           onToolbarUpdate={data.onToolbarUpdate}
+          editable={data.isEditing}
+          onFocusChange={data.onFocusChange}
         />
       </div>
     </div>
@@ -566,7 +650,7 @@ const PositiveNode = ({ data, selected }) => {
 
 const NegativeNode = ({ data, selected }) => {
   return (
-    <div className={`flowchart-node flowchart-node-negative ${selected ? 'selected' : ''}`}>
+    <div className={`flowchart-node flowchart-node-negative ${selected ? 'selected' : ''} ${data.isEditing ? 'editing' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
         <FlowchartNodeEditor
@@ -574,6 +658,8 @@ const NegativeNode = ({ data, selected }) => {
           onChange={data.onChange}
           placeholder="Negativ"
           onToolbarUpdate={data.onToolbarUpdate}
+          editable={data.isEditing}
+          onFocusChange={data.onFocusChange}
         />
       </div>
     </div>
@@ -582,7 +668,7 @@ const NegativeNode = ({ data, selected }) => {
 
 const NeutralNode = ({ data, selected }) => {
   return (
-    <div className={`flowchart-node flowchart-node-neutral ${selected ? 'selected' : ''}`}>
+    <div className={`flowchart-node flowchart-node-neutral ${selected ? 'selected' : ''} ${data.isEditing ? 'editing' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content">
         <FlowchartNodeEditor
@@ -590,6 +676,8 @@ const NeutralNode = ({ data, selected }) => {
           onChange={data.onChange}
           placeholder="Neutral"
           onToolbarUpdate={data.onToolbarUpdate}
+          editable={data.isEditing}
+          onFocusChange={data.onFocusChange}
         />
       </div>
     </div>
@@ -598,7 +686,7 @@ const NeutralNode = ({ data, selected }) => {
 
 const HighNode = ({ data, selected }) => {
   return (
-    <div className={`flowchart-node flowchart-node-high ${selected ? 'selected' : ''}`}>
+    <div className={`flowchart-node flowchart-node-high ${selected ? 'selected' : ''} ${data.isEditing ? 'editing' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content flowchart-node-with-icon">
         <FlowchartNodeEditor
@@ -606,6 +694,8 @@ const HighNode = ({ data, selected }) => {
           onChange={data.onChange}
           placeholder="Hoch"
           onToolbarUpdate={data.onToolbarUpdate}
+          editable={data.isEditing}
+          onFocusChange={data.onFocusChange}
         />
         <div className="flowchart-node-icon flowchart-node-icon-high">
           <ArrowCircleUp size={18} weight="fill" />
@@ -617,7 +707,7 @@ const HighNode = ({ data, selected }) => {
 
 const LowNode = ({ data, selected }) => {
   return (
-    <div className={`flowchart-node flowchart-node-low ${selected ? 'selected' : ''}`}>
+    <div className={`flowchart-node flowchart-node-low ${selected ? 'selected' : ''} ${data.isEditing ? 'editing' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content flowchart-node-with-icon">
         <FlowchartNodeEditor
@@ -625,6 +715,8 @@ const LowNode = ({ data, selected }) => {
           onChange={data.onChange}
           placeholder="Runter"
           onToolbarUpdate={data.onToolbarUpdate}
+          editable={data.isEditing}
+          onFocusChange={data.onFocusChange}
         />
         <div className="flowchart-node-icon flowchart-node-icon-low">
           <ArrowCircleDown size={18} weight="fill" />
@@ -636,7 +728,7 @@ const LowNode = ({ data, selected }) => {
 
 const EqualNode = ({ data, selected }) => {
   return (
-    <div className={`flowchart-node flowchart-node-equal ${selected ? 'selected' : ''}`}>
+    <div className={`flowchart-node flowchart-node-equal ${selected ? 'selected' : ''} ${data.isEditing ? 'editing' : ''}`}>
       <NodeHandles selected={selected} />
       <div className="flowchart-node-content flowchart-node-with-icon">
         <FlowchartNodeEditor
@@ -644,6 +736,8 @@ const EqualNode = ({ data, selected }) => {
           onChange={data.onChange}
           placeholder="Gleich"
           onToolbarUpdate={data.onToolbarUpdate}
+          editable={data.isEditing}
+          onFocusChange={data.onFocusChange}
         />
         <div className="flowchart-node-icon flowchart-node-icon-equal">
           <ArrowCircleRight size={18} weight="fill" />
@@ -831,6 +925,7 @@ const FlowchartEditorInner = ({
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [interactionMode, setInteractionMode] = useState('select'); // 'select' or 'pan'
+  const [editingNodeId, setEditingNodeId] = useState(null); // Track which node is in edit mode
 
   // Update node label
   const handleNodeLabelChange = useCallback((nodeId, newLabel) => {
@@ -876,7 +971,19 @@ const FlowchartEditorInner = ({
     }, 100);
   }, [setEdges]);
 
-  // Sync nodes with onChange and onToolbarUpdate handlers
+  // Handle double-click on node to enter edit mode
+  const handleNodeDoubleClick = useCallback((event, node) => {
+    setEditingNodeId(node.id);
+  }, []);
+
+  // Exit edit mode when clicking on the canvas (pane)
+  const handlePaneClick = useCallback(() => {
+    if (editingNodeId) {
+      setEditingNodeId(null);
+    }
+  }, [editingNodeId]);
+
+  // Sync nodes with onChange, onToolbarUpdate, isEditing, and onFocusChange handlers
   useEffect(() => {
     setNodes((nds) =>
       nds.map((node) => ({
@@ -885,10 +992,17 @@ const FlowchartEditorInner = ({
           ...node.data,
           onChange: (newLabel) => handleNodeLabelChange(node.id, newLabel),
           onToolbarUpdate: handleToolbarUpdate,
+          isEditing: node.id === editingNodeId,
+          onFocusChange: (focused) => {
+            // When editor loses focus, exit edit mode
+            if (!focused) {
+              setEditingNodeId(null);
+            }
+          },
         },
       }))
     );
-  }, [handleNodeLabelChange, handleToolbarUpdate, setNodes]);
+  }, [handleNodeLabelChange, handleToolbarUpdate, setNodes, editingNodeId]);
 
   // Sync edges with onLabelChange handlers
   useEffect(() => {
@@ -1739,7 +1853,12 @@ const FlowchartEditorInner = ({
         handleSave();
       }
       if (e.key === 'Escape') {
-        onCancel();
+        // If editing a node, exit edit mode first
+        if (editingNodeId) {
+          setEditingNodeId(null);
+        } else {
+          onCancel();
+        }
       }
       if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
         e.preventDefault();
@@ -1765,7 +1884,7 @@ const FlowchartEditorInner = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleSave, onCancel, handleUndo, handleRedo]);
+  }, [handleSave, onCancel, handleUndo, handleRedo, editingNodeId]);
 
   // Get selected nodes for delete/duplicate actions
   const selectedNodes = nodes.filter(n => n.selected);
@@ -1819,6 +1938,8 @@ const FlowchartEditorInner = ({
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodesDelete={onNodesDelete}
+          onNodeDoubleClick={handleNodeDoubleClick}
+          onPaneClick={handlePaneClick}
           onInit={setReactFlowInstance}
           onDrop={onDrop}
           onDragOver={onDragOver}
@@ -1840,7 +1961,7 @@ const FlowchartEditorInner = ({
           minZoom={0.3}
           maxZoom={2}
           snapToGrid={true}
-          snapGrid={[4, 4]}
+          snapGrid={[14, 14]}
           fitView
           fitViewOptions={{ padding: 0.2, minZoom: 0.5, maxZoom: 1 }}
           proOptions={{ hideAttribution: true }}
@@ -1854,7 +1975,8 @@ const FlowchartEditorInner = ({
           selectNodesOnDrag={false}
           className={`${interactionMode}-mode`}
         >
-          <Background />
+          {/* Custom Background that moves with viewport - like tldraw/Miro */}
+          <CustomDotBackground gap={14} dotSize={1} color="rgba(0, 0, 0, 0.1)" />
           
           {/* MiniMap with Custom Wrapper for Dynamic Icon Color */}
           <div className="minimap-wrapper" style={{ '--minimap-accent': accentColor, '--minimap-accent-light': hexToLightBg(accentColor, 0.95) }}>
@@ -1940,7 +2062,7 @@ const FlowchartEditorInner = ({
             
             {/* Distance Indicators */}
             {distanceIndicators.map((indicator, idx) => {
-              const gridUnits = Math.round(indicator.distance / 4);
+              const gridUnits = Math.round(indicator.distance / 14);
               
               if (indicator.type === 'horizontal') {
                 const x1 = indicator.x1 * zoom + viewportX;
@@ -2019,35 +2141,18 @@ const FlowchartEditorInner = ({
         <div className="flowchart-toolbar-container">
           {/* Top row: Tools and Actions (gray, smaller) */}
           <div className="flowchart-toolbar-actions">
-            <button 
-              onClick={() => setInteractionMode('eraser')} 
-              title="Radierer (E)"
-              className={`flowchart-toolbar-btn ${interactionMode === 'eraser' ? 'active' : ''}`}
-            >
-              <EraserIcon size={16} weight="regular" />
-            </button>
-            {/* Reset Flowchart */}
-            <button 
-              onClick={handleResetFlowchart} 
-              disabled={!hasFlowchartChanges}
-              title="Flowchart zurücksetzen"
-              className="flowchart-toolbar-btn"
-            >
-              <Trash size={16} weight="regular" />
-            </button>
-            <div className="flowchart-toolbar-separator" />
             {/* Undo/Redo */}
-            <button 
-              onClick={handleUndo} 
-              disabled={historyIndex <= 0} 
+            <button
+              onClick={handleUndo}
+              disabled={historyIndex <= 0}
               title="Rückgängig (Cmd+Z)"
               className="flowchart-toolbar-btn"
             >
               <ArrowCounterClockwise size={16} weight="regular" />
             </button>
-            <button 
-              onClick={handleRedo} 
-              disabled={historyIndex >= history.length - 1} 
+            <button
+              onClick={handleRedo}
+              disabled={historyIndex >= history.length - 1}
               title="Wiederherstellen (Cmd+Shift+Z)"
               className="flowchart-toolbar-btn"
             >
@@ -2055,29 +2160,39 @@ const FlowchartEditorInner = ({
             </button>
             <div className="flowchart-toolbar-separator" />
             {/* Interaction Mode Tools */}
-            <button 
-              onClick={() => setInteractionMode('select')} 
+            <button
+              onClick={() => setInteractionMode('select')}
               title="Auswahl (V)"
               className={`flowchart-toolbar-btn ${interactionMode === 'select' ? 'active' : ''}`}
             >
               <Cursor size={16} weight="regular" />
             </button>
-            <button 
-              onClick={() => setInteractionMode('pan')} 
+            <button
+              onClick={() => setInteractionMode('pan')}
               title="Verschieben (H)"
               className={`flowchart-toolbar-btn ${interactionMode === 'pan' ? 'active' : ''}`}
             >
               <Hand size={16} weight="regular" />
             </button>
+            <button
+              onClick={() => setInteractionMode('eraser')}
+              title="Radierer (E)"
+              className={`flowchart-toolbar-btn ${interactionMode === 'eraser' ? 'active' : ''}`}
+            >
+              <EraserIcon size={16} weight="regular" />
+            </button>
             <div className="flowchart-toolbar-separator" />
-            {/* View Controls */}
-            <button 
-              onClick={() => fitView({ padding: 0.2, duration: 400 })} 
-              title="Alles anzeigen"
+            {/* Reset Flowchart */}
+            <button
+              onClick={handleResetFlowchart}
+              disabled={!hasFlowchartChanges}
+              title="Flowchart zurücksetzen"
               className="flowchart-toolbar-btn"
             >
-              <ArrowsOut size={16} weight="regular" />
+              <Trash size={16} weight="regular" />
             </button>
+            <div className="flowchart-toolbar-separator" />
+            {/* Zoom Reset */}
             <button 
               onClick={handleResetZoom} 
               title="Zoom zurücksetzen"
