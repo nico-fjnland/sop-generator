@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import ReactFlow, {
   Position,
   Handle,
@@ -382,16 +382,25 @@ const nodeTypes = {
 
 const FlowchartPreviewInner = ({ nodes, edges, containerWidth, onHeightChange, onEditClick, accentColor, savedViewport, onViewportChange }) => {
   const reactFlowInstance = useRef(null);
-  const hasInitialized = useRef(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const lastHeightRef = useRef(MIN_HEIGHT);
+  const lastViewportRef = useRef(null);
+  const lastMeasuredNodesKeyRef = useRef('');
   
   // Get measured nodes from ReactFlow's internal store
   // This updates when nodes are measured after rendering
+  // Memoize by creating a stable key based on node IDs and positions
   const measuredNodes = useStore(useCallback((state) => {
     const nodeInternals = state.nodeInternals;
     if (!nodeInternals || nodeInternals.size === 0) return [];
     return Array.from(nodeInternals.values());
   }, []));
+  
+  // Create a stable key for measured nodes to prevent unnecessary updates
+  const measuredNodesKey = useMemo(() => {
+    if (measuredNodes.length === 0) return '';
+    return measuredNodes.map(n => `${n.id}:${n.position?.x || 0},${n.position?.y || 0}`).join('|');
+  }, [measuredNodes]);
   
   // Memoize nodes and edges to prevent unnecessary re-renders
   const displayNodes = useMemo(() => {
@@ -423,6 +432,9 @@ const FlowchartPreviewInner = ({ nodes, edges, containerWidth, onHeightChange, o
     }
   }, [calculatedHeight, onHeightChange]);
 
+  // Store updateViewport in a ref to avoid dependency issues
+  const updateViewportRef = useRef(null);
+  
   // Set viewport manually instead of using fitView
   // This ensures zoom 1.0 by default, only scaling down when needed
   const updateViewport = useCallback((instance, currentBounds, currentZoom) => {
@@ -445,22 +457,49 @@ const FlowchartPreviewInner = ({ nodes, edges, containerWidth, onHeightChange, o
       zoom: currentZoom,
     };
     
+    // Only update viewport if it actually changed (prevent infinite loop)
+    const lastViewport = lastViewportRef.current;
+    if (lastViewport && 
+        Math.abs(lastViewport.x - viewport.x) < 0.1 &&
+        Math.abs(lastViewport.y - viewport.y) < 0.1 &&
+        Math.abs(lastViewport.zoom - viewport.zoom) < 0.001) {
+      return;
+    }
+    
+    lastViewportRef.current = viewport;
     instance.setViewport(viewport);
     
-    // Notify parent about viewport change so it can be saved
+    // Notify parent about viewport change so it can be saved (only if changed)
     if (onViewportChange) {
       onViewportChange(viewport);
     }
-  }, [displayNodes.length, containerWidth, measuredNodes.length, displayNodes.length, onViewportChange]);
+  }, [displayNodes.length, containerWidth, onViewportChange]);
+  
+  // Keep ref updated with latest function
+  updateViewportRef.current = updateViewport;
 
   // Update viewport when measured nodes change (after ReactFlow measures them)
+  // Use stable key instead of array reference to prevent unnecessary updates
+  // isInitialized is now a state so this effect properly re-runs when ReactFlow initializes
   useEffect(() => {
-    if (reactFlowInstance.current && hasInitialized.current && measuredNodes.length > 0) {
-      // Recalculate with measured nodes
-      const { zoom, bounds: newBounds } = calculateZoomAndHeight(measuredNodes, containerWidth || 500);
-      updateViewport(reactFlowInstance.current, newBounds, zoom);
+    if (reactFlowInstance.current && isInitialized && measuredNodes.length > 0) {
+      // Don't recalculate if we have a saved viewport (it was already restored in onInit)
+      // Only recalculate if we don't have a saved viewport AND (nodes changed OR this is the first measurement)
+      if (!savedViewport && (measuredNodesKey !== lastMeasuredNodesKeyRef.current || lastMeasuredNodesKeyRef.current === '')) {
+        lastMeasuredNodesKeyRef.current = measuredNodesKey;
+        // Recalculate with measured nodes
+        const { zoom, bounds: newBounds } = calculateZoomAndHeight(measuredNodes, containerWidth || 500);
+        // Use ref to avoid dependency on updateViewport
+        if (updateViewportRef.current) {
+          updateViewportRef.current(reactFlowInstance.current, newBounds, zoom);
+        }
+      } else if (savedViewport) {
+        // If we have a saved viewport, just update the key to prevent future recalculations
+        lastMeasuredNodesKeyRef.current = measuredNodesKey;
+      }
     }
-  }, [measuredNodes, containerWidth, updateViewport]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [measuredNodesKey, containerWidth, savedViewport, isInitialized]);
 
   // Initialize viewport on first load
   const onInit = useCallback((instance) => {
@@ -468,22 +507,15 @@ const FlowchartPreviewInner = ({ nodes, edges, containerWidth, onHeightChange, o
     
     // If we have a saved viewport, restore it immediately
     if (savedViewport && savedViewport.x !== undefined && savedViewport.y !== undefined && savedViewport.zoom !== undefined) {
-      hasInitialized.current = true;
+      // Set the ref so our change detection knows about the saved viewport
+      lastViewportRef.current = savedViewport;
       instance.setViewport(savedViewport);
-      return;
     }
     
-    // Delay to allow nodes to be measured, then update viewport
-    setTimeout(() => {
-      hasInitialized.current = true;
-      // Get fresh measured nodes and calculate viewport
-      const nodeInternals = instance.getNodes();
-      if (nodeInternals.length > 0) {
-        const { zoom, bounds: newBounds } = calculateZoomAndHeight(nodeInternals, containerWidth || 500);
-        updateViewport(instance, newBounds, zoom);
-      }
-    }, 150);
-  }, [containerWidth, updateViewport, displayNodes.length, savedViewport]);
+    // Set initialized state - this triggers the useEffect to run with the instance
+    // The useEffect will handle centering when measured nodes become available
+    setIsInitialized(true);
+  }, [savedViewport, measuredNodes, containerWidth]);
 
   return (
     <div 

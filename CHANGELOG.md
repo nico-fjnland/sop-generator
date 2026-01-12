@@ -7,6 +7,31 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.7] - 2026-01-12
+
+### 🔧 Fixed
+
+- **Flowchart Zentrierung im Preview:**
+  - Flowcharts werden jetzt korrekt horizontal zentriert in der Content Box angezeigt
+  - Das Problem trat auf, weil die Viewport-Initialisierung vor der Node-Messung lief
+  - Lösung: `hasInitialized` Ref durch `isInitialized` State ersetzt, damit der useEffect reaktiv neu ausgeführt wird
+
+- **Flowchart Re-Render Loop verhindert:**
+  - Verhindert "Maximum update depth exceeded" Fehler durch mehrfache Viewport-Updates
+  - Stabile `measuredNodesKey` verhindert unnötige Neuberechnungen
+  - Viewport-Änderungen werden nur gespeichert, wenn tatsächlich unterschiedlich (Toleranz-basierter Vergleich)
+
+- **React SVG Attribut-Warnung behoben:**
+  - `fill-rule` → `fillRule` und `clip-rule` → `clipRule` in SOPHeader SVG
+
+### 🔧 Technical
+
+- `FlowchartPreview.js`: Refactoring der Initialisierungslogik mit reaktivem State statt Ref
+- `FlowchartPreview.js`: `measuredNodesKey` für stabile Node-Referenzen basierend auf ID und Position
+- `FlowchartPreview.js`: Loop-Prevention durch `lastViewportRef` und `lastMeasuredNodesKeyRef`
+
+---
+
 ## [0.9.6] - 2026-01-09
 
 ### 🔧 Fixed
