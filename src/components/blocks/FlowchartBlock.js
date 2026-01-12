@@ -35,6 +35,9 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
     }
   });
 
+  // Track last width to only react to actual width changes
+  const lastWidthRef = useRef(0);
+
   // Measure container width using ResizeObserver
   useEffect(() => {
     if (!containerRef.current) return;
@@ -42,7 +45,8 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
     const measureWidth = () => {
       if (containerRef.current) {
         const width = containerRef.current.offsetWidth;
-        if (width > 0) {
+        if (width > 0 && width !== lastWidthRef.current) {
+          lastWidthRef.current = width;
           setContainerWidth(width);
         }
       }
@@ -52,13 +56,18 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
     measureWidth();
 
     // Set up ResizeObserver for dynamic updates
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const width = entry.contentRect.width;
-        if (width > 0) {
-          setContainerWidth(width);
+    const resizeObserver = new ResizeObserver(() => {
+      // Use requestAnimationFrame to avoid "ResizeObserver loop" warning
+      // Only check width - ignore height changes to prevent loops
+      requestAnimationFrame(() => {
+        if (containerRef.current) {
+          const width = containerRef.current.offsetWidth;
+          if (width > 0 && width !== lastWidthRef.current) {
+            lastWidthRef.current = width;
+            setContainerWidth(width);
+          }
         }
-      }
+      });
     });
 
     resizeObserver.observe(containerRef.current);
