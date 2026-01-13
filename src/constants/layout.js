@@ -66,7 +66,7 @@ export const FOOTER = {
   },
   // Note: Footer height is measured dynamically from DOM in usePageBreaks.js
   // These are available variants (content height is determined by actual content)
-  VARIANTS: ['tiny', 'small'],
+  VARIANTS: ['tiny', 'small', 'signature', 'placeholder'],
 };
 
 // Header configuration

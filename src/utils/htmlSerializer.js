@@ -867,6 +867,17 @@ export const serializeToHTML = async (containerRef) => {
       font-family: inherit !important;
     }
     
+    /* Placeholder Footer - nur als Weißraum im Export */
+    .placeholder-footer-box {
+      background-color: transparent !important;
+      border: none !important;
+    }
+    
+    .placeholder-footer-content,
+    .placeholder-footer-text {
+      visibility: hidden !important;
+    }
+    
     /* ============================================
        UTILITY CLASSES
        ============================================ */

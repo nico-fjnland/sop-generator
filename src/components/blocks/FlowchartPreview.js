@@ -9,6 +9,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { TreeStructure, ArrowCircleUp, ArrowCircleDown, ArrowCircleRight } from '@phosphor-icons/react';
+import { EDITOR_STYLES } from '../../styles/editorStyles';
 
 // Default color for Algorithmus category
 const ALGORITHMUS_COLOR = '#47D1C6';
@@ -69,7 +70,7 @@ const calculateZoomAndHeight = (nodes, containerWidth) => {
 function getHandleCoordsByPosition(node, handlePosition) {
   const width = node.width ?? node.measured?.width ?? 150;
   const height = node.height ?? node.measured?.height ?? 40;
-  const gap = 2; // Visual gap between edge and node
+  const gap = EDITOR_STYLES.flowchart.edgeGap; // Visual gap between edge and node
   
   let x, y;
   
@@ -160,7 +161,7 @@ function FloatingEdgePreview({ id, source, target, markerEnd, style, data }) {
     targetX,
     targetY,
     targetPosition: targetPos,
-    borderRadius: 8,
+    borderRadius: EDITOR_STYLES.flowchart.edgeBorderRadius,
   });
 
   const hasLabel = data?.label && data.label.trim() !== '';

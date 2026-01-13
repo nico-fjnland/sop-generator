@@ -124,6 +124,20 @@ export const EDITOR_STYLES = {
   twoColumnLayout: {
     gap: '16px',
   },
+
+  // ============================================
+  // FLOWCHART
+  // ============================================
+  flowchart: {
+    /** Border radius für Edge-Connector-Lines (abgerundete Ecken) */
+    edgeBorderRadius: 8,
+    /** Visueller Abstand zwischen Edge und Node */
+    edgeGap: 2,
+    /** Stroke-Farbe für Edges */
+    edgeStrokeColor: '#003366',
+    /** Stroke-Breite für Edges */
+    edgeStrokeWidth: 1,
+  },
 };
 
 /**

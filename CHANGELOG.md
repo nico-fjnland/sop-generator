@@ -7,6 +7,26 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.11] - 2026-01-13
+
+### ✨ Added
+
+- **Placeholder Footer-Variante:** Neuer Footer-Typ für Platzhalter-Bereich
+  - Hellblauer Hintergrund (#E5F2FF) mit gestricheltem Rand (#3399FF)
+  - Zentrierter Text "Platzhalter für XYZ Prozess"
+  - Nur im Editor sichtbar - im PDF/Word-Export als Weißraum (Platzhalter)
+  - Gleiche Höhe wie Signature-Footer
+
+### 🐛 Fixed
+
+- **Flowchart - Abgerundete Connector-Ecken im Export:**
+  - Connector-Lines haben jetzt auch im PDF/Word-Export abgerundete Ecken
+  - Neue zentrale Konstante `EDITOR_STYLES.flowchart.edgeBorderRadius` für konsistente Styles
+  - Editor, Preview und SVG-Export verwenden jetzt dieselbe Konstante (8px Radius)
+  - SVG-Pfade nutzen quadratische Bézier-Kurven für sanfte Eckenübergänge
+
+---
+
 ## [0.9.10] - 2026-01-13
 
 ### ✨ Improved

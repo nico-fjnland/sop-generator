@@ -18,6 +18,7 @@ import ReactFlow, {
   useStore,
   EdgeLabelRenderer,
 } from 'reactflow';
+import { EDITOR_STYLES } from '../../styles/editorStyles';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -57,7 +58,7 @@ import InlineTextToolbar from '../InlineTextToolbar';
 function getHandleCoordsByPosition(node, handlePosition) {
   const width = node.width ?? node.measured?.width ?? 150;
   const height = node.height ?? node.measured?.height ?? 40;
-  const gap = 2; // Visual gap between edge and node
+  const gap = EDITOR_STYLES.flowchart.edgeGap; // Visual gap between edge and node
   
   let x, y;
   
@@ -162,7 +163,7 @@ function FloatingEdge({ id, source, target, markerEnd, style, data, selected }) 
     targetX,
     targetY,
     targetPosition: targetPos,
-    borderRadius: 8,
+    borderRadius: EDITOR_STYLES.flowchart.edgeBorderRadius,
   });
 
   const handleDoubleClick = (e) => {
@@ -1743,7 +1744,7 @@ const FlowchartEditorInner = ({
       
       let startX, startY, endX, endY;
       
-      const gap = 2; // Visual gap between edge and node
+      const gap = EDITOR_STYLES.flowchart.edgeGap; // Visual gap between edge and node
       
       if (Math.abs(dx) > Math.abs(dy)) {
         // Horizontal connection
@@ -1773,11 +1774,48 @@ const FlowchartEditorInner = ({
         }
       }
       
-      // Create smooth step path
+      // Create smooth step path with rounded corners (matching getSmoothStepPath borderRadius)
+      const borderRadius = EDITOR_STYLES.flowchart.edgeBorderRadius;
       const midY = (startY + endY) / 2;
-      const path = Math.abs(dx) > Math.abs(dy) 
-        ? `M ${startX} ${startY} L ${(startX + endX) / 2} ${startY} L ${(startX + endX) / 2} ${endY} L ${endX} ${endY}`
-        : `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
+      const midX = (startX + endX) / 2;
+      
+      let path;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal connection: start -> mid horizontally -> mid vertically -> end
+        // Limit radius to half the available space
+        const availableHorizontal = Math.abs(midX - startX);
+        const availableVertical = Math.abs(endY - startY) / 2;
+        const r = Math.min(borderRadius, availableHorizontal, availableVertical);
+        
+        if (r > 0 && Math.abs(endY - startY) > r * 2) {
+          const dir = endY > startY ? 1 : -1;
+          path = `M ${startX} ${startY} ` +
+            `L ${midX - r} ${startY} ` +
+            `Q ${midX} ${startY} ${midX} ${startY + r * dir} ` +
+            `L ${midX} ${endY - r * dir} ` +
+            `Q ${midX} ${endY} ${midX + r * (endX > startX ? 1 : -1)} ${endY} ` +
+            `L ${endX} ${endY}`;
+        } else {
+          path = `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
+        }
+      } else {
+        // Vertical connection: start -> mid vertically -> mid horizontally -> end
+        const availableVertical = Math.abs(midY - startY);
+        const availableHorizontal = Math.abs(endX - startX) / 2;
+        const r = Math.min(borderRadius, availableVertical, availableHorizontal);
+        
+        if (r > 0 && Math.abs(endX - startX) > r * 2) {
+          const dir = endX > startX ? 1 : -1;
+          path = `M ${startX} ${startY} ` +
+            `L ${startX} ${midY - r * (midY > startY ? 1 : -1)} ` +
+            `Q ${startX} ${midY} ${startX + r * dir} ${midY} ` +
+            `L ${endX - r * dir} ${midY} ` +
+            `Q ${endX} ${midY} ${endX} ${midY + r * (endY > midY ? 1 : -1)} ` +
+            `L ${endX} ${endY}`;
+        } else {
+          path = `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
+        }
+      }
       
       // Edge label
       const labelX = (startX + endX) / 2;
@@ -1789,8 +1827,8 @@ const FlowchartEditorInner = ({
           <path 
             d="${path}" 
             fill="none" 
-            stroke="#003366" 
-            stroke-width="1"
+            stroke="${EDITOR_STYLES.flowchart.edgeStrokeColor}" 
+            stroke-width="${EDITOR_STYLES.flowchart.edgeStrokeWidth}"
             marker-end="url(#arrowhead)"
           />
           ${label ? `
@@ -1816,10 +1854,10 @@ const FlowchartEditorInner = ({
             markerUnits="strokeWidth"
           >
             <polyline 
-              stroke="#003366" 
+              stroke="${EDITOR_STYLES.flowchart.edgeStrokeColor}" 
               stroke-linecap="round" 
               stroke-linejoin="round" 
-              stroke-width="1" 
+              stroke-width="${EDITOR_STYLES.flowchart.edgeStrokeWidth}" 
               fill="none" 
               points="-5,-4 0,0 -5,4"
             />

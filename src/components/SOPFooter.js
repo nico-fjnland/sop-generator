@@ -6,6 +6,7 @@ const FOOTER_VARIANTS = [
   { id: 'tiny', label: 'Tiny' },
   { id: 'small', label: 'Small' },
   { id: 'signature', label: 'Signature' },
+  { id: 'placeholder', label: 'Placeholder' },
 ];
 
 /* ============================================
@@ -79,6 +80,71 @@ const SignatureFields = () => {
   );
 };
 
+// Placeholder Content Component (nur im Editor sichtbar, im Export als Weißraum)
+const PlaceholderContent = () => {
+  return (
+    <div 
+      className="placeholder-footer-content"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        paddingTop: '8px',
+        paddingBottom: '12px'
+      }}
+    >
+      {/* Signature-ähnliche Höhe durch Grid-Struktur */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '16px',
+        width: '100%'
+      }}>
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px'
+          }}>
+            <span style={{
+              fontFamily: "'Inter', sans-serif",
+              fontWeight: 500,
+              fontSize: '10px',
+              color: 'transparent',
+              whiteSpace: 'nowrap'
+            }}>
+              &nbsp;
+            </span>
+            <div style={{
+              borderBottom: '1px solid transparent',
+              width: '100%',
+              minHeight: '1px'
+            }} />
+          </div>
+        ))}
+      </div>
+      {/* Zentrierter Platzhalter-Text - nur im Editor sichtbar */}
+      <div 
+        className="placeholder-footer-text"
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontFamily: "'Inter', sans-serif",
+          fontWeight: 500,
+          fontSize: '12px',
+          color: '#3399FF',
+          whiteSpace: 'nowrap'
+        }}
+      >
+        Platzhalter für XYZ Prozess
+      </div>
+    </div>
+  );
+};
+
 // Hospital License Badge
 const HospitalLicenseBadge = () => (
   <div style={{
@@ -122,6 +188,12 @@ const SOPFooter = ({ variant: initialVariant = 'tiny', onVariantChange }) => {
   const renderFooterContent = () => {
     const hasDisclaimer = variant === 'small';
     const hasSignature = variant === 'signature';
+    const hasPlaceholder = variant === 'placeholder';
+
+    // Placeholder hat keinen normalen Footer-Content
+    if (hasPlaceholder) {
+      return null;
+    }
 
     return (
       <div style={{
@@ -235,6 +307,23 @@ const SOPFooter = ({ variant: initialVariant = 'tiny', onVariantChange }) => {
             width: '100%'
           }}>
             {renderFooterContent()}
+          </div>
+        ) : variant === 'placeholder' ? (
+          <div 
+            className="placeholder-footer-box"
+            style={{
+              backgroundColor: '#E5F2FF',
+              border: '1px dashed #3399FF',
+              borderRadius: '6px',
+              paddingTop: '16px',
+              paddingBottom: '12px',
+              paddingLeft: '26px',
+              paddingRight: '26px',
+              width: '100%',
+              position: 'relative'
+            }}
+          >
+            <PlaceholderContent />
           </div>
         ) : (
           <div style={{
