@@ -106,14 +106,24 @@ Cache TTL: 1 hour (3600 seconds)
 ### Word Export
 
 1. Frontend sends HTML to Edge Function
-2. Edge Function parses HTML to find `.a4-page` elements
-3. For each page, requests screenshot from Gotenberg
+2. Edge Function parses HTML using DOM parser to find `.a4-page` elements
+3. For each page, requests high-resolution screenshot (2x scale = ~150 DPI) from Gotenberg
 4. Screenshots are assembled into Word document using `docx` library
 5. Edge Function caches DOCX (optional) and returns to frontend
+
+### High-Resolution Screenshots
+
+Word exports use 2x device scale factor for better print quality:
+- Viewport size: 794×1123 px (A4 at 96 DPI)
+- Output image: 1588×2246 px (A4 at 192 DPI)
+- Display size in Word: A4 dimensions
+
+This ensures sharp text and graphics when printing the Word document.
 
 ## Dependencies
 
 - `docx@9.5.1` - Word document generation
+- `deno_dom@0.1.38` - DOM parsing for reliable page extraction
 - Gotenberg (external service) - HTML to PDF/Screenshot conversion
 
 ## Gotenberg API Endpoints

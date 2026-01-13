@@ -7,7 +7,12 @@
  * 2. Making print-only elements visible
  * 3. Converting images to base64
  * 4. Adding all necessary styles inline
+ * 
+ * WICHTIG: Text-Styles werden aus src/styles/editorStyles.js importiert,
+ * um sicherzustellen, dass Editor und Export immer synchron sind.
  */
+
+import { generateExportCSS, EDITOR_STYLES } from '../styles/editorStyles';
 
 /**
  * Fetches Google Fonts CSS and converts to inline @font-face rules
@@ -331,8 +336,16 @@ export const serializeToHTML = async (containerRef) => {
   const fontCSS = await fetchFontCSS();
 
   // Create comprehensive print styles - includes ALL necessary layout CSS
+  // Text styles are generated from editorStyles.js for consistency
+  const generatedTextStyles = generateExportCSS();
+  
   const printStyles = `
     ${fontCSS}
+    
+    /* ============================================
+       GENERATED TEXT STYLES (from editorStyles.js)
+       ============================================ */
+    ${generatedTextStyles}
     
     /* ============================================
        BASE STYLES
@@ -752,149 +765,8 @@ export const serializeToHTML = async (containerRef) => {
     }
     
     /* ============================================
-       TIPTAP EDITOR TEXT STYLES
+       TABLE ADDITIONAL STYLES (not covered by generateExportCSS)
        ============================================ */
-    .tiptap-wrapper {
-      width: 100% !important;
-    }
-    
-    .tiptap-editor,
-    .ProseMirror {
-      font-family: 'Roboto', sans-serif !important;
-      font-size: 11px !important;
-      line-height: 1.5 !important;
-      font-weight: 400 !important;
-      color: #003366 !important;
-      overflow-wrap: break-word !important;
-      word-wrap: break-word !important;
-      word-break: break-word !important;
-      white-space: normal !important;
-    }
-    
-    .tiptap-editor p,
-    .ProseMirror p {
-      margin: 0 !important;
-      padding: 0 !important;
-      line-height: 1.5 !important;
-    }
-    
-    .tiptap-heading {
-      font-weight: 600 !important;
-      /* No underline - matches editor appearance */
-    }
-    
-    /* List styles */
-    .tiptap-editor ul,
-    .tiptap-editor .bullet-list,
-    .ProseMirror ul {
-      margin: 0 !important;
-      padding-left: 16px !important;
-      list-style-type: disc !important;
-      list-style-position: outside !important;
-    }
-    
-    .tiptap-editor ol,
-    .tiptap-editor .ordered-list,
-    .ProseMirror ol {
-      margin: 0 !important;
-      padding-left: 16px !important;
-      list-style-type: decimal !important;
-      list-style-position: outside !important;
-    }
-    
-    .tiptap-editor li,
-    .ProseMirror li {
-      margin: 0 0 2px 0 !important;
-      padding: 0 !important;
-    }
-    
-    /* Hide trailing empty paragraph (for usability in editor, not needed in export) */
-    .tiptap-editor > p:last-child:empty,
-    .tiptap-editor > p:last-child:has(> br:only-child),
-    .ProseMirror > p:last-child:empty,
-    .ProseMirror > p:last-child:has(> br:only-child),
-    .content-box-content .tiptap-editor > p:last-child:empty,
-    .content-box-content .ProseMirror > p:last-child:empty,
-    .tiptap-wrapper > .ProseMirror > p:last-child:empty,
-    .tiptap-wrapper > .ProseMirror > p:last-child:has(> br:only-child) {
-      display: none !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      height: 0 !important;
-      line-height: 0 !important;
-      font-size: 0 !important;
-    }
-    
-    /* Also handle any trailing br elements */
-    .tiptap-editor > p:last-child > br:only-child,
-    .ProseMirror > p:last-child > br:only-child {
-      display: none !important;
-    }
-    
-    /* ============================================
-       HIGHLIGHT ITEM (Auszeichnung mit Pfeil-Icon)
-       ============================================ */
-    .highlight-item {
-      display: block !important;
-      position: relative !important;
-      margin: 8px 0 !important;
-      padding-left: 24px !important;
-    }
-    
-    .highlight-item:first-child {
-      margin-top: 0 !important;
-    }
-    
-    .highlight-item:last-child {
-      margin-bottom: 0 !important;
-    }
-    
-    /* The arrow icon element */
-    .highlight-item-icon {
-      position: absolute !important;
-      left: 0 !important;
-      top: 0 !important;
-      width: 16px !important;
-      height: 16px !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-    
-    /* Arrow icon via CSS - the filled circle with arrow */
-    .highlight-item-icon::before {
-      content: "" !important;
-      display: block !important;
-      width: 14px !important;
-      height: 14px !important;
-      background-color: var(--content-box-color, #003366) !important;
-      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='currentColor'%3E%3Cpath d='M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm45.66,109.66-32,32a8,8,0,0,1-11.32-11.32L148.69,136H88a8,8,0,0,1,0-16h60.69l-18.35-18.34a8,8,0,0,1,11.32-11.32l32,32A8,8,0,0,1,173.66,133.66Z'/%3E%3C/svg%3E") !important;
-      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='currentColor'%3E%3Cpath d='M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm45.66,109.66-32,32a8,8,0,0,1-11.32-11.32L148.69,136H88a8,8,0,0,1,0-16h60.69l-18.35-18.34a8,8,0,0,1,11.32-11.32l32,32A8,8,0,0,1,173.66,133.66Z'/%3E%3C/svg%3E") !important;
-      -webkit-mask-size: contain !important;
-      mask-size: contain !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-    
-    .highlight-item-content {
-      display: inline !important;
-    }
-    
-    /* ============================================
-       TABLE STYLES
-       ============================================ */
-    .tiptap-table-block,
-    .tiptap-table-block-wrapper {
-      /* Align with content box edges */
-      /* Left: 16px = icon width (30px) - overlap (14px) */
-      /* Right: 14px = same as single-column content boxes */
-      margin-left: 16px !important;
-      margin-right: 14px !important;
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-    }
     
     /* Override inline padding from TipTapTableBlock.js for TABLE content (not title) */
     .tiptap-table-block-wrapper > .flex:not(.mb-2),
@@ -908,94 +780,6 @@ export const serializeToHTML = async (containerRef) => {
     .tiptap-table-block-wrapper > div.mb-2 {
       padding-left: 14px !important;
       padding-right: 14px !important;
-    }
-    
-    /* Table wrapper with rounded corners and border */
-    .tiptap-table-wrapper {
-      border: 1.8px solid #003366 !important;
-      border-radius: 6px !important;
-      overflow: hidden !important;
-      width: 100% !important;
-    }
-    
-    .tiptap-table-block table,
-    .tiptap-table-wrapper table,
-    .tiptap-table-editor table,
-    .ProseMirror table {
-      border-collapse: separate !important;
-      border-spacing: 0 !important;
-      width: 100% !important;
-      table-layout: fixed !important;
-      margin: 0 !important;
-    }
-    
-    .tiptap-table-block th,
-    .tiptap-table-block td,
-    .tiptap-table-wrapper th,
-    .tiptap-table-wrapper td,
-    .tiptap-table-editor th,
-    .tiptap-table-editor td,
-    .ProseMirror th,
-    .ProseMirror td {
-      border-right: 1px solid #d1d5db !important;
-      border-bottom: 1px solid #d1d5db !important;
-      padding: 6px 14px !important;
-      text-align: left !important;
-      vertical-align: top !important;
-      font-family: 'Roboto', sans-serif !important;
-      font-size: 11px !important;
-      line-height: 1.5 !important;
-      color: #003366 !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-    
-    /* Remove right border on last column */
-    .tiptap-table-block td:last-child,
-    .tiptap-table-block th:last-child,
-    .tiptap-table-wrapper td:last-child,
-    .tiptap-table-wrapper th:last-child,
-    .tiptap-table-editor td:last-child,
-    .tiptap-table-editor th:last-child {
-      border-right: none !important;
-    }
-    
-    /* Remove bottom border on last row */
-    .tiptap-table-block tr:last-child td,
-    .tiptap-table-block tr:last-child th,
-    .tiptap-table-wrapper tr:last-child td,
-    .tiptap-table-wrapper tr:last-child th,
-    .tiptap-table-editor tr:last-child td,
-    .tiptap-table-editor tr:last-child th {
-      border-bottom: none !important;
-    }
-    
-    /* Header cells - dark blue background */
-    .tiptap-table-block th,
-    .tiptap-table-wrapper th,
-    .tiptap-table-editor th,
-    .ProseMirror th {
-      font-weight: 600 !important;
-      background-color: #003366 !important;
-      color: white !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-    
-    /* Text inside header cells */
-    .tiptap-table-block th p,
-    .tiptap-table-wrapper th p,
-    .tiptap-table-editor th p,
-    .ProseMirror th p {
-      color: white !important;
-      margin: 0 !important;
-    }
-    
-    /* Regular cells with white background */
-    .tiptap-table-block td,
-    .tiptap-table-wrapper td,
-    .tiptap-table-editor td {
-      background-color: white !important;
     }
     
     /* Fix last row cells - same padding as other rows */

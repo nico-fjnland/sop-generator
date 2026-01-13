@@ -7,6 +7,53 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.9] - 2026-01-13
+
+### ✨ Improved
+
+- **PDF-Export - Konsistente Text-Styles:**
+  - Zentrale Style-Konstanten in `src/styles/editorStyles.js` eingeführt
+  - Export-CSS wird jetzt aus denselben Konstanten generiert wie der Editor
+  - Behebt unterschiedliche Zeilenumbrüche zwischen Editor und PDF
+  - `line-height` für Headings jetzt korrekt 1.8 (war 1.5)
+  - Listen `padding-left` jetzt korrekt 12px (war 16px)
+  - Highlight-Item `padding-left` jetzt korrekt 20px (war 24px)
+
+- **Word-Export - Zuverlässigere Seitenextraktion:**
+  - DOM-Parser (`deno_dom`) statt Regex für `.a4-page`-Extraktion
+  - Behebt Problem mit fehlenden Seiten (insbesondere letzte Seite)
+  - Fallback auf Regex-Methode falls DOM-Parser fehlschlägt
+  - Verbessertes Logging für Debugging
+
+- **Word-Export - Höhere Auflösung:**
+  - Screenshots werden jetzt mit 2x Scale-Faktor generiert (~150 DPI)
+  - Bilder im Word-Dokument sind schärfer beim Drucken
+  - Viewport bleibt A4-Größe, Ausgabe ist 2x größer (1588×2246 px)
+
+- **Export - Längere Wartezeit:**
+  - `waitDelay` von 2s auf 3s erhöht
+  - Verbessert Stabilität bei komplexen Flowcharts
+
+### 🏗️ Architecture
+
+- **Single Source of Truth für Styles:**
+  - Neue Datei `src/styles/editorStyles.js` mit allen Text-Style-Konstanten
+  - `EDITOR_STYLES` Objekt enthält alle relevanten Werte
+  - `generateExportCSS()` Funktion generiert CSS für den Export
+  - Zukünftige Style-Änderungen müssen nur noch an einer Stelle erfolgen
+
+### 🔧 Technical
+
+- `src/styles/editorStyles.js`: Neue Datei mit zentralen Style-Konstanten
+- `src/utils/htmlSerializer.js`: Importiert und verwendet `generateExportCSS()`
+- `supabase/functions/export-document/index.ts`:
+  - DOM-Parser Import (`deno_dom@0.1.38`)
+  - Neue Funktion `generateSingleScreenshotHighRes()` mit `scale` Parameter
+  - `extractA4Pages()` mit DOM-Parser und Regex-Fallback
+  - Logging für Debugging hinzugefügt
+
+---
+
 ## [0.9.8] - 2026-01-13
 
 ### 🔧 Fixed

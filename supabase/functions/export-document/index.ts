@@ -3,6 +3,14 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { DOMParser } from 'https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts'
+
+// Scale factor for high-resolution screenshots (2x = ~150 DPI for print quality)
+const SCREENSHOT_SCALE_FACTOR = 2;
+
+// Base A4 dimensions in pixels at 96 DPI
+const A4_WIDTH_PX = 794;
+const A4_HEIGHT_PX = 1123;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -51,7 +59,8 @@ async function generatePdfWithGotenberg(html: string, gotenbergUrl: string): Pro
   formData.append('emulatedMediaType', 'print')
   
   // Wait for network to be idle (fonts, images loaded)
-  formData.append('waitDelay', '2s')
+  // Increased to 3s for complex flowcharts and heavy content
+  formData.append('waitDelay', '3s')
   
   // Prefer CSS page size if defined
   formData.append('preferCssPageSize', 'true')
@@ -70,12 +79,51 @@ async function generatePdfWithGotenberg(html: string, gotenbergUrl: string): Pro
 }
 
 /**
- * Extracts complete .a4-page div elements from HTML by counting opening/closing tags
- * This handles nested divs correctly unlike regex
+ * Extracts complete .a4-page div elements from HTML using DOM parser
+ * This is more reliable than regex-based parsing and handles all edge cases
  * @param html - The HTML content
  * @returns Array of HTML strings, one per .a4-page element
  */
 function extractA4Pages(html: string): string[] {
+  try {
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    
+    if (!doc) {
+      console.error('Failed to parse HTML document')
+      return fallbackExtractA4Pages(html)
+    }
+    
+    const pageElements = doc.querySelectorAll('.a4-page')
+    const pages: string[] = []
+    
+    for (const element of pageElements) {
+      // Get outerHTML of each page element
+      const pageHtml = element.outerHTML
+      if (pageHtml) {
+        pages.push(pageHtml)
+      }
+    }
+    
+    console.log(`DOM parser found ${pages.length} pages`)
+    
+    if (pages.length === 0) {
+      console.warn('No .a4-page elements found, trying fallback')
+      return fallbackExtractA4Pages(html)
+    }
+    
+    return pages
+  } catch (error) {
+    console.error('DOM parser failed, using fallback:', error)
+    return fallbackExtractA4Pages(html)
+  }
+}
+
+/**
+ * Fallback extraction using regex (for cases where DOM parser fails)
+ * @param html - The HTML content
+ * @returns Array of HTML strings, one per .a4-page element
+ */
+function fallbackExtractA4Pages(html: string): string[] {
   const pages: string[] = []
   const a4PagePattern = /<div[^>]*class="[^"]*a4-page[^"]*"[^>]*>/gi
   let match
@@ -113,12 +161,14 @@ function extractA4Pages(html: string): string[] {
     }
   }
   
+  console.log(`Fallback regex found ${pages.length} pages`)
   return pages
 }
 
 /**
  * Generates screenshots from HTML using Gotenberg for Word export
  * Each .a4-page element becomes a separate screenshot
+ * Screenshots are generated at 2x resolution for better print quality
  * @param html - The HTML content
  * @param gotenbergUrl - The Gotenberg service URL
  * @returns Array of PNG screenshots as Uint8Array
@@ -126,12 +176,22 @@ function extractA4Pages(html: string): string[] {
 async function generateScreenshotsWithGotenberg(html: string, gotenbergUrl: string): Promise<Uint8Array[]> {
   const screenshots: Uint8Array[] = []
   
-  // Extract all .a4-page elements from HTML (handles nested divs correctly)
+  // Extract all .a4-page elements from HTML using DOM parser
   const pageMatches = extractA4Pages(html)
   
+  console.log(`Generating screenshots for ${pageMatches.length} pages at ${SCREENSHOT_SCALE_FACTOR}x resolution`)
+  
   if (!pageMatches || pageMatches.length === 0) {
-    // Fallback: take one screenshot of the entire page
-    const screenshot = await generateSingleScreenshot(html, gotenbergUrl, 794, 1123)
+    // Fallback: take one screenshot of the entire page at higher resolution
+    console.warn('No pages found, taking single screenshot')
+    const scaledWidth = A4_WIDTH_PX * SCREENSHOT_SCALE_FACTOR
+    const scaledHeight = A4_HEIGHT_PX * SCREENSHOT_SCALE_FACTOR
+    const screenshot = await generateSingleScreenshot(
+      html, 
+      gotenbergUrl, 
+      scaledWidth, 
+      scaledHeight
+    )
     screenshots.push(screenshot)
     return screenshots
   }
@@ -140,26 +200,39 @@ async function generateScreenshotsWithGotenberg(html: string, gotenbergUrl: stri
   const headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i)
   const headContent = headMatch ? headMatch[1] : ''
   
-  // Generate a screenshot for each page
+  // Generate a screenshot for each page at 2x resolution
+  // We use CSS transform to scale the content, and a larger viewport to capture it
+  const scaledWidth = A4_WIDTH_PX * SCREENSHOT_SCALE_FACTOR
+  const scaledHeight = A4_HEIGHT_PX * SCREENSHOT_SCALE_FACTOR
+  
   for (let i = 0; i < pageMatches.length; i++) {
+    console.log(`Generating screenshot for page ${i + 1}/${pageMatches.length}`)
+    
+    // Create HTML with scaled viewport and CSS transform
+    // The .a4-page content is scaled up 2x using CSS transform
+    // The viewport is 2x larger to capture the scaled content
     const pageHtml = `
       <!DOCTYPE html>
       <html>
         <head>
           ${headContent}
           <style>
-            body {
-              margin: 0;
-              padding: 0;
-              width: 794px;
-              height: 1123px;
-              overflow: hidden;
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              width: ${scaledWidth}px !important;
+              height: ${scaledHeight}px !important;
+              overflow: hidden !important;
+              background: white !important;
             }
             .a4-page {
-              width: 794px !important;
-              height: 1123px !important;
+              width: ${A4_WIDTH_PX}px !important;
+              height: ${A4_HEIGHT_PX}px !important;
               margin: 0 !important;
               box-shadow: none !important;
+              /* Scale up the content 2x for higher resolution */
+              transform: scale(${SCREENSHOT_SCALE_FACTOR}) !important;
+              transform-origin: top left !important;
             }
           </style>
         </head>
@@ -169,15 +242,31 @@ async function generateScreenshotsWithGotenberg(html: string, gotenbergUrl: stri
       </html>
     `
     
-    const screenshot = await generateSingleScreenshot(pageHtml, gotenbergUrl, 794, 1123)
+    // Generate screenshot with larger viewport (no scale parameter - not supported by Gotenberg)
+    const screenshot = await generateSingleScreenshot(
+      pageHtml, 
+      gotenbergUrl, 
+      scaledWidth, 
+      scaledHeight
+    )
     screenshots.push(screenshot)
   }
   
+  console.log(`Successfully generated ${screenshots.length} screenshots`)
   return screenshots
 }
 
 /**
  * Generates a single screenshot using Gotenberg
+ * 
+ * Note: Gotenberg does not support a scale/deviceScaleFactor parameter.
+ * For higher resolution, use a larger viewport and CSS transform in the HTML.
+ * 
+ * @param html - The HTML content
+ * @param gotenbergUrl - The Gotenberg service URL
+ * @param width - Viewport width in pixels
+ * @param height - Viewport height in pixels
+ * @returns PNG screenshot as Uint8Array
  */
 async function generateSingleScreenshot(
   html: string,
@@ -191,19 +280,18 @@ async function generateSingleScreenshot(
   const htmlBlob = new Blob([html], { type: 'text/html' })
   formData.append('files', htmlBlob, 'index.html')
   
-  // Screenshot dimensions
+  // Screenshot dimensions (viewport size)
   formData.append('width', width.toString())
   formData.append('height', height.toString())
   
-  // PNG format for best quality
+  // PNG format for best quality (lossless compression, no artifacts)
   formData.append('format', 'png')
-  formData.append('quality', '100')
   
   // Emulate print media type - this applies @media print CSS rules
   formData.append('emulatedMediaType', 'print')
   
-  // Wait for content to load
-  formData.append('waitDelay', '2s')
+  // Wait for content to load (3s for complex flowcharts and fonts)
+  formData.append('waitDelay', '3s')
   
   // Optimize for quality, not speed
   formData.append('optimizeForSpeed', 'false')

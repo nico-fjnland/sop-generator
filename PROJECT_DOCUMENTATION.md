@@ -1,6 +1,6 @@
 # SOP Editor - Vollständige Projektdokumentation
 
-> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.9.0)  
+> **Version:** siehe [`package.json`](./package.json) (aktuell: 0.9.9)  
 > **Stack:** React 18 + Supabase + TailwindCSS  
 > **Zielgruppe:** Medizinisches Personal zur Erstellung von Standard Operating Procedures (SOPs)  
 > **Changelog:** [`CHANGELOG.md`](./CHANGELOG.md)
@@ -223,7 +223,8 @@ src/
 │   ├── utils.js              # Utility-Funktionen (cn, etc.)
 │   └── tiptap-utils.js       # TipTap Hilfsfunktionen (handleImageUpload, etc.)
 │
-├── styles/                   # SCSS-Variablen und Animationen
+├── styles/                   # SCSS-Variablen, Animationen und zentrale Style-Konstanten
+│   ├── editorStyles.js       # Zentrale Style-Konstanten (Single Source of Truth für Editor + Export)
 │   ├── _variables.scss       # TipTap CSS-Variablen (Farben, Abstände)
 │   └── _keyframe-animations.scss
 │
