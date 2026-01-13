@@ -157,7 +157,7 @@ const HelpButton = () => {
         className="flex flex-col text-[10px] font-medium select-none leading-tight"
         style={{ color: textColor }}
       >
-        <span>SOP Editor {APP_VERSION} (BETA)</span>
+        <span>SOP Editor {APP_VERSION}</span>
         <span className="opacity-70 flex items-center gap-1"><a href="https://github.com/nico-fjnland/sop-generator" target="_blank" rel="noopener noreferrer" className="hover:underline inline-flex items-center gap-0.5"><GitCommit size={10} weight="regular" />{VERCEL_BUILD}</a> • <a href="https://fjnland.de" target="_blank" rel="noopener noreferrer" className="hover:underline">fjnland.de</a></span>
       </div>
     </div>
