@@ -350,7 +350,6 @@
 
 .flowchart-editor-modal .flowchart-custom-handle.react-flow__handle:hover {
   background: #3b82f6;
-  transform: scale(1.2);
 }
 
 /* Edge styles */
@@ -594,7 +593,7 @@
 
 .edge-label-container {
   font-family: 'Quicksand', sans-serif;
-  font-size: 11px;
+  font-size: 9px; /* Small text size from editorStyles.smallText */
   font-weight: 500;
   cursor: pointer;
   z-index: 1000;
@@ -603,14 +602,14 @@
 .edge-label-container.has-label,
 .edge-label-container.selected {
   background: white;
-  border: 1px solid #e5e7eb;
+  border: none;
   border-radius: 4px;
   padding: 2px 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: none !important;
 }
 
 .edge-label-container.selected {
-  border-color: #003366;
+  /* No border */
 }
 
 .edge-label-text {
@@ -628,7 +627,7 @@
 
 .edge-label-input {
   font-family: 'Quicksand', sans-serif;
-  font-size: 11px;
+  font-size: 9px; /* Small text size from editorStyles.smallText */
   font-weight: 500;
   border: none;
   outline: none;
@@ -651,7 +650,7 @@
 /* Wrapper for TipTap editor in nodes */
 .flowchart-node-editor-wrapper {
   position: relative;
-  min-width: 40px;
+  min-width: 24px;
   text-align: center;
 }
 
@@ -705,7 +704,7 @@
   text-align: center;
   white-space: pre-wrap;
   word-wrap: break-word;
-  min-width: 40px;
+  min-width: 24px;
 }
 
 .flowchart-node-tiptap-editor:focus {
@@ -799,9 +798,9 @@
    EDITING STATE - Visual feedback
    ============================================ */
 
-/* Visual indicator when node is in edit mode */
+/* Visual indicator when node is in edit mode - uses node's own border color */
 .flowchart-node.editing {
-  box-shadow: 0 0 0 2px var(--accent-color, #47D1C6), 0 2px 8px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 0 2px var(--node-border-color, #47D1C6), 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 /* Cursor change to indicate editable text when in edit mode */

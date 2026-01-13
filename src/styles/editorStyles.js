@@ -35,6 +35,14 @@ export const EDITOR_STYLES = {
   },
 
   // ============================================
+  // SMALL TEXT (Kleiner Text, z.B. für Edge-Labels im Flowchart)
+  // ============================================
+  smallText: {
+    fontSize: '9px',
+    fontWeight: 500,
+  },
+
+  // ============================================
   // HEADING-STYLES (Überschriften innerhalb Content-Boxen)
   // WICHTIG: lineHeight ist bewusst größer als bei normalem Text!
   // ============================================

@@ -69,29 +69,30 @@ const calculateZoomAndHeight = (nodes, containerWidth) => {
 function getHandleCoordsByPosition(node, handlePosition) {
   const width = node.width ?? node.measured?.width ?? 150;
   const height = node.height ?? node.measured?.height ?? 40;
+  const gap = 2; // Visual gap between edge and node
   
   let x, y;
   
   switch (handlePosition) {
     case Position.Top:
       x = width / 2;
-      y = 0;
+      y = -gap;
       break;
     case Position.Bottom:
       x = width / 2;
-      y = height;
+      y = height + gap;
       break;
     case Position.Left:
-      x = 0;
+      x = -gap;
       y = height / 2;
       break;
     case Position.Right:
-      x = width;
+      x = width + gap;
       y = height / 2;
       break;
     default:
       x = width / 2;
-      y = height;
+      y = height + gap;
   }
   
   return { x, y };
@@ -182,10 +183,9 @@ function FloatingEdgePreview({ id, source, target, markerEnd, style, data }) {
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
               pointerEvents: 'none',
               background: 'white',
-              border: '1px solid #e5e7eb',
               borderRadius: '4px',
               padding: '2px 6px',
-              fontSize: '11px',
+              fontSize: '9px', // Small text size from editorStyles.smallText
               fontFamily: "'Quicksand', sans-serif",
               fontWeight: 500,
               color: '#374151',
@@ -332,7 +332,7 @@ const StaticHighNode = ({ data }) => {
       <div className="flowchart-node-content flowchart-node-with-icon">
         <StaticNodeText content={data.label} fallback="Hoch" />
         <div className="flowchart-node-icon flowchart-node-icon-high">
-          <ArrowCircleUp size={18} weight="fill" />
+          <ArrowCircleUp size={16} weight="fill" />
         </div>
       </div>
     </div>
@@ -346,7 +346,7 @@ const StaticLowNode = ({ data }) => {
       <div className="flowchart-node-content flowchart-node-with-icon">
         <StaticNodeText content={data.label} fallback="Runter" />
         <div className="flowchart-node-icon flowchart-node-icon-low">
-          <ArrowCircleDown size={18} weight="fill" />
+          <ArrowCircleDown size={16} weight="fill" />
         </div>
       </div>
     </div>
@@ -360,7 +360,7 @@ const StaticEqualNode = ({ data }) => {
       <div className="flowchart-node-content flowchart-node-with-icon">
         <StaticNodeText content={data.label} fallback="Gleich" />
         <div className="flowchart-node-icon flowchart-node-icon-equal">
-          <ArrowCircleRight size={18} weight="fill" />
+          <ArrowCircleRight size={16} weight="fill" />
         </div>
       </div>
     </div>

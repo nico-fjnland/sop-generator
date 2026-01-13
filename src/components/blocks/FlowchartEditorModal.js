@@ -57,29 +57,30 @@ import InlineTextToolbar from '../InlineTextToolbar';
 function getHandleCoordsByPosition(node, handlePosition) {
   const width = node.width ?? node.measured?.width ?? 150;
   const height = node.height ?? node.measured?.height ?? 40;
+  const gap = 2; // Visual gap between edge and node
   
   let x, y;
   
   switch (handlePosition) {
     case Position.Top:
       x = width / 2;
-      y = 0;
+      y = -gap;
       break;
     case Position.Bottom:
       x = width / 2;
-      y = height;
+      y = height + gap;
       break;
     case Position.Left:
-      x = 0;
+      x = -gap;
       y = height / 2;
       break;
     case Position.Right:
-      x = width;
+      x = width + gap;
       y = height / 2;
       break;
     default:
       x = width / 2;
-      y = height;
+      y = height + gap;
   }
   
   return { x, y };
@@ -513,7 +514,7 @@ const FlowchartNodeEditor = ({
   }
 
   return (
-    <div className="flowchart-node-editor-wrapper nodrag" data-placeholder={placeholder}>
+    <div className={`flowchart-node-editor-wrapper ${editable ? 'nodrag' : ''}`} data-placeholder={placeholder}>
       <EditorContent editor={editor} />
     </div>
   );
@@ -525,6 +526,9 @@ const FlowchartNodeEditor = ({
 
 const NodeHandles = ({ selected }) => {
   const handleStyle = { visibility: selected ? 'visible' : 'hidden' };
+  // Source handles are always invisible - they're only needed for connection functionality
+  // Target handles are the visible dots that users interact with
+  const sourceHandleStyle = { visibility: 'hidden', opacity: 0, pointerEvents: 'none' };
   
   return (
     <>
@@ -532,10 +536,10 @@ const NodeHandles = ({ selected }) => {
       <Handle type="target" position={Position.Bottom} id="bottom" style={handleStyle} className="flowchart-custom-handle" />
       <Handle type="target" position={Position.Left} id="left" style={handleStyle} className="flowchart-custom-handle" />
       <Handle type="target" position={Position.Right} id="right" style={handleStyle} className="flowchart-custom-handle" />
-      <Handle type="source" position={Position.Top} id="top-source" style={handleStyle} className="flowchart-custom-handle" />
-      <Handle type="source" position={Position.Bottom} id="bottom-source" style={handleStyle} className="flowchart-custom-handle" />
-      <Handle type="source" position={Position.Left} id="left-source" style={handleStyle} className="flowchart-custom-handle" />
-      <Handle type="source" position={Position.Right} id="right-source" style={handleStyle} className="flowchart-custom-handle" />
+      <Handle type="source" position={Position.Top} id="top-source" style={sourceHandleStyle} className="flowchart-custom-handle" />
+      <Handle type="source" position={Position.Bottom} id="bottom-source" style={sourceHandleStyle} className="flowchart-custom-handle" />
+      <Handle type="source" position={Position.Left} id="left-source" style={sourceHandleStyle} className="flowchart-custom-handle" />
+      <Handle type="source" position={Position.Right} id="right-source" style={sourceHandleStyle} className="flowchart-custom-handle" />
     </>
   );
 };
@@ -698,7 +702,7 @@ const HighNode = ({ data, selected }) => {
           onFocusChange={data.onFocusChange}
         />
         <div className="flowchart-node-icon flowchart-node-icon-high">
-          <ArrowCircleUp size={18} weight="fill" />
+          <ArrowCircleUp size={16} weight="fill" />
         </div>
       </div>
     </div>
@@ -719,7 +723,7 @@ const LowNode = ({ data, selected }) => {
           onFocusChange={data.onFocusChange}
         />
         <div className="flowchart-node-icon flowchart-node-icon-low">
-          <ArrowCircleDown size={18} weight="fill" />
+          <ArrowCircleDown size={16} weight="fill" />
         </div>
       </div>
     </div>
@@ -740,7 +744,7 @@ const EqualNode = ({ data, selected }) => {
           onFocusChange={data.onFocusChange}
         />
         <div className="flowchart-node-icon flowchart-node-icon-equal">
-          <ArrowCircleRight size={18} weight="fill" />
+          <ArrowCircleRight size={16} weight="fill" />
         </div>
       </div>
     </div>
@@ -1672,8 +1676,8 @@ const FlowchartEditorInner = ({
       
       // Calculate text and icon positions for nodes with icons
       // Match CSS: gap: 2px, icon at end, text fills remaining space
-      const iconSize = 18;
-      const gap = 1; // Minimal gap between text and icon
+      const iconSize = 16;
+      const gap = 4; // Gap between text and icon
       const padding = 6; // Inner padding from node edges
       
       // For nodes with icons: text is centered in left area, icon is at right with small padding
@@ -1739,31 +1743,33 @@ const FlowchartEditorInner = ({
       
       let startX, startY, endX, endY;
       
+      const gap = 2; // Visual gap between edge and node
+      
       if (Math.abs(dx) > Math.abs(dy)) {
         // Horizontal connection
         if (dx > 0) {
-          startX = sourceNode.position.x + sourceWidth;
+          startX = sourceNode.position.x + sourceWidth + gap;
           startY = sourceCenter.y;
-          endX = targetNode.position.x;
+          endX = targetNode.position.x - gap;
           endY = targetCenter.y;
         } else {
-          startX = sourceNode.position.x;
+          startX = sourceNode.position.x - gap;
           startY = sourceCenter.y;
-          endX = targetNode.position.x + targetWidth;
+          endX = targetNode.position.x + targetWidth + gap;
           endY = targetCenter.y;
         }
       } else {
         // Vertical connection
         if (dy > 0) {
           startX = sourceCenter.x;
-          startY = sourceNode.position.y + sourceHeight;
+          startY = sourceNode.position.y + sourceHeight + gap;
           endX = targetCenter.x;
-          endY = targetNode.position.y;
+          endY = targetNode.position.y - gap;
         } else {
           startX = sourceCenter.x;
-          startY = sourceNode.position.y;
+          startY = sourceNode.position.y - gap;
           endX = targetCenter.x;
-          endY = targetNode.position.y + targetHeight;
+          endY = targetNode.position.y + targetHeight + gap;
         }
       }
       
@@ -1788,8 +1794,8 @@ const FlowchartEditorInner = ({
             marker-end="url(#arrowhead)"
           />
           ${label ? `
-            <rect x="${labelX - 20}" y="${labelY - 8}" width="40" height="16" fill="white" stroke="#e5e7eb" rx="3"/>
-            <text x="${labelX}" y="${labelY}" text-anchor="middle" dominant-baseline="middle" fill="#374151" font-size="11" font-family="Quicksand, sans-serif" font-weight="500">${label}</text>
+            <rect x="${labelX - 20}" y="${labelY - 8}" width="40" height="16" fill="white" rx="3"/>
+            <text x="${labelX}" y="${labelY}" text-anchor="middle" dominant-baseline="middle" fill="#374151" font-size="9" font-family="Quicksand, sans-serif" font-weight="500">${label}</text>
           ` : ''}
         </g>
       `;

@@ -7,9 +7,41 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
-## [0.9.9] - 2026-01-13
+## [0.9.10] - 2026-01-13
 
 ### ✨ Improved
+
+- **Flowchart - Visueller Abstand bei Pfeilen:**
+  - Pfeile (Edges) haben jetzt einen 2px Abstand zu den Nodes
+  - Gilt für Editor, Preview und SVG-Export
+  - Verbesserte visuelle Trennung zwischen Verbindungen und Nodes
+
+- **Flowchart - Node-Dragging verbessert:**
+  - Nodes können jetzt überall angefasst und verschoben werden (nicht nur am Rand)
+  - `nodrag` wird nur noch im Bearbeitungsmodus (Doppelklick) aktiviert
+  - Einfacheres und intuitiveres Verschieben von Nodes
+
+- **Flowchart - Bearbeitungsmodus-Rand angepasst:**
+  - Beim Doppelklick verwendet der Rand jetzt die jeweilige Node-Farbe statt der Primärfarbe
+  - Neutral = gelber Rand, Start = türkis, Phase = dunkelblau, etc.
+  - Konsistentere visuelle Darstellung im Bearbeitungsmodus
+
+- **Flowchart - Edge-Label Schriftgröße angepasst:**
+  - Labels auf Connector-Lines verwenden jetzt 9px (Small Text) statt 11px
+  - Neue Konstante `EDITOR_STYLES.smallText` in `editorStyles.js` hinzugefügt
+  - Schatten von Edge-Label Containern entfernt
+  - Gilt für Editor, Preview und SVG-Export
+
+### 🐛 Fixed
+
+- **Flowchart - Doppelte Connector-Dots behoben:**
+  - Source-Handles sind jetzt permanent unsichtbar
+  - Nur Target-Handles werden beim Hover angezeigt
+  - Behebt den Bug, dass beim Hover zwei Dots übereinander erschienen
+
+- **Flowchart - Connector-Dot Hover-Animation entfernt:**
+  - Handle vergrößert sich nicht mehr beim Hover (`scale(1.2)` entfernt)
+  - Stabilere visuelle Darstellung der Verbindungspunkte
 
 - **PDF-Export - Konsistente Text-Styles:**
   - Zentrale Style-Konstanten in `src/styles/editorStyles.js` eingeführt
