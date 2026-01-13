@@ -80,7 +80,7 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
   // State for static SVG (used for print)
   const [staticSvg, setStaticSvg] = useState(null);
 
-  // Load saved content on mount
+  // Load saved content on mount AND when content changes (JSON upload, Supabase load)
   useEffect(() => {
     if (content && typeof content === 'object' && content.nodes) {
       setNodes(content.nodes);
@@ -90,8 +90,7 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
         setStaticSvg(content.staticSvg);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [content]);
 
   // Save changes to parent
   const saveToParent = useCallback((newNodes, newEdges, newNodeIdCounter, newStaticSvg = null) => {

@@ -247,7 +247,7 @@ const edgeTypes = {
 // CUSTOM DOT BACKGROUND - Moves with viewport like tldraw/Miro
 // ============================================
 
-const CustomDotBackground = ({ gap = 14, dotSize = 1, color = 'rgba(0, 0, 0, 0.1)' }) => {
+const CustomDotBackground = ({ gap = 8, dotSize = 1, color = 'rgba(0, 0, 0, 0.1)' }) => {
   const { x, y, zoom } = useViewport();
   
   // Der Gap im Screen-Koordinatensystem skaliert mit dem Zoom
@@ -1139,7 +1139,7 @@ const FlowchartEditorInner = ({
     let verticalLine = null;
     let snapX = change.position.x;
     let snapY = change.position.y;
-    const snapDistance = 5;
+    const snapDistance = 4;
     const distances = [];
 
     for (const nodeB of nodes) {
@@ -1961,7 +1961,7 @@ const FlowchartEditorInner = ({
           minZoom={0.3}
           maxZoom={2}
           snapToGrid={true}
-          snapGrid={[14, 14]}
+          snapGrid={[4, 4]}
           fitView
           fitViewOptions={{ padding: 0.2, minZoom: 0.5, maxZoom: 1 }}
           proOptions={{ hideAttribution: true }}
@@ -1976,7 +1976,7 @@ const FlowchartEditorInner = ({
           className={`${interactionMode}-mode`}
         >
           {/* Custom Background that moves with viewport - like tldraw/Miro */}
-          <CustomDotBackground gap={14} dotSize={1} color="rgba(0, 0, 0, 0.1)" />
+          <CustomDotBackground gap={8} dotSize={1} color="rgba(0, 0, 0, 0.1)" />
           
           {/* MiniMap with Custom Wrapper for Dynamic Icon Color */}
           <div className="minimap-wrapper" style={{ '--minimap-accent': accentColor, '--minimap-accent-light': hexToLightBg(accentColor, 0.95) }}>
@@ -2062,7 +2062,7 @@ const FlowchartEditorInner = ({
             
             {/* Distance Indicators */}
             {distanceIndicators.map((indicator, idx) => {
-              const gridUnits = Math.round(indicator.distance / 14);
+              const gridUnits = Math.round(indicator.distance / 4);
               
               if (indicator.type === 'horizontal') {
                 const x1 = indicator.x1 * zoom + viewportX;

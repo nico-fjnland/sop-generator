@@ -13,20 +13,36 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 - **Flowchart Zentrierung - Robuste Lösung:**
   - Flowcharts werden jetzt IMMER zentriert, unabhängig von gespeicherten Viewport-Werten
-  - Zentrierung funktioniert zuverlässig bei Browser-Zoom, Neuladen und JSON-Upload
+  - Zentrierung funktioniert zuverlässig bei Browser-Zoom, Neuladen, JSON-Upload und Cloud-Laden
   - Viewport-Persistenz komplett entfernt (war fehleranfällig und im read-only Preview unnötig)
+  - Flowchart wird automatisch neu zentriert bei Dokumentwechsel (JSON-Upload, Supabase)
 
 ### 🗑️ Removed
 
 - **Viewport-Persistenz entfernt:**
   - `savedViewport` und `onViewportChange` Props aus FlowchartPreview
   - `viewport` wird nicht mehr im Content-Objekt gespeichert
-  - Vereinfachte, robustere Zentrierungslogik
+
+### ✨ Changed
+
+- **Einheitliches 4-Pixel-Raster im Flowchart-Editor:**
+  - Dot-Grid von 14×14px auf **8×8px** geändert (feineres visuelles Raster)
+  - Snap-Grid von 14×14px auf **4×4px** geändert (präzisere Node-Positionierung)
+  - Alignment-Snap-Distanz von 5px auf **4px** angepasst
+  - Abstands-Indikatoren zeigen jetzt **4er-Einheiten** statt 14er-Einheiten
+  - Node-Höhen sind jetzt ein Vielfaches von 4 (min-height: 24px)
+  - Line-height von 1.5 auf 1.45 angepasst für exaktes 4er-Raster
 
 ### 🔧 Technical
 
 - `FlowchartPreview.js`: Vereinfachter useEffect, der IMMER zentriert wenn initialisiert
-- `FlowchartBlock.js`: `savedViewport` State und `handleViewportChange` Callback entfernt
+- `FlowchartPreview.js`: `lastViewportRef` wird bei Node-Änderungen zurückgesetzt
+- `FlowchartPreview.js`: Background gap auf 8px geändert
+- `FlowchartBlock.js`: `savedViewport` State und `handleViewportChange` entfernt
+- `FlowchartBlock.js`: useEffect reagiert jetzt auf `content`-Änderungen (nicht nur Mount)
+- `FlowchartBlock.css`: Node-Styling mit min-height 24px, line-height 1.45, padding 4px 8px
+- `FlowchartEditorModal.js`: CustomDotBackground gap=8, snapGrid=[4,4], snapDistance=4
+- `FlowchartEditorModal.css`: TipTap-Editor line-height auf 1.45
 - Loop-Prevention bleibt erhalten durch `lastViewportRef` Vergleich
 
 ---

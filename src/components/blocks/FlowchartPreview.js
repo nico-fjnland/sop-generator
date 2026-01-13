@@ -406,6 +406,12 @@ const FlowchartPreviewInner = ({ nodes, edges, containerWidth, onHeightChange, o
     return edges || [];
   }, [edges]);
 
+  // Reset viewport ref when nodes change (JSON upload, Supabase load)
+  // This forces re-centering even if the calculated position is similar
+  useEffect(() => {
+    lastViewportRef.current = null;
+  }, [nodes]);
+
   const buttonColor = accentColor || ALGORITHMUS_COLOR;
 
   // Calculate zoom and height based on MEASURED flowchart bounds and container width
@@ -514,7 +520,7 @@ const FlowchartPreviewInner = ({ nodes, edges, containerWidth, onHeightChange, o
         >
           <Background 
             variant="dots"
-            gap={14}
+            gap={8}
             size={1}
             color="rgba(0, 0, 0, 0.1)"
           />
