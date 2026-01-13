@@ -7,6 +7,30 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.8] - 2026-01-13
+
+### 🔧 Fixed
+
+- **Flowchart Zentrierung - Robuste Lösung:**
+  - Flowcharts werden jetzt IMMER zentriert, unabhängig von gespeicherten Viewport-Werten
+  - Zentrierung funktioniert zuverlässig bei Browser-Zoom, Neuladen und JSON-Upload
+  - Viewport-Persistenz komplett entfernt (war fehleranfällig und im read-only Preview unnötig)
+
+### 🗑️ Removed
+
+- **Viewport-Persistenz entfernt:**
+  - `savedViewport` und `onViewportChange` Props aus FlowchartPreview
+  - `viewport` wird nicht mehr im Content-Objekt gespeichert
+  - Vereinfachte, robustere Zentrierungslogik
+
+### 🔧 Technical
+
+- `FlowchartPreview.js`: Vereinfachter useEffect, der IMMER zentriert wenn initialisiert
+- `FlowchartBlock.js`: `savedViewport` State und `handleViewportChange` Callback entfernt
+- Loop-Prevention bleibt erhalten durch `lastViewportRef` Vergleich
+
+---
+
 ## [0.9.7] - 2026-01-12
 
 ### 🔧 Fixed
