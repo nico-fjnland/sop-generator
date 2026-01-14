@@ -7,7 +7,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
-## [0.9.12] - 2026-01-14
+## [0.9.13] - 2026-01-14
 
 ### ✨ Added
 
@@ -29,9 +29,14 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 - **BulkExportDialog komplett überarbeitet:**
   - Drei Export-Formate: PDF, Word, JSON
-  - Zeigt geschätzte Exportzeit basierend auf Dokumentanzahl
+  - Zeigt geschätzte Exportzeit basierend auf Dokumentanzahl mit "Verarbeitungszeit:"-Label
   - Warnung bei Dokumenten ohne gültigen HTML-Cache
-  - Detaillierte Fortschritts- und Fehleranzeige
+  - Verbesserte Fortschrittsanzeige mit vollständiger Dokumentenliste in Originalreihenfolge
+  - Live-Status-Updates: Dokumentstatus wird in Echtzeit aktualisiert
+  - Jedes Dokument zeigt Status mit Icon: Wartend (Hourglass), In Verarbeitung (Spinner), Fertig (CheckCircle)
+  - Fortschrittsanzeige bleibt nach Export sichtbar (100% Progressbar)
+  - "Abbrechen"-Button während des Exports zum Abbruch des Vorgangs
+  - "Fertig"-Button nach Abschluss zum Schließen des Modals
 
 - **documentService.js erweitert:**
   - `saveDocumentHtml()` - Speichert HTML-Cache in Supabase Storage

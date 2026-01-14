@@ -18,7 +18,8 @@ import {
   XCircle,
   Warning,
   Info,
-  Clock
+  Clock,
+  Hourglass
 } from '@phosphor-icons/react';
 
 /**
@@ -57,7 +58,7 @@ const FormatOption = ({
       {estimate && (
         <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
           <Clock size={12} />
-          {estimate}
+          Verarbeitungszeit: {estimate}
         </p>
       )}
       {warning && (
@@ -71,13 +72,18 @@ const FormatOption = ({
  * Progress item component
  */
 const ProgressItem = ({ doc, status }) => (
-  <div className="flex items-center gap-2 text-sm py-1">
+  <div className="flex items-center gap-2 text-sm py-1.5 px-2">
     {status === 'completed' && <CheckCircle size={16} weight="fill" className="text-green-500 flex-shrink-0" />}
     {status === 'error' && <XCircle size={16} weight="fill" className="text-red-500 flex-shrink-0" />}
-    {status === 'loading' && <Spinner className="h-4 w-4 flex-shrink-0" />}
-    {status === 'exporting' && <Spinner className="h-4 w-4 flex-shrink-0" />}
-    {status === 'pending' && <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30 flex-shrink-0" />}
-    <span className="truncate">{doc.title}</span>
+    {status === 'exporting' && <Spinner className="h-4 w-4 flex-shrink-0 text-primary" />}
+    {status === 'pending' && <Hourglass size={16} className="text-muted-foreground/50 flex-shrink-0" />}
+    <span className="truncate flex-1">{doc.title}</span>
+    <span className="text-xs text-muted-foreground flex-shrink-0">
+      {status === 'completed' && 'Fertig'}
+      {status === 'error' && 'Fehler'}
+      {status === 'exporting' && 'Läuft...'}
+      {status === 'pending' && 'Wartend'}
+    </span>
   </div>
 );
 
@@ -87,6 +93,7 @@ const BulkExportDialog = ({
   selectedCount,
   selectedDocuments = [], // Array of {id, title, version, html_cached_at, updated_at}
   onExport,
+  onCancel,
   isExporting = false,
   progress = null, // { current, total, completed, currentDoc, results, errors }
 }) => {
@@ -231,80 +238,54 @@ const BulkExportDialog = ({
     </div>
   );
 
+  // Get the documents being exported
+  const docsToExport = selectedFormat === 'json' ? selectedDocuments : cachedDocs;
+
+  // Determine status for each document
+  // During export: visual simulation from top to bottom based on progress.current
+  // After completion: show actual results (including errors)
+  const getDocStatus = (doc) => {
+    if (!progress) return 'pending';
+    
+    // After completion, show actual results
+    if (progress.completed) {
+      if (progress.results?.some(r => r.doc.id === doc.id)) return 'completed';
+      if (progress.errors?.some(e => e.doc.id === doc.id)) return 'error';
+      return 'pending';
+    }
+    
+    // During export: visual simulation based on progress.current
+    const currentProgress = progress.current || 0;
+    const docIndex = docsToExport.findIndex(d => d.id === doc.id);
+    
+    if (docIndex < currentProgress) return 'completed';
+    if (docIndex === currentProgress) return 'exporting';
+    return 'pending';
+  };
+
   // Render progress view
   const renderProgress = () => {
     const isCompleted = progress?.completed;
-    const successCount = progress?.results?.length || 0;
     const errorCount = progress?.errors?.length || 0;
 
     return (
       <div className="py-4 space-y-4">
-        {/* Status Header */}
-        <div className="flex flex-col items-center gap-3">
-          {isCompleted ? (
-            errorCount === 0 ? (
-              <CheckCircle size={48} weight="fill" className="text-green-500" />
-            ) : successCount > 0 ? (
-              <Warning size={48} weight="fill" className="text-amber-500" />
-            ) : (
-              <XCircle size={48} weight="fill" className="text-red-500" />
-            )
-          ) : (
-            <Spinner className="h-12 w-12" />
-          )}
-          
-          <div className="text-center">
-            {isCompleted ? (
-              <>
-                <p className="font-medium">
-                  {errorCount === 0 
-                    ? 'Export abgeschlossen!' 
-                    : successCount > 0 
-                      ? 'Export teilweise abgeschlossen'
-                      : 'Export fehlgeschlagen'}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {successCount} von {progress.total} erfolgreich exportiert
-                  {errorCount > 0 && `, ${errorCount} fehlgeschlagen`}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="font-medium">
-                  Exportiere als {selectedFormat === 'pdf' ? 'PDF' : selectedFormat === 'docx' ? 'Word' : 'JSON'}...
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {progress?.current || 0} von {progress?.total || selectedCount}
-                </p>
-              </>
-            )}
-          </div>
-        </div>
-
         {/* Progress Bar */}
-        {!isCompleted && progress && (
+        {progress && (
           <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
             <div 
-              className="bg-primary h-2 transition-all duration-300"
+              className={`h-2 transition-all duration-300 ${isCompleted ? (errorCount > 0 ? 'bg-amber-500' : 'bg-green-500') : 'bg-primary'}`}
               style={{ width: `${(progress.current / progress.total) * 100}%` }}
             />
           </div>
         )}
 
-        {/* Document List */}
-        {(selectedFormat === 'pdf' || selectedFormat === 'docx') && progress && (
-          <div className="max-h-40 overflow-y-auto border rounded-lg p-2">
-            {progress.results?.map(({ doc }) => (
-              <ProgressItem key={doc.id} doc={doc} status="completed" />
-            ))}
-            {progress.errors?.map(({ doc }) => (
-              <ProgressItem key={doc.id} doc={doc} status="error" />
-            ))}
-            {progress.currentDoc && !progress.completed && (
-              <ProgressItem doc={progress.currentDoc} status="exporting" />
-            )}
-          </div>
-        )}
+        {/* Document List - shows all documents with their status in original order */}
+        <div className="max-h-[200px] overflow-y-auto border rounded-lg divide-y">
+          {docsToExport.map(doc => (
+            <ProgressItem key={doc.id} doc={doc} status={getDocStatus(doc)} />
+          ))}
+        </div>
 
         {/* Error Details */}
         {isCompleted && errorCount > 0 && (
@@ -329,18 +310,31 @@ const BulkExportDialog = ({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="sm:max-w-lg">
         <AlertDialogHeader>
-          <AlertDialogTitle>Dokumente exportieren</AlertDialogTitle>
+          <AlertDialogTitle>
+            {isExporting 
+              ? progress?.completed
+                ? (progress?.errors?.length === 0 
+                    ? 'Export abgeschlossen' 
+                    : progress?.results?.length > 0 
+                      ? 'Export teilweise abgeschlossen'
+                      : 'Export fehlgeschlagen')
+                : `Exportiere als ${selectedFormat === 'pdf' ? 'PDF' : selectedFormat === 'docx' ? 'Word' : 'JSON'}`
+              : 'Dokumente exportieren'}
+          </AlertDialogTitle>
           <AlertDialogDescription>
             {isExporting 
-              ? `Exportiere ${selectedFormat === 'json' ? selectedCount : cachedDocs.length} Dokument${(selectedFormat === 'json' ? selectedCount : cachedDocs.length) !== 1 ? 'e' : ''}...`
+              ? progress?.completed
+                ? `${progress?.results?.length || 0} von ${progress?.total || 0} erfolgreich exportiert${progress?.errors?.length > 0 ? `, ${progress.errors.length} fehlgeschlagen` : ''}`
+                : `Exportiere ${progress?.current || 0}/${progress?.total || docsToExport.length} Dokumente...`
               : `${selectedCount} Dokument${selectedCount !== 1 ? 'e' : ''} ausgewählt`}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        {isExporting ? renderProgress() : renderFormatSelection()}
+        {/* Show progress view if exporting OR if export completed (progress exists) */}
+        {(isExporting || progress?.completed) ? renderProgress() : renderFormatSelection()}
 
         <AlertDialogFooter>
-          {!isExporting ? (
+          {!(isExporting || progress?.completed) ? (
             <>
               <AlertDialogCancel>Abbrechen</AlertDialogCancel>
               <Button 
@@ -356,10 +350,18 @@ const BulkExportDialog = ({
             </>
           ) : progress?.completed ? (
             <Button onClick={() => onOpenChange(false)}>
-              Schließen
+              Fertig
             </Button>
           ) : (
-            <Button disabled variant="outline">Exportiere...</Button>
+            <>
+              <Button 
+                variant="outline" 
+                onClick={onCancel}
+              >
+                Abbrechen
+              </Button>
+              <Button disabled variant="outline">Exportiere...</Button>
+            </>
           )}
         </AlertDialogFooter>
       </AlertDialogContent>

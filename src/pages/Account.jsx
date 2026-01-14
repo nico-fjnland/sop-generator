@@ -1132,6 +1132,7 @@ export default function Account() {
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(null);
+  const exportAbortRef = React.useRef(false);
 
   // Load Klinik-Atlas data on mount
   useEffect(() => {
@@ -1760,7 +1761,16 @@ export default function Account() {
     setShowExportDialog(true);
   };
 
+  const handleCancelExport = () => {
+    exportAbortRef.current = true;
+    setIsExporting(false);
+    setExportProgress(null);
+    setShowExportDialog(false);
+    showSuccess('Export abgebrochen.');
+  };
+
   const handleExport = async (format, docsToExport) => {
+    exportAbortRef.current = false;
     setIsExporting(true);
     const total = docsToExport?.length || selectedDocs.size;
     setExportProgress({ current: 0, total, completed: false, results: [], errors: [] });
@@ -1790,17 +1800,32 @@ export default function Account() {
           docsToExport,
           format,
           (current, exportTotal, status, currentDoc) => {
-            setExportProgress(prev => ({
-              ...prev,
-              current,
-              total: exportTotal,
-              currentDoc,
-              status
-            }));
+            setExportProgress(prev => {
+              // Only add to results/errors when status changes to completed/error
+              let newResults = prev.results || [];
+              let newErrors = prev.errors || [];
+              
+              if (status === 'completed' && currentDoc && !newResults.some(r => r.doc.id === currentDoc.id)) {
+                newResults = [...newResults, { doc: currentDoc }];
+              }
+              if (status === 'error' && currentDoc && !newErrors.some(e => e.doc.id === currentDoc.id)) {
+                newErrors = [...newErrors, { doc: currentDoc, error: {} }];
+              }
+              
+              return {
+                ...prev,
+                current,
+                total: exportTotal,
+                currentDoc: (status === 'loading' || status === 'exporting') ? currentDoc : null,
+                status,
+                results: newResults,
+                errors: newErrors
+              };
+            });
           }
         );
 
-        // Update progress with final results
+        // Update progress with final results (use server results for accurate error messages)
         setExportProgress(prev => ({
           ...prev,
           completed: true,
@@ -1832,12 +1857,8 @@ export default function Account() {
       }
       
       // Wait a moment before closing to show completion
-      setTimeout(() => {
-        setIsExporting(false);
-        setShowExportDialog(false);
-        setExportProgress(null);
-        setSelectedDocs(new Set());
-      }, 2000);
+      // Reset export state but keep dialog open for user to close
+      setIsExporting(false);
       
     } catch (error) {
       console.error('Bulk export error:', error);
@@ -1864,10 +1885,18 @@ export default function Account() {
       {/* Bulk Export Dialog */}
       <BulkExportDialog
         open={showExportDialog}
-        onOpenChange={setShowExportDialog}
+        onOpenChange={(open) => {
+          setShowExportDialog(open);
+          // Reset state when dialog is closed after export
+          if (!open && exportProgress?.completed) {
+            setExportProgress(null);
+            setSelectedDocs(new Set());
+          }
+        }}
         selectedCount={selectedDocs.size}
         selectedDocuments={documents.filter(doc => selectedDocs.has(doc.id))}
         onExport={handleExport}
+        onCancel={handleCancelExport}
         isExporting={isExporting}
         progress={exportProgress}
       />
