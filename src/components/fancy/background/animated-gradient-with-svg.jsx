@@ -57,19 +57,21 @@ const AnimatedGradient = ({
       <div className={cn(`absolute inset-0`, blurClass)}>
         {colors.map((color, index) => {
           const config = circleConfigs[index] || circleConfigs[0];
+          // Use CSS custom properties for the animation
+          // --duration is used by the animate-background-gradient class (defined in _keyframe-animations.scss)
+          // CSS custom property values must be strings for calc() to work correctly
           const animationProps = {
-            animation: `background-gradient ${speed}s infinite ease-in-out`,
-            animationDuration: `${speed}s`,
+            "--duration": `${speed}s`,
             top: `${config.top}%`,
             left: `${config.left}%`,
-            "--tx-1": config.tx1,
-            "--ty-1": config.ty1,
-            "--tx-2": config.tx2,
-            "--ty-2": config.ty2,
-            "--tx-3": config.tx3,
-            "--ty-3": config.ty3,
-            "--tx-4": config.tx4,
-            "--ty-4": config.ty4,
+            "--tx-1": `${config.tx1}`,
+            "--ty-1": `${config.ty1}`,
+            "--tx-2": `${config.tx2}`,
+            "--ty-2": `${config.ty2}`,
+            "--tx-3": `${config.tx3}`,
+            "--ty-3": `${config.ty3}`,
+            "--tx-4": `${config.tx4}`,
+            "--ty-4": `${config.ty4}`,
           }
 
           return (

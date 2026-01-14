@@ -7,6 +7,32 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.15] - 2026-01-14
+
+### 🔒 Security
+
+- **CSP (Content Security Policy) erweitert für HelpScout Beacon und Jam.dev:**
+  - `style-src`: `https://fonts.googleapis.com` hinzugefügt (für dynamische Beacon-Styles)
+  - `font-src`: `https://fonts.gstatic.com` hinzugefügt (für Beacon-Fonts)
+  - `script-src`: `https://*.jam.dev` und `https://*.helpscout.net` hinzugefügt
+  - `img-src`: `https://*.jam.dev` hinzugefügt
+  - `connect-src`: `https://monitoring.jam.dev` explizit hinzugefügt
+  - Behebt "Failed to initialize Beacon" und "Unable to Load Beacon" Fehler
+
+### 🐛 Bugfixes
+
+- **Animierter Hintergrund-Gradient wiederhergestellt:**
+  - `AnimatedBackgroundGradient.jsx`: `speed`-Wert von 120s auf 60s reduziert (120s war praktisch unsichtbar)
+  - `_keyframe-animations.scss`: Keyframes `background-gradient` als CSS-Fallback hinzugefügt
+  - `animated-gradient-with-svg.jsx`: CSS-Variablen als Strings formatiert für korrektes `calc()`
+  - Subtile Hintergrund-Animation funktioniert wieder im Tag- und Nachtmodus
+
+- **Grain-Overlay feiner und subtiler eingestellt:**
+  - `App.css`: `baseFrequency` von 2.5 auf 4 erhöht für feinere Körnung
+  - `App.css`: `opacity` von 0.15 auf 0.1 reduziert für subtileren Effekt
+
+---
+
 ## [0.9.14] - 2026-01-14
 
 ### 🔒 Security
