@@ -92,6 +92,15 @@ Der **SOP Editor** ist eine webbasierte Anwendung zur Erstellung von Standard Op
 | html-to-image | 1.11.13 | HTML zu Bild-Konvertierung |
 | JSZip | 3.x | ZIP-Archiv-Erstellung für Bulk-Export |
 
+### Fonts (Self-Hosted für DSGVO)
+| Font | Gewichte | Zweck |
+|------|----------|-------|
+| Inter | 300-700 | UI-Texte, Labels |
+| Roboto | 300-700 | Body-Text, Standard |
+| Quicksand | 400-700 | Überschriften |
+
+> **Hinweis:** Fonts werden lokal aus `/src/fonts/` geladen (keine Google Fonts API-Aufrufe).
+
 ### Sonstige
 | Technologie | Version | Zweck |
 |-------------|---------|-------|
@@ -137,6 +146,7 @@ src/
 │   ├── DocumentCard.jsx      # Dokument-Karte für Account
 │   ├── EmptyState.jsx        # Leerzustand-Anzeige
 │   ├── BulkExportDialog.jsx  # Massen-Export Dialog
+│   ├── LoginHistory.jsx      # Login-Historie für Account/Sicherheit
 │   │
 │   ├── blocks/               # Block-Typen
 │   │   ├── ContentBoxBlock.js    # Content-Box (12 Kategorien)
@@ -202,6 +212,7 @@ src/
 │   ├── usePageBreaks.js      # A4 Seitenumbruch-Berechnung
 │   ├── useKlinikAtlas.js     # Bundes-Klinik-Atlas API Hook
 │   ├── useHeightEqualization.js # Höhenangleichung für 2-spaltige Layouts (immer aktiv)
+│   ├── useSessionTimeout.js  # Auto-Logout nach 30 Min Inaktivität
 │   └── use-debounced-dimensions.js
 │
 ├── pages/
@@ -216,6 +227,7 @@ src/
 │
 ├── utils/
 │   ├── exportUtils.js        # PDF/Word/JSON Export
+│   ├── logger.js             # Umgebungsabhängiger Logger (Dev-only logs)
 │   └── performance.js        # Performance-Utilities
 │
 ├── lib/
@@ -815,6 +827,48 @@ const {
   link: 'https://bundes-klinik-atlas.de/krankenhaussuche/krankenhaus/771003/'
 }
 ```
+
+### useSessionTimeout (Custom Hook)
+
+Hook für automatischen Logout nach Inaktivität (DSGVO-Compliance):
+
+```javascript
+const { 
+  showWarning,      // Boolean: Warnung anzeigen?
+  timeRemaining,    // Sekunden bis Logout
+  extendSession,    // Sitzung verlängern
+  logout,           // Sofort ausloggen
+  timeoutMinutes    // Timeout-Dauer (30 Min)
+} = useSessionTimeout();
+```
+
+**Aktivitätserkennung:**
+- `mousedown`, `keydown`, `scroll`, `touchstart`, `mousemove`
+- Throttling: Max. 1 Reset alle 10 Sekunden
+
+**Timing:**
+- Timeout: 30 Minuten Inaktivität
+- Warnung: 2 Minuten vor Logout
+- Countdown wird in `SessionTimeoutWarning` angezeigt
+
+### Logger Utility
+
+Umgebungsabhängige Console-Ausgaben (`src/utils/logger.js`):
+
+```javascript
+import { logger } from '../utils/logger';
+
+logger.log('Debug info');     // Nur Development
+logger.debug('Details');      // Nur Development
+logger.info('Info');          // Nur Development
+logger.warn('Warning');       // Immer (auch Production)
+logger.error('Error', err);   // Immer (auch Production)
+```
+
+**Warum:**
+- In Production werden Debug-Logs unterdrückt
+- Warn/Error bleiben für Fehlerdiagnose
+- Verhindert Leaking sensibler Infos in Browser-Konsole
 
 ---
 

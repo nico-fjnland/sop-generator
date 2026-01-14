@@ -206,6 +206,24 @@
   background: rgba(255, 255, 255, 0.9);
 }
 
+/* Session timeout - enable pointer events and center alignment */
+.status-frame.session-timeout.visible {
+  pointer-events: auto;
+}
+
+.status-frame.session-timeout .status-header {
+  align-items: center;
+}
+
+.status-frame.session-timeout .status-icon {
+  margin-top: 0;
+}
+
+/* Session timeout confirm button - primary blue instead of red */
+.status-frame.session-timeout .status-btn-confirm {
+  color: #036;
+}
+
 /* Print styles */
 @media print {
   .status-indicator-wrapper {

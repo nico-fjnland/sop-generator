@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, useLayoutEffect } from 'react';
-import { Check, Warning, X, Info } from '@phosphor-icons/react';
+import { Check, Warning, X, Info, SignOut, Coffee } from '@phosphor-icons/react';
 import { Spinner } from './ui/spinner';
 import { useStatus } from '../contexts/StatusContext';
 import AnimatedGradient from './fancy/background/animated-gradient-with-svg';
@@ -29,7 +29,7 @@ const HEADER_PADDING = 16; // 8px top + 8px bottom
  * Uses StatusContext for global status management
  */
 const StatusIndicator = ({ children }) => {
-  const { currentStatus, isVisible, isHiding, handleConfirm, handleCancel } = useStatus();
+  const { currentStatus, isVisible, isHiding, handleConfirm, handleCancel, handleExtendSession } = useStatus();
   const headerRef = useRef(null);
   const [headerHeight, setHeaderHeight] = useState(24); // Default min-height
 
@@ -79,6 +79,7 @@ const StatusIndicator = ({ children }) => {
       case 'confirm':
         return STATUS_GRADIENT_COLORS.red;
       case 'warning':
+      case 'sessionTimeout':
         return STATUS_GRADIENT_COLORS.yellow;
       default:
         return STATUS_GRADIENT_COLORS.blue;
@@ -86,6 +87,28 @@ const StatusIndicator = ({ children }) => {
   }, [currentStatus?.type]);
 
   const isConfirmDialog = currentStatus?.isConfirm;
+  const isSessionTimeout = currentStatus?.isSessionTimeout;
+
+  // Format time remaining as M:SS
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Render status text - special handling for session timeout
+  const renderStatusText = () => {
+    if (isSessionTimeout && currentStatus?.timeRemaining !== undefined) {
+      return (
+        <>
+          Inaktivität erkannt. Sitzung wird in{' '}
+          <strong>{formatTime(currentStatus.timeRemaining)}</strong>{' '}
+          beendet.
+        </>
+      );
+    }
+    return currentStatus?.message || 'Synchronisiert';
+  };
 
   // Calculate dynamic frame height based on header content
   const frameStyle = {
@@ -97,7 +120,7 @@ const StatusIndicator = ({ children }) => {
     <div className="status-indicator-wrapper">
       {/* The expanding frame behind the toolbar */}
       <div 
-        className={`status-frame ${isVisible ? 'visible' : ''} ${isHiding ? 'hiding' : ''} ${isConfirmDialog ? 'confirm-dialog' : ''}`}
+        className={`status-frame ${isVisible ? 'visible' : ''} ${isHiding ? 'hiding' : ''} ${isConfirmDialog ? 'confirm-dialog' : ''} ${isSessionTimeout ? 'session-timeout' : ''}`}
         style={frameStyle}
       >
         {/* Animated gradient background */}
@@ -114,7 +137,7 @@ const StatusIndicator = ({ children }) => {
             {getStatusIcon()}
           </span>
           <span className="status-text">
-            {currentStatus?.message || 'Synchronisiert'}
+            {renderStatusText()}
           </span>
           
           {/* Confirm dialog buttons - icon only */}
@@ -133,6 +156,26 @@ const StatusIndicator = ({ children }) => {
                 title={currentStatus.confirmLabel || 'Bestätigen'}
               >
                 <Check size={16} weight="bold" />
+              </button>
+            </div>
+          )}
+          
+          {/* Session timeout buttons */}
+          {isSessionTimeout && (
+            <div className="status-buttons">
+              <button 
+                className="status-btn status-btn-cancel"
+                onClick={handleCancel}
+                title={currentStatus.cancelLabel || 'Abmelden'}
+              >
+                <SignOut size={16} weight="bold" />
+              </button>
+              <button 
+                className="status-btn status-btn-confirm"
+                onClick={handleExtendSession}
+                title={currentStatus.confirmLabel || 'Verlängern'}
+              >
+                <Coffee size={16} weight="regular" />
               </button>
             </div>
           )}

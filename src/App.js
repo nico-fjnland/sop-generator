@@ -14,6 +14,7 @@ import { TipTapFocusProvider } from './contexts/TipTapFocusContext';
 import { StatusProvider } from './contexts/StatusContext';
 import HelpButton from './components/HelpButton';
 import AnimatedBackgroundGradient from './components/AnimatedBackgroundGradient';
+import SessionTimeoutWarning from './components/SessionTimeoutWarning';
 import './App.css';
 
 const AppContent = () => {
@@ -77,6 +78,7 @@ const AppContent = () => {
       {/* UI-Elemente außerhalb des Zoom-Wrappers - bleiben bei fixer Größe */}
       <HelpButton />
       <ZoomControl />
+      <SessionTimeoutWarning />
       
       {/* Bottom gradient für bessere Sichtbarkeit der Steuerungselemente */}
       <div 

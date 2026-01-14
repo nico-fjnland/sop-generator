@@ -1,6 +1,7 @@
 import { getDocument } from '../services/documentService';
 import JSZip from 'jszip';
 import { exportDocumentServerSide, downloadBlob as downloadBlobService, ExportError } from '../services/exportService';
+import { logger } from './logger';
 
 /**
  * Native file download function (replaces file-saver).
@@ -155,7 +156,7 @@ export const importFromJson = (file) => {
         
         resolve(sanitizedState);
       } catch (error) {
-        console.error('JSON import error:', error);
+        logger.error('JSON import error:', error);
         reject(new Error('Failed to parse JSON file: ' + error.message));
       }
     };
@@ -218,9 +219,9 @@ export const exportAsWord = async (containerRef, title = 'SOP Überschrift', sta
     
     const filename = generateFilename(title, stand);
     downloadBlobService(blob, `${filename}.docx`);
-    console.log('Word export completed (server-side)');
+    logger.log('Word export completed (server-side)');
   } catch (error) {
-    console.error('Server-side Word export failed:', error);
+    logger.error('Server-side Word export failed:', error);
     // Use user-friendly message from ExportError if available
     const userMessage = error instanceof ExportError 
       ? error.userMessage 
@@ -250,9 +251,9 @@ export const exportAsPdf = async (containerRef, title = 'SOP Überschrift', stan
     
     const filename = generateFilename(title, stand);
     downloadBlobService(blob, `${filename}.pdf`);
-    console.log('PDF export completed (server-side)');
+    logger.log('PDF export completed (server-side)');
   } catch (error) {
-    console.error('Server-side PDF export failed:', error);
+    logger.error('Server-side PDF export failed:', error);
     // Use user-friendly message from ExportError if available
     const userMessage = error instanceof ExportError 
       ? error.userMessage 
@@ -314,7 +315,7 @@ export const exportMultipleDocuments = async (documentIds, format = 'json', onPr
       const { data: doc, error } = await getDocument(docId);
       
       if (error || !doc) {
-        console.error(`Failed to load document ${docId}:`, error);
+        logger.error(`Failed to load document ${docId}:`, error);
         if (onProgress) onProgress(i + 1, total, false);
         continue;
       }
@@ -341,7 +342,7 @@ export const exportMultipleDocuments = async (documentIds, format = 'json', onPr
       if (onProgress) onProgress(i + 1, total, false);
       
     } catch (err) {
-      console.error(`Error exporting document ${docId}:`, err);
+      logger.error(`Error exporting document ${docId}:`, err);
       if (onProgress) onProgress(i + 1, total, false);
     }
   }
@@ -361,7 +362,7 @@ export const exportMultipleDocuments = async (documentIds, format = 'json', onPr
       
       downloadBlob(zipBlob, zipFilename);
     } catch (err) {
-      console.error('Error creating ZIP archive:', err);
+      logger.error('Error creating ZIP archive:', err);
     }
   }
   

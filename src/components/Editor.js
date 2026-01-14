@@ -27,6 +27,7 @@ import { DragDropProvider } from '../contexts/DragDropContext';
 import SortableRow from './dnd/SortableRow';
 import DraggableBlock from './dnd/DraggableBlock';
 import { DragGhost } from './dnd/DropIndicator';
+import { logger } from '../utils/logger';
 
 const Editor = () => {
   const { user, signOut, organizationId, organization, profile } = useAuth();
@@ -82,7 +83,7 @@ const Editor = () => {
         });
       }
     } catch (error) {
-      console.error('Error loading avatar for button:', error);
+      logger.error('Error loading avatar for button:', error);
     }
   }
 
@@ -96,7 +97,7 @@ const Editor = () => {
         localStorage.setItem('documentsCount', count.toString());
       }
     } catch (error) {
-      console.error('Error loading documents count:', error);
+      logger.error('Error loading documents count:', error);
     }
   }
 
@@ -116,14 +117,14 @@ const Editor = () => {
       // Wenn die Session fehlt, ist der Benutzer bereits ausgeloggt
       // In diesem Fall einfach zur Startseite navigieren
       if (error && error.message === 'Auth session missing!') {
-        console.log('Session already expired, redirecting to home...');
+        logger.log('Session already expired, redirecting to home...');
         // Erzwinge kompletten Reload um sicherzustellen, dass der State zurückgesetzt wird
         window.location.href = '/';
         return;
       }
       
       if (error) {
-        console.error('Logout error:', error);
+        logger.error('Logout error:', error);
         showError('Ausloggen fehlgeschlagen. Bitte versuche es erneut.');
         return;
       }
@@ -133,7 +134,7 @@ const Editor = () => {
       // Erzwinge kompletten Reload um sicherzustellen, dass der State zurückgesetzt wird
       window.location.href = '/';
     } catch (error) {
-      console.error('Logout exception:', error);
+      logger.error('Logout exception:', error);
       // Auch bei Exceptions zur Startseite navigieren
       window.location.href = '/';
     }
@@ -178,7 +179,7 @@ const Editor = () => {
             }, { history: 'replace' }); // Don't add initial load to history
           }
         } catch (error) {
-          console.error('Error loading document:', error);
+          logger.error('Error loading document:', error);
           showError('Fehler beim Laden des Dokuments.');
         }
       };
@@ -229,18 +230,18 @@ const Editor = () => {
           const html = await serializeToHTML(containerRef.current);
           const { error: htmlError } = await saveDocumentHtml(savedDocId, html);
           if (htmlError) {
-            console.warn('HTML cache failed (non-critical):', htmlError);
+            logger.warn('HTML cache failed (non-critical):', htmlError);
             // Don't show error to user - main save succeeded
           }
         } catch (htmlErr) {
-          console.warn('HTML serialization failed (non-critical):', htmlErr);
+          logger.warn('HTML serialization failed (non-critical):', htmlErr);
           // Don't show error to user - main save succeeded
         }
       }
       
       showSuccess(`„${state.headerTitle}" unter Meine Leitfäden gespeichert.`);
     } catch (error) {
-      console.error('Cloud save failed:', error);
+      logger.error('Cloud save failed:', error);
       showError('Speichern fehlgeschlagen. Bitte versuche es erneut.');
     } finally {
       setIsCloudSaving(false);
@@ -279,7 +280,7 @@ const Editor = () => {
       exportAsJson(state);
       showSuccess('JSON-Datei erfolgreich an Browser übergeben.');
     } catch (error) {
-      console.error('JSON export failed:', error);
+      logger.error('JSON export failed:', error);
       showError('JSON-Export fehlgeschlagen. Bitte versuche es erneut.');
     } finally {
       setIsExporting(false);
@@ -295,7 +296,7 @@ const Editor = () => {
       await exportAsWord(containerRef.current, headerTitle, headerStand, documentId);
       showSuccess('Word-Dokument erfolgreich an Browser übergeben.');
     } catch (error) {
-      console.error('Word export failed:', error);
+      logger.error('Word export failed:', error);
       // Use the specific error message (contains user-friendly context)
       showError(error.message);
     } finally {
@@ -311,7 +312,7 @@ const Editor = () => {
       await exportAsPdf(containerRef.current, headerTitle, headerStand, documentId);
       showSuccess('PDF-Datei erfolgreich an Browser übergeben.');
     } catch (error) {
-      console.error('PDF export failed:', error);
+      logger.error('PDF export failed:', error);
       // Use the specific error message (contains user-friendly context)
       showError(error.message);
     } finally {
@@ -333,7 +334,7 @@ const Editor = () => {
         fileInputRef.current.value = '';
       }
     } catch (error) {
-      console.error('Import failed:', error);
+      logger.error('Import failed:', error);
       showError('Import fehlgeschlagen. Bitte versuche es erneut.');
     }
   };

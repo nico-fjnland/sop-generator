@@ -27,6 +27,9 @@ export const STATUS_TYPES = {
   
   // Confirm dialog (red - destructive action)
   confirm: { type: 'confirm', color: '#EB5547', textColor: 'white', isLoading: false },
+  
+  // Session timeout warning (yellow)
+  sessionTimeout: { type: 'sessionTimeout', color: '#FAAD14', textColor: 'white', isLoading: false },
 };
 
 export const StatusProvider = ({ children }) => {
@@ -38,6 +41,7 @@ export const StatusProvider = ({ children }) => {
   const isProcessingRef = useRef(false);
   const currentStatusRef = useRef(null); // Ref to track current status synchronously
   const confirmResolveRef = useRef(null); // Ref for confirm dialog promise
+  const sessionTimeoutCallbacksRef = useRef(null); // Ref for session timeout callbacks
 
   const clearTimeouts = useCallback(() => {
     if (hideTimeoutRef.current) {
@@ -188,7 +192,54 @@ export const StatusProvider = ({ children }) => {
       confirmResolveRef.current(false);
       confirmResolveRef.current = null;
     }
+    if (sessionTimeoutCallbacksRef.current?.onLogout) {
+      sessionTimeoutCallbacksRef.current.onLogout();
+      sessionTimeoutCallbacksRef.current = null;
+    }
     hideStatus();
+  }, [hideStatus]);
+
+  // Show session timeout warning with countdown
+  const showSessionTimeout = useCallback((timeRemaining, callbacks) => {
+    sessionTimeoutCallbacksRef.current = callbacks;
+    
+    const status = {
+      ...STATUS_TYPES.sessionTimeout,
+      timeRemaining,
+      confirmLabel: 'Verlängern',
+      cancelLabel: 'Abmelden',
+      persistent: true,
+      isSessionTimeout: true,
+    };
+    
+    showStatusInternal(status);
+  }, [showStatusInternal]);
+
+  // Update session timeout countdown
+  const updateSessionTimeout = useCallback((timeRemaining) => {
+    if (!currentStatusRef.current?.isSessionTimeout) return;
+    
+    setCurrentStatus(prev => ({
+      ...prev,
+      timeRemaining,
+    }));
+  }, []);
+
+  // Hide session timeout and extend session
+  const handleExtendSession = useCallback(() => {
+    if (sessionTimeoutCallbacksRef.current?.onExtend) {
+      sessionTimeoutCallbacksRef.current.onExtend();
+      sessionTimeoutCallbacksRef.current = null;
+    }
+    hideStatus();
+  }, [hideStatus]);
+
+  // Hide session timeout warning
+  const hideSessionTimeout = useCallback(() => {
+    if (currentStatusRef.current?.isSessionTimeout) {
+      sessionTimeoutCallbacksRef.current = null;
+      hideStatus();
+    }
   }, [hideStatus]);
 
   const hide = useCallback(() => {
@@ -217,6 +268,11 @@ export const StatusProvider = ({ children }) => {
     handleConfirm,
     handleCancel,
     hide,
+    // Session timeout
+    showSessionTimeout,
+    updateSessionTimeout,
+    hideSessionTimeout,
+    handleExtendSession,
   };
 
   return (

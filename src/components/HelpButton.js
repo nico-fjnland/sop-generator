@@ -57,7 +57,6 @@ const HelpButton = () => {
     if (profile?.avatar_url && profile.avatar_url.startsWith('http')) {
       // Remove any query parameters (cache busters etc.)
       const cleanAvatarUrl = profile.avatar_url.split('?')[0];
-      console.log('Avatar URL for Beacon:', cleanAvatarUrl);
       identifyData.avatar = cleanAvatarUrl;
     }
     

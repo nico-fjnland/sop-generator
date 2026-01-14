@@ -12,10 +12,39 @@ const SCREENSHOT_SCALE_FACTOR = 2;
 const A4_WIDTH_PX = 794;
 const A4_HEIGHT_PX = 1123;
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+// CORS Configuration - Whitelist of allowed origins
+// Add new domains here when deploying to additional environments
+const ALLOWED_ORIGINS = [
+  'https://sop-generator.vercel.app',    // Sandbox/Test
+  'https://editor.sop-notaufnahme.de',   // Production
+];
+
+// Allow localhost in development (any port)
+const isLocalhost = (origin: string): boolean => {
+  try {
+    const url = new URL(origin);
+    return url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  } catch {
+    return false;
+  }
+};
+
+// Check if origin is allowed
+const isAllowedOrigin = (origin: string | null): boolean => {
+  if (!origin) return false;
+  if (isLocalhost(origin)) return true;
+  return ALLOWED_ORIGINS.includes(origin);
+};
+
+// Generate CORS headers for a specific origin
+const getCorsHeaders = (origin: string | null) => {
+  const allowedOrigin = origin && isAllowedOrigin(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+};
 
 interface ExportRequest {
   html: string
@@ -311,9 +340,24 @@ async function generateSingleScreenshot(
 }
 
 serve(async (req) => {
+  // Extract origin from request for CORS
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
+  }
+
+  // Reject requests from non-allowed origins
+  if (!isAllowedOrigin(origin)) {
+    return new Response(
+      JSON.stringify({ error: 'Origin not allowed' }),
+      {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    )
   }
 
   try {

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { logger } from '../utils/logger';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -12,6 +13,7 @@ import EmptyState from '../components/EmptyState';
 import DocumentCard, { MEDICAL_CATEGORIES } from '../components/DocumentCard';
 import DocumentCardSkeleton from '../components/DocumentCardSkeleton';
 import BulkExportDialog from '../components/BulkExportDialog';
+import LoginHistory from '../components/LoginHistory';
 import { 
   User, 
   FileText, 
@@ -944,6 +946,17 @@ const ProfileView = React.memo(({
           </div>
         </div>
       </div>
+
+      {/* Login-Historie Row - 1/3 : 2/3 Layout */}
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-start pt-6 border-t">
+        <div className="space-y-1">
+          <Label className="text-sm font-medium">Login-Historie</Label>
+          <p className="text-xs text-muted-foreground">
+            Deine letzten Anmeldungen
+          </p>
+        </div>
+        <LoginHistory />
+      </div>
     </div>
 
     {/* 3. Gefährlicher Bereich */}
@@ -1178,19 +1191,19 @@ export default function Account() {
           if (profileError) {
             // Wenn kein Profil existiert, erstelle ein leeres
             if (profileError.code === 'PGRST116') {
-              console.log('Creating new profile for user:', user.id);
+              logger.log('Creating new profile for user:', user.id);
               const { error: insertError } = await supabase
                 .from('profiles')
                 .insert([{ id: user.id, updated_at: new Date() }]);
               
               if (insertError) {
-                console.error('Error creating profile:', insertError);
+                logger.error('Error creating profile:', insertError);
               }
             } else {
-              console.warn(profileError);
+              logger.warn(profileError);
             }
           } else if (profile) {
-            console.log('Profile loaded:', profile);
+            logger.log('Profile loaded:', profile);
             setFirstName(profile.first_name || '');
             setLastName(profile.last_name || '');
             setJobPosition(profile.job_position || '');
@@ -1244,7 +1257,7 @@ export default function Account() {
         // If none of the above: keep loadingDocs=true (show Skeletons)
 
       } catch (error) {
-        console.error('Error loading data!', error);
+        logger.error('Error loading data!', error);
         setLoadingDocs(false);
       }
     }
@@ -1293,7 +1306,7 @@ export default function Account() {
       showSuccess('Profil erfolgreich aktualisiert.');
     } catch (error) {
       showError('Aktualisierung fehlgeschlagen. Bitte versuche es erneut.');
-      console.error(error);
+      logger.error(error);
     } finally {
       setUpdating(false);
     }
@@ -1349,7 +1362,7 @@ export default function Account() {
       
       // Cache-Buster hinzufügen, damit der Browser das neue Bild lädt
       const logoUrlWithCacheBuster = `${data.publicUrl}?t=${Date.now()}`;
-      console.log('New company logo URL:', logoUrlWithCacheBuster);
+      logger.log('New company logo URL:', logoUrlWithCacheBuster);
       
       setCompanyLogo(logoUrlWithCacheBuster);
       
@@ -1413,7 +1426,7 @@ export default function Account() {
       showSuccess('Logo der Organisation wurde entfernt.');
     } catch (error) {
       showError('Löschen fehlgeschlagen. Bitte versuche es erneut.');
-      console.error(error);
+      logger.error(error);
     }
   };
 
@@ -1507,7 +1520,7 @@ export default function Account() {
       
       // Cache-Buster hinzufügen, damit der Browser das neue Bild lädt
       const avatarUrlWithCacheBuster = `${data.publicUrl}?t=${Date.now()}`;
-      console.log('New avatar URL:', avatarUrlWithCacheBuster);
+      logger.log('New avatar URL:', avatarUrlWithCacheBuster);
       
       setAvatarUrl(avatarUrlWithCacheBuster);
       
@@ -1571,7 +1584,7 @@ export default function Account() {
         const importedState = JSON.parse(text);
         
         if (!importedState || !Array.isArray(importedState.rows)) {
-          console.error(`Ungültige JSON-Datei: ${file.name}`);
+          logger.error(`Ungültige JSON-Datei: ${file.name}`);
           errorCount++;
           continue;
         }
@@ -1591,13 +1604,13 @@ export default function Account() {
         );
 
         if (error) {
-          console.error(`Fehler beim Import von ${file.name}:`, error);
+          logger.error(`Fehler beim Import von ${file.name}:`, error);
           errorCount++;
         } else {
           successCount++;
         }
       } catch (err) {
-        console.error(`Fehler beim Verarbeiten von ${file.name}:`, err);
+        logger.error(`Fehler beim Verarbeiten von ${file.name}:`, err);
         errorCount++;
       }
     }
@@ -1637,7 +1650,7 @@ export default function Account() {
       // Navigation zur Startseite
       navigate('/');
     } catch (error) {
-      console.error('Logout exception:', error);
+      logger.error('Logout exception:', error);
       // Auch bei Exceptions zur Startseite navigieren
       navigate('/');
     }
@@ -1671,7 +1684,7 @@ export default function Account() {
       if (error) {
         // Falls die RPC-Funktion nicht existiert, Fallback auf manuelle Löschung
         if (error.message.includes('function') || error.code === 'PGRST202') {
-          console.warn('RPC function not found, using fallback method');
+          logger.warn('RPC function not found, using fallback method');
           
           // Erst alle Dokumente des Users löschen
           const { error: docsError } = await supabase
@@ -1701,7 +1714,7 @@ export default function Account() {
       showSuccess('Dein Account wurde unwiderruflich gelöscht.');
       window.location.href = '/';
     } catch (error) {
-      console.error('Error deleting account:', error);
+      logger.error('Error deleting account:', error);
       showError(`Fehler beim Löschen des Accounts: ${error.message}.`);
       setIsDeletingAccount(false);
     }
@@ -1727,7 +1740,7 @@ export default function Account() {
       
       showSuccess(category ? `Fachgebiet zu „${category}" geändert.` : 'Fachgebiet wurde entfernt.');
     } catch (error) {
-      console.error('Error updating category:', error);
+      logger.error('Error updating category:', error);
       showError('Fachgebiet konnte nicht aktualisiert werden. Bitte versuche es erneut.');
     }
   };
@@ -1861,7 +1874,7 @@ export default function Account() {
       setIsExporting(false);
       
     } catch (error) {
-      console.error('Bulk export error:', error);
+      logger.error('Bulk export error:', error);
       showError(error.userMessage || 'Export fehlgeschlagen. Bitte versuche es erneut.');
       setIsExporting(false);
       setExportProgress(prev => prev ? { ...prev, completed: true } : null);

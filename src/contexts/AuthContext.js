@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { logger } from '../utils/logger';
 
 const AuthContext = createContext();
 
@@ -25,7 +26,7 @@ export const AuthProvider = ({ children }) => {
 
       if (profileError) {
         // Profile doesn't exist yet (will be created by trigger)
-        console.log('Profile not found, waiting for trigger...');
+        logger.log('Profile not found, waiting for trigger...');
         return;
       }
 
@@ -44,7 +45,7 @@ export const AuthProvider = ({ children }) => {
         }
       }
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      logger.error('Error fetching user data:', error);
     }
   }, []);
 
@@ -128,12 +129,12 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('documentsCount');
       
       if (error) {
-        console.error('SignOut error:', error);
+        logger.error('SignOut error:', error);
       }
       
       return { error };
     } catch (error) {
-      console.error('SignOut exception:', error);
+      logger.error('SignOut exception:', error);
       return { error };
     }
   };

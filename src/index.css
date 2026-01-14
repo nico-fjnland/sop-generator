@@ -5,8 +5,31 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Google Fonts are loaded in index.html with crossorigin attribute for Firefox compatibility */
-/* Do NOT use @import for external fonts as it causes cross-origin issues in Firefox PDF export */
+/* Self-hosted fonts for DSGVO compliance - no external requests to Google */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('./fonts/Inter.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('./fonts/Roboto.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Quicksand';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./fonts/Quicksand.woff2') format('woff2');
+}
+
 @import 'tippy.js/dist/tippy.css';
 
 @layer base {

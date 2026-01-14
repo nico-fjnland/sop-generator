@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { logger } from '../utils/logger';
 
 const STORAGE_KEY = 'sop-editor-state-v1';
 const HISTORY_LIMIT = 50;
@@ -59,7 +60,7 @@ export const useEditorHistory = ({ skipLocalStorage = false } = {}) => {
         }
       }
     } catch (e) {
-      console.error('Failed to load from local storage', e);
+      logger.error('Failed to load from local storage', e);
     }
     
     // Fallback to initial state
@@ -98,7 +99,7 @@ export const useEditorHistory = ({ skipLocalStorage = false } = {}) => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(history.present));
         setIsSaving(false);
       } catch (e) {
-        console.error('Failed to save to local storage', e);
+        logger.error('Failed to save to local storage', e);
         setIsSaving(false);
       }
     }, DEBOUNCE_SAVE_DELAY);

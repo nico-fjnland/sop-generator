@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
+import { logger } from '../utils/logger';
 import { 
   User, FileText, Layout, SignOut, ChatCircleDots, Globe, Moon, Sun, Buildings 
 } from '@phosphor-icons/react';
@@ -46,7 +47,7 @@ const AccountDropdown = ({
       await signOut();
       window.location.href = '/';
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.error('Logout error:', error);
       window.location.href = '/';
     }
   };

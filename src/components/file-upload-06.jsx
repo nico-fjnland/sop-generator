@@ -36,7 +36,7 @@ export default function FileUpload06() {
   const onFileInputChange = (event) => {
     const selectedFiles = event.target.files;
     if (selectedFiles) {
-      console.log("Files selected:", selectedFiles);
+      // Files selected - processing handled by parent
     }
   };
 
@@ -48,7 +48,7 @@ export default function FileUpload06() {
     event.preventDefault();
     const droppedFiles = event.dataTransfer.files;
     if (droppedFiles) {
-      console.log("Files dropped:", droppedFiles);
+      // Files dropped - processing handled by parent
     }
   };
 

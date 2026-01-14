@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../utils/logger';
 
 /**
  * Saves or updates a document
@@ -56,7 +57,7 @@ export const saveDocument = async (organizationId, userId, title, version, conte
       return { data, error: null };
     }
   } catch (error) {
-    console.error('Error saving document:', error);
+    logger.error('Error saving document:', error);
     return { data: null, error };
   }
 };
@@ -77,7 +78,7 @@ export const getDocuments = async (organizationId) => {
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error('Error fetching documents:', error);
+    logger.error('Error fetching documents:', error);
     return { data: [], error };
   }
 };
@@ -98,7 +99,7 @@ export const getDocument = async (id) => {
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error('Error fetching document:', error);
+    logger.error('Error fetching document:', error);
     return { data: null, error };
   }
 };
@@ -123,11 +124,11 @@ export const deleteDocument = async (id) => {
     supabase.storage
       .from('document-html')
       .remove([fileName])
-      .catch(err => console.warn('Failed to delete HTML cache:', err));
+      .catch(err => logger.warn('Failed to delete HTML cache:', err));
 
     return { success: true, error: null };
   } catch (error) {
-    console.error('Error deleting document:', error);
+    logger.error('Error deleting document:', error);
     return { success: false, error };
   }
 };
@@ -153,7 +154,7 @@ export const updateDocumentCategory = async (id, category) => {
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error('Error updating document category:', error);
+    logger.error('Error updating document category:', error);
     return { data: null, error };
   }
 };
@@ -191,13 +192,13 @@ export const saveDocumentHtml = async (documentId, html) => {
       .eq('id', documentId);
 
     if (updateError) {
-      console.warn('HTML uploaded but failed to update timestamp:', updateError);
+      logger.warn('HTML uploaded but failed to update timestamp:', updateError);
       // Don't throw - the HTML is saved, timestamp is secondary
     }
 
     return { success: true, error: null };
   } catch (error) {
-    console.error('Error saving document HTML:', error);
+    logger.error('Error saving document HTML:', error);
     return { success: false, error };
   }
 };
@@ -225,7 +226,7 @@ export const getDocumentHtml = async (documentId) => {
     if (error.message?.includes('not found') || error.statusCode === 404) {
       return { html: null, error: { code: 'NOT_FOUND', message: 'HTML cache not found' } };
     }
-    console.error('Error fetching document HTML:', error);
+    logger.error('Error fetching document HTML:', error);
     return { html: null, error };
   }
 };
@@ -246,7 +247,7 @@ export const getDocumentsWithHtmlStatus = async (organizationId) => {
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error('Error fetching documents with HTML status:', error);
+    logger.error('Error fetching documents with HTML status:', error);
     return { data: [], error };
   }
 };
@@ -288,7 +289,7 @@ export const checkHtmlCacheStatus = async (documentIds) => {
 
     return { cached, uncached, error: null };
   } catch (error) {
-    console.error('Error checking HTML cache status:', error);
+    logger.error('Error checking HTML cache status:', error);
     return { cached: [], uncached: documentIds, error };
   }
 };
@@ -314,7 +315,7 @@ export const deleteDocumentHtml = async (documentId) => {
 
     return { success: true, error: null };
   } catch (error) {
-    console.error('Error deleting document HTML:', error);
+    logger.error('Error deleting document HTML:', error);
     return { success: false, error };
   }
 };

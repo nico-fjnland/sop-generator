@@ -7,6 +7,81 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.14] - 2026-01-14
+
+### 🔒 Security
+
+- **Self-Hosted Fonts (DSGVO-Compliance):**
+  - Google Fonts durch selbst gehostete Fonts ersetzt
+  - Inter, Roboto und Quicksand werden jetzt lokal aus `/src/fonts/` geladen
+  - Keine externen Anfragen mehr an Google-Server beim Seitenaufruf
+  - Verhindert IP-Übertragung an Google (relevant nach EuGH-Urteil 2022)
+  - Variable Fonts für optimale Dateigröße (~375KB gesamt)
+
+- **Hardcodierte Credentials entfernt:**
+  - Supabase URL und Anon Key werden jetzt ausschließlich aus Environment-Variablen geladen
+  - Fehler wird geworfen wenn Konfiguration fehlt (statt Fallback auf hardcodierte Werte)
+  - Verhindert versehentliches Leaken von Credentials im Quellcode
+
+- **Console.log Statements für Produktion bereinigt:**
+  - Neuer Logger-Utility (`src/utils/logger.js`) für umgebungsabhängige Ausgaben
+  - In Produktion werden `log`, `debug`, `info` unterdrückt
+  - `warn` und `error` bleiben für Debugging aktiv
+  - 15+ Dateien auf Logger-Utility umgestellt
+
+- **Session-Timeout nach 30 Minuten Inaktivität:**
+  - Automatischer Logout bei Inaktivität (Sicherheit bei verlassenen Arbeitsplätzen)
+  - Warnung 2 Minuten vor Timeout mit Countdown
+  - Benutzer kann Sitzung verlängern oder sich sofort abmelden
+  - Aktivitätserkennung: Mausklicks, Tastatureingaben, Scrollen, Touch
+  - Neuer Hook: `useSessionTimeout.js`
+  - Neue Komponente: `SessionTimeoutWarning.js`
+
+- **Persistente Login-Historie im Account-Bereich:**
+  - Zeigt die letzten 10 Anmeldungen mit Datum, Zeit, Browser und IP-Adresse
+  - Persistente `login_history` Tabelle speichert alle Login-Events dauerhaft
+  - Einträge bleiben auch nach Logout/Session-Timeout erhalten
+  - Automatischer Trigger kopiert neue Sessions in die Historie
+  - Aktuelle Sitzung wird hervorgehoben
+  - User-Agent-Parsing für lesbare Browser/OS-Namen
+  - Optionale Bereinigung alter Einträge nach 90 Tagen
+  - Neue Komponente: `LoginHistory.jsx`
+  - Neue SQL-Dateien: `supabase_login_history.sql`, `supabase_login_history_persistent.sql`
+
+- **Security Headers für Vercel:**
+  - Neue `vercel.json` mit umfassenden Sicherheits-Headern
+  - **HSTS**: Erzwingt HTTPS-Verbindung (1 Jahr Gültigkeit)
+  - **X-Content-Type-Options**: Verhindert MIME-Type-Sniffing
+  - **X-Frame-Options**: Blockiert Einbettung in fremde Frames (Clickjacking-Schutz)
+  - **X-XSS-Protection**: Aktiviert Browser-XSS-Filter
+  - **Referrer-Policy**: Kontrolliert Referrer-Informationen
+  - **Permissions-Policy**: Deaktiviert Kamera, Mikrofon, Geolocation
+  - **Content-Security-Policy**: Whitelist für Scripts, Styles, Fonts, Images, Connections
+
+- **CORS-Einschränkung in Edge Function:**
+  - PDF/Word-Export nur noch von erlaubten Domains aufrufbar
+  - Whitelist: `sop-generator.vercel.app`, `editor.sop-notaufnahme.de`, `localhost`
+  - Anfragen von anderen Origins werden mit HTTP 403 abgelehnt
+  - Verhindert Missbrauch des Export-Dienstes durch fremde Webseiten
+
+### ✨ Added
+
+- **Logger-Utility** (`src/utils/logger.js`):
+  - `logger.log()`, `logger.debug()`, `logger.info()` - nur in Development
+  - `logger.warn()`, `logger.error()` - immer aktiv
+  - Einfacher Drop-in Ersatz für console.log
+
+- **Session-Timeout Hook** (`src/hooks/useSessionTimeout.js`):
+  - Konfigurierbare Timeout-Dauer (Standard: 30 Minuten)
+  - Warning-Phase mit Countdown
+  - Activity-Throttling für Performance
+
+- **Session-Timeout Warnung** (`src/components/SessionTimeoutWarning.js`):
+  - AlertDialog mit Countdown-Timer
+  - Buttons für "Sitzung verlängern" und "Jetzt abmelden"
+
+---
+
 ## [0.9.13] - 2026-01-14
 
 ### ✨ Added
