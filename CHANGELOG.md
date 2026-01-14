@@ -7,6 +7,53 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.12] - 2026-01-14
+
+### ✨ Added
+
+- **Bulk PDF/Word Export aus "Meine Leitfäden":**
+  - Mehrere Dokumente können jetzt direkt als PDF oder Word exportiert werden
+  - Automatisches HTML-Caching beim Speichern im Editor ermöglicht schnellen Bulk-Export
+  - Parallele Verarbeitung (max. 10 gleichzeitig) für optimale Performance
+  - Fortschrittsanzeige während des Exports
+  - Export als ZIP-Datei bei mehreren Dokumenten
+  - Neue Format-Auswahl im Export-Dialog: PDF, Word oder JSON
+
+- **HTML-Cache-System für Export:**
+  - Neuer Storage-Bucket `document-html` für gecachte HTML-Dateien
+  - Neue Datenbank-Spalte `html_cached_at` zur Verfolgung des Cache-Status
+  - Automatische Cache-Invalidierung bei Dokumentänderungen
+  - Cache wird beim Löschen von Dokumenten automatisch entfernt
+
+### 🔧 Changed
+
+- **BulkExportDialog komplett überarbeitet:**
+  - Drei Export-Formate: PDF, Word, JSON
+  - Zeigt geschätzte Exportzeit basierend auf Dokumentanzahl
+  - Warnung bei Dokumenten ohne gültigen HTML-Cache
+  - Detaillierte Fortschritts- und Fehleranzeige
+
+- **documentService.js erweitert:**
+  - `saveDocumentHtml()` - Speichert HTML-Cache in Supabase Storage
+  - `getDocumentHtml()` - Lädt gecachtes HTML für Export
+  - `checkHtmlCacheStatus()` - Prüft welche Dokumente exportierbar sind
+  - `getDocuments()` enthält jetzt `html_cached_at` Feld
+
+- **exportService.js erweitert:**
+  - `bulkExportFromCache()` - Bulk-Export mit paralleler Verarbeitung
+  - `createExportZip()` - Erstellt ZIP-Datei aus mehreren Exports
+
+### 📋 Setup erforderlich
+
+Nach dem Update muss das SQL-Script `supabase_bulk_export_setup.sql` ausgeführt werden:
+- Erstellt Storage-Bucket `document-html`
+- Fügt `html_cached_at` Spalte zur `documents` Tabelle hinzu
+- Erstellt RLS-Policies für den HTML-Cache
+
+**Hinweis:** Bestehende Dokumente müssen einmal im Editor geöffnet und gespeichert werden, um den HTML-Cache zu erstellen.
+
+---
+
 ## [0.9.11] - 2026-01-13
 
 ### ✨ Added

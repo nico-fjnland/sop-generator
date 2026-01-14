@@ -18,7 +18,8 @@ import { exportAsJson, importFromJson, exportAsWord, exportAsPdf } from '../util
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useStatus } from '../contexts/StatusContext';
-import { saveDocument, getDocument, getDocuments } from '../services/documentService';
+import { saveDocument, getDocument, getDocuments, saveDocumentHtml } from '../services/documentService';
+import { serializeToHTML } from '../utils/htmlSerializer';
 import AccountDropdown from './AccountDropdown';
 import { getInitialState } from '../hooks/useEditorHistory';
 import { supabase } from '../lib/supabase';
@@ -185,7 +186,7 @@ const Editor = () => {
     }
   }, [documentId, user, setEditorState]);
 
-  // Save to Cloud
+  // Save to Cloud (includes HTML caching for bulk export)
   const handleCloudSave = async () => {
     if (!user) {
       showError('Hierfür ist ein Account erforderlich. Bitte melde dich an.');
@@ -207,7 +208,7 @@ const Editor = () => {
         footerVariant: state.footerVariant
       };
 
-      const { error } = await saveDocument(
+      const { data, error } = await saveDocument(
         organizationId,
         user.id,
         state.headerTitle,
@@ -217,6 +218,25 @@ const Editor = () => {
       );
 
       if (error) throw error;
+      
+      // Get the document ID (either from existing documentId or newly created)
+      const savedDocId = data?.id || documentId;
+      
+      // Cache HTML for bulk export (non-blocking)
+      // This enables PDF/Word export from "Meine Leitfäden" without opening each document
+      if (savedDocId && containerRef.current) {
+        try {
+          const html = await serializeToHTML(containerRef.current);
+          const { error: htmlError } = await saveDocumentHtml(savedDocId, html);
+          if (htmlError) {
+            console.warn('HTML cache failed (non-critical):', htmlError);
+            // Don't show error to user - main save succeeded
+          }
+        } catch (htmlErr) {
+          console.warn('HTML serialization failed (non-critical):', htmlErr);
+          // Don't show error to user - main save succeeded
+        }
+      }
       
       showSuccess(`„${state.headerTitle}" unter Meine Leitfäden gespeichert.`);
     } catch (error) {

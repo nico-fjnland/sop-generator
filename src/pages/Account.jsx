@@ -49,6 +49,7 @@ import {
 import { getDocuments, deleteDocument, saveDocument, updateDocumentCategory } from '../services/documentService';
 import { updateOrganization } from '../services/organizationService';
 import { exportMultipleDocuments } from '../utils/exportUtils';
+import { bulkExportFromCache, createExportZip, downloadBlob } from '../services/exportService';
 import { useStatus } from '../contexts/StatusContext';
 import StatusIndicator from '../components/StatusIndicator';
 import AccountDropdown from '../components/AccountDropdown';
@@ -1742,34 +1743,92 @@ export default function Account() {
     });
   };
 
-  const handleBulkExport = () => {
+  const handleBulkExport = async () => {
     if (selectedDocs.size === 0) {
       showError('Keine Dokumente ausgewählt.');
       return;
     }
+    
+    // Refresh documents to get latest html_cached_at status
+    if (organizationId) {
+      const { data: freshDocs } = await getDocuments(organizationId);
+      if (freshDocs) {
+        setDocuments(freshDocs);
+      }
+    }
+    
     setShowExportDialog(true);
   };
 
-  const handleExport = async (format) => {
+  const handleExport = async (format, docsToExport) => {
     setIsExporting(true);
-    setExportProgress({ current: 0, total: selectedDocs.size, completed: false });
+    const total = docsToExport?.length || selectedDocs.size;
+    setExportProgress({ current: 0, total, completed: false, results: [], errors: [] });
 
     try {
-      const docIds = Array.from(selectedDocs);
-      
-      await exportMultipleDocuments(
-        docIds,
-        format,
-        (current, total, completed) => {
-          setExportProgress({ current, total, completed });
-        }
-      );
+      if (format === 'json') {
+        // JSON export uses the existing function with document IDs
+        const docIds = Array.from(selectedDocs);
+        
+        await exportMultipleDocuments(
+          docIds,
+          format,
+          (current, total, completed) => {
+            setExportProgress(prev => ({ ...prev, current, total, completed }));
+          }
+        );
 
-      // Erfolgsmeldung
-      if (selectedDocs.size === 1) {
-        showSuccess('JSON-Datei erfolgreich an Browser übergeben.');
+        // Success message for JSON
+        if (selectedDocs.size === 1) {
+          showSuccess('JSON-Datei erfolgreich an Browser übergeben.');
+        } else {
+          showSuccess(`${selectedDocs.size} SOPs als ZIP-Datei an Browser übergeben.`);
+        }
       } else {
-        showSuccess(`${selectedDocs.size} SOPs als ZIP-Datei an Browser übergeben.`);
+        // PDF/Word export uses the new bulk export service with cached HTML
+        const { results, errors, total: exportTotal } = await bulkExportFromCache(
+          docsToExport,
+          format,
+          (current, exportTotal, status, currentDoc) => {
+            setExportProgress(prev => ({
+              ...prev,
+              current,
+              total: exportTotal,
+              currentDoc,
+              status
+            }));
+          }
+        );
+
+        // Update progress with final results
+        setExportProgress(prev => ({
+          ...prev,
+          completed: true,
+          results,
+          errors
+        }));
+
+        // Create and download ZIP if multiple successful exports
+        if (results.length > 0) {
+          if (results.length === 1) {
+            // Single file - download directly
+            downloadBlob(results[0].blob, results[0].filename);
+            showSuccess(`${format === 'pdf' ? 'PDF' : 'Word'}-Datei erfolgreich an Browser übergeben.`);
+          } else {
+            // Multiple files - create ZIP
+            const zipBlob = await createExportZip(results);
+            const timestamp = new Date().toISOString().split('T')[0];
+            downloadBlob(zipBlob, `leitfaeden-export-${timestamp}.zip`);
+            showSuccess(`${results.length} ${format === 'pdf' ? 'PDFs' : 'Word-Dateien'} als ZIP an Browser übergeben.`);
+          }
+        }
+
+        // Show warning if some failed
+        if (errors.length > 0 && results.length > 0) {
+          showError(`${errors.length} Dokument${errors.length > 1 ? 'e' : ''} konnte${errors.length > 1 ? 'n' : ''} nicht exportiert werden.`);
+        } else if (errors.length > 0 && results.length === 0) {
+          showError('Export fehlgeschlagen. Bitte öffne die Dokumente im Editor und speichere sie erneut.');
+        }
       }
       
       // Wait a moment before closing to show completion
@@ -1778,13 +1837,13 @@ export default function Account() {
         setShowExportDialog(false);
         setExportProgress(null);
         setSelectedDocs(new Set());
-      }, 1500);
+      }, 2000);
       
     } catch (error) {
       console.error('Bulk export error:', error);
-      showError('Export fehlgeschlagen. Bitte versuche es erneut.');
+      showError(error.userMessage || 'Export fehlgeschlagen. Bitte versuche es erneut.');
       setIsExporting(false);
-      setExportProgress(null);
+      setExportProgress(prev => prev ? { ...prev, completed: true } : null);
     }
   };
 
@@ -1807,6 +1866,7 @@ export default function Account() {
         open={showExportDialog}
         onOpenChange={setShowExportDialog}
         selectedCount={selectedDocs.size}
+        selectedDocuments={documents.filter(doc => selectedDocs.has(doc.id))}
         onExport={handleExport}
         isExporting={isExporting}
         progress={exportProgress}
