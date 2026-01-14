@@ -14,22 +14,87 @@
 
 import { generateExportCSS, EDITOR_STYLES } from '../styles/editorStyles';
 
+// Import font files - Webpack resolves these to hashed URLs in production
+// e.g. /static/media/Inter.abc123.woff2
+import InterFontUrl from '../fonts/Inter.woff2';
+import RobotoFontUrl from '../fonts/Roboto.woff2';
+import QuicksandFontUrl from '../fonts/Quicksand.woff2';
+
 /**
- * Fetches Google Fonts CSS and converts to inline @font-face rules
+ * Converts a font file to base64 data URL
+ * @param {string} url - URL to the font file (Webpack-resolved)
+ * @returns {Promise<string>} Base64 data URL
+ */
+const fontToBase64 = async (url) => {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to fetch font: ${response.status}`);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.warn('Could not convert font to base64:', error.message);
+    return null;
+  }
+};
+
+/**
+ * Generates @font-face CSS with embedded base64 fonts (DSGVO-compliant, no Google Fonts)
+ * Uses Webpack-resolved font URLs that work in both development and production
  * @returns {Promise<string>} Font CSS as string
  */
 const fetchFontCSS = async () => {
   try {
-    const fontUrl = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap';
-    const response = await fetch(fontUrl);
+    // Use Webpack-imported font URLs (resolved at build time)
+    const [interBase64, robotoBase64, quicksandBase64] = await Promise.all([
+      fontToBase64(InterFontUrl),
+      fontToBase64(RobotoFontUrl),
+      fontToBase64(QuicksandFontUrl)
+    ]);
+
+    // Generate @font-face rules with embedded fonts
+    let css = '';
     
-    if (!response.ok) {
-      throw new Error(`Font fetch failed: ${response.status}`);
+    if (interBase64) {
+      css += `
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url(${interBase64}) format('woff2');
+}`;
     }
     
-    return await response.text();
+    if (robotoBase64) {
+      css += `
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url(${robotoBase64}) format('woff2');
+}`;
+    }
+    
+    if (quicksandBase64) {
+      css += `
+@font-face {
+  font-family: 'Quicksand';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(${quicksandBase64}) format('woff2');
+}`;
+    }
+
+    return css;
   } catch (error) {
-    console.warn('Could not fetch Google Fonts CSS:', error.message);
+    console.warn('Could not generate font CSS:', error.message);
     return '';
   }
 };

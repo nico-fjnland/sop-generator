@@ -11,6 +11,17 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ### 🔒 Security
 
+- **CSP (Content Security Policy) erweitert:**
+  - Jam Recorder zu `frame-src` hinzugefügt (`https://recorder.jam.dev`, `https://*.jam.dev`)
+  - HelpScout CloudFront CDN zu `connect-src` hinzugefügt (`https://*.cloudfront.net`)
+  - Behebt CSP-Fehler in der Browser-Konsole
+
+- **Google Fonts aus PDF-Export entfernt (DSGVO-Compliance):**
+  - `htmlSerializer.js`: Fonts werden jetzt als Base64 aus lokalen Dateien eingebettet
+  - Webpack-Imports statt `new URL()` für korrekte Pfadauflösung in Produktion
+  - Keine externen Anfragen mehr an Google-Server beim PDF/Word-Export
+  - `standalone.html`: System-Font-Stack statt Google Fonts
+
 - **Self-Hosted Fonts (DSGVO-Compliance):**
   - Google Fonts durch selbst gehostete Fonts ersetzt
   - Inter, Roboto und Quicksand werden jetzt lokal aus `/src/fonts/` geladen
