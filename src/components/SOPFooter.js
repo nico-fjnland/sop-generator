@@ -136,10 +136,12 @@ const PlaceholderContent = () => {
           fontWeight: 500,
           fontSize: '12px',
           color: '#3399FF',
-          whiteSpace: 'nowrap'
+          textAlign: 'center',
+          textWrap: 'balance',
+          maxWidth: '80%'
         }}
       >
-        Platzhalter für XYZ Prozess
+        Platzhalter für Dokumentenlenksysteme (Diese Box wird im Export nicht angezeigt, sondern erscheint als Weißraum).
       </div>
     </div>
   );

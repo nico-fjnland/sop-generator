@@ -333,7 +333,25 @@ const BulkExportDialog = ({
         {/* Show progress view if exporting OR if export completed (progress exists) */}
         {(isExporting || progress?.completed) ? renderProgress() : renderFormatSelection()}
 
-        <AlertDialogFooter>
+        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+          {/* Time estimate / completion message on the left */}
+          {(isExporting || progress?.completed) && (
+            <div className="flex-1 flex items-center text-xs text-muted-foreground">
+              {progress?.completed ? (
+                <>
+                  <CheckCircle size={14} className="mr-1.5 flex-shrink-0" />
+                  Export abgeschlossen. ZIP-Datei an Browser übergeben.
+                </>
+              ) : (
+                <>
+                  <Clock size={14} className="mr-1.5 flex-shrink-0" />
+                  Verarbeitungszeit: {getTimeEstimate(selectedFormat, docsToExport.length)}
+                </>
+              )}
+            </div>
+          )}
+          
+          {/* Buttons on the right */}
           {!(isExporting || progress?.completed) ? (
             <>
               <AlertDialogCancel>Abbrechen</AlertDialogCancel>

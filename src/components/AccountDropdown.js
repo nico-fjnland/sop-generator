@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { logger } from '../utils/logger';
 import { 
-  User, FileText, Layout, SignOut, ChatCircleDots, Globe, Moon, Sun, Buildings 
+  User, FileText, Layout, SignOut, ChatCircleDots, Globe, Moon, Sun, Buildings,
+  IdentificationCard, ShieldCheck, Scroll, ListChecks, Scales, ArrowUpRight
 } from '@phosphor-icons/react';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
@@ -157,6 +158,35 @@ const AccountDropdown = ({
           <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de', '_blank')} className="cursor-pointer">
             <Globe className="mr-2 h-4 w-4" />
             <span>Zur SOP Webseite</span>
+            <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de/legal/impressum', '_blank')} className="cursor-pointer">
+            <IdentificationCard className="mr-2 h-4 w-4" />
+            <span>Impressum</span>
+            <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de/legal/datenschutz', '_blank')} className="cursor-pointer">
+            <ShieldCheck className="mr-2 h-4 w-4" />
+            <span>Datenschutz</span>
+            <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de/legal/agb', '_blank')} className="cursor-pointer">
+            <Scroll className="mr-2 h-4 w-4" />
+            <span>Geschäftsbedingungen</span>
+            <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de/legal/editor', '_blank')} className="cursor-pointer">
+            <ListChecks className="mr-2 h-4 w-4" />
+            <span>Nutzungsbedingungen</span>
+            <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de/legal/compliance', '_blank')} className="cursor-pointer">
+            <Scales className="mr-2 h-4 w-4" />
+            <span>Compliance</span>
+            <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

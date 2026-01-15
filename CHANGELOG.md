@@ -7,6 +7,35 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.16] - 2026-01-15
+
+### ✨ Features
+
+- **Account-Dropdown um rechtliche Links erweitert:**
+  - Neue Menüpunkte: Impressum, Datenschutz, Geschäftsbedingungen, Nutzungsbedingungen, Compliance
+  - Links öffnen die entsprechenden Seiten auf sop-notaufnahme.de/legal/ in neuem Tab
+  - Externe Links mit ArrowUpRight-Icon am rechten Rand gekennzeichnet
+  - Neue Phosphor-Icons für jeden Menüpunkt mit externer Verlinkung
+
+- **Column Resizer in zweispaltigen Layouts vertikal zentriert:**
+  - Resizer wird jetzt mittig statt am oberen Rand positioniert
+
+- **Footer-Platzhalter-Text aktualisiert:**
+  - Text geändert zu: "Platzhalter für Dokumentenlenksysteme (Diese Box wird im Export nicht angezeigt, sondern erscheint als Weißraum)."
+
+- **Bulk-Export-Dialog zeigt geschätzte Verarbeitungszeit:**
+  - Während des Exports: Anzeige der geschätzten Verarbeitungszeit unten links
+  - Nach Abschluss: "Export abgeschlossen. ZIP-Datei an Browser übergeben."
+
+### 🐛 Bugfixes
+
+- **CORS-Whitelist für Export-Edge-Function erweitert:**
+  - `export-document/index.ts`: Domain `https://sop-editor.vercel.app` zur CORS-Whitelist hinzugefügt
+  - Behebt "Export-Server ist nicht erreichbar" Fehler beim Bulk-Export von dieser Domain
+  - Edge Function wurde neu deployed (Version 49)
+
+---
+
 ## [0.9.15] - 2026-01-14
 
 ### 🔒 Security

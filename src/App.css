@@ -860,9 +860,9 @@ body.export-ready .a4-page {
     width: 24px; /* Wider hit area for better usability */
     cursor: col-resize;
     position: absolute; /* Removed from flex flow */
-    top: 0;
+    top: 50%; /* Vertically centered */
     height: calc(100% - 1.5rem); /* Match content box height, excluding margin-bottom */
-    transform: translateX(-50%); /* Center exactly on the line */
+    transform: translate(-50%, -50%); /* Center horizontally and vertically */
     z-index: 20; /* Higher than content */
     display: flex;
     justify-content: center;

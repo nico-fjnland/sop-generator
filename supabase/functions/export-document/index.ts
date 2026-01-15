@@ -16,6 +16,7 @@ const A4_HEIGHT_PX = 1123;
 // Add new domains here when deploying to additional environments
 const ALLOWED_ORIGINS = [
   'https://sop-generator.vercel.app',    // Sandbox/Test
+  'https://sop-editor.vercel.app',       // Vercel Preview/Production
   'https://editor.sop-notaufnahme.de',   // Production
 ];
 
