@@ -41,11 +41,11 @@ export const useSessionTimeout = () => {
     
     try {
       await signOut();
-      // Force redirect to ensure clean state
-      window.location.href = '/?timeout=true';
+      // Redirect to login page with timeout flag
+      window.location.href = '/login?reason=timeout';
     } catch (error) {
       logger.error('Session timeout logout failed:', error);
-      window.location.href = '/';
+      window.location.href = '/login?reason=timeout';
     }
   }, [signOut]);
 

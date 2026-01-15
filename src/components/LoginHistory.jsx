@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
 import { Spinner } from './ui/spinner';
+import { Button } from './ui/button';
 import { 
   Warning,
-  ClockCounterClockwise
+  ClockCounterClockwise,
+  CaretLeft,
+  CaretRight
 } from '@phosphor-icons/react';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
@@ -75,18 +78,22 @@ function formatIpAddress(ip) {
 
 /**
  * LoginHistory Komponente
- * Zeigt die letzten 10 Login-Events des aktuellen Benutzers
+ * Zeigt die letzten 20 Login-Events des aktuellen Benutzers
+ * Mit Pagination (5 Einträge pro Seite)
  */
 export default function LoginHistory() {
   const [loginHistory, setLoginHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  const itemsPerPage = 5;
 
   useEffect(() => {
     async function fetchLoginHistory() {
       try {
         const { data, error: rpcError } = await supabase.rpc('get_login_history', {
-          limit_count: 10
+          limit_count: 20
         });
 
         if (rpcError) {
@@ -138,67 +145,125 @@ export default function LoginHistory() {
     );
   }
 
+  // Pagination berechnen
+  const totalPages = Math.ceil(loginHistory.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = loginHistory.slice(startIndex, endIndex);
+
+  const goToPrevPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  // Feste Höhe für 5 Einträge
+  const tableBodyHeight = 312;
+
   return (
-    <div className="border rounded-lg overflow-hidden">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="bg-muted/50 border-b">
-            <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Zeitpunkt</th>
-            <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Browser / Gerät</th>
-            <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">IP-Adresse</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {loginHistory.map((entry, index) => {
-            const parsedAgent = parseUserAgent(entry.user_agent);
-            const isCurrentSession = index === 0;
-            
-            return (
-              <tr 
-                key={index} 
-                className={`${isCurrentSession ? 'bg-primary/5' : 'hover:bg-muted/30'} transition-colors`}
-              >
-                <td className="px-4 py-3">
-                  <div className="flex flex-col">
-                    <span className="font-medium">
-                      {new Date(entry.logged_in_at).toLocaleDateString('de-DE', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric'
-                      })}
-                      {' '}
-                      <span className="text-muted-foreground font-normal">
-                        {new Date(entry.logged_in_at).toLocaleTimeString('de-DE', {
-                          hour: '2-digit',
-                          minute: '2-digit'
+    <div className="space-y-3">
+      <div className="border rounded-lg overflow-hidden">
+        {/* Header-Tabelle */}
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-muted/50 border-b">
+              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground" style={{ width: '40%' }}>Zeitpunkt</th>
+              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground" style={{ width: '35%' }}>Browser / Gerät</th>
+              <th className="text-left px-4 py-2.5 font-medium text-muted-foreground" style={{ width: '25%' }}>IP-Adresse</th>
+            </tr>
+          </thead>
+        </table>
+        {/* Body-Bereich mit fester Höhe */}
+        <div style={{ minHeight: `${tableBodyHeight}px` }}>
+          <table className="w-full text-sm">
+          <tbody className="divide-y">
+            {currentItems.map((entry, index) => {
+              const parsedAgent = parseUserAgent(entry.user_agent);
+              // Die aktuelle Sitzung ist nur auf Seite 1 der erste Eintrag
+              const isCurrentSession = currentPage === 1 && index === 0;
+              
+              return (
+                <tr 
+                  key={startIndex + index} 
+                  className={`${isCurrentSession ? 'bg-primary/5' : 'hover:bg-muted/30'} transition-colors`}
+                >
+                  <td className="px-4 py-3" style={{ width: '40%' }}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">
+                        {new Date(entry.logged_in_at).toLocaleDateString('de-DE', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
                         })}
+                        {' '}
+                        <span className="text-muted-foreground font-normal">
+                          {new Date(entry.logged_in_at).toLocaleTimeString('de-DE', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
                       </span>
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {isCurrentSession ? (
-                        <span className="text-primary font-medium">Aktuelle Sitzung</span>
-                      ) : (
-                        formatDistanceToNow(new Date(entry.logged_in_at), { 
-                          addSuffix: true, 
-                          locale: de 
-                        })
-                      )}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <span>{parsedAgent.displayName}</span>
-                </td>
-                <td className="px-4 py-3">
-                  <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">
-                    {formatIpAddress(entry.ip_address)}
-                  </code>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                      <span className="text-xs text-muted-foreground">
+                        {isCurrentSession ? (
+                          <span className="text-primary font-medium">Aktuelle Sitzung</span>
+                        ) : (
+                          formatDistanceToNow(new Date(entry.logged_in_at), { 
+                            addSuffix: true, 
+                            locale: de 
+                          })
+                        )}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3" style={{ width: '35%' }}>
+                    <span>{parsedAgent.displayName}</span>
+                  </td>
+                  <td className="px-4 py-3" style={{ width: '25%' }}>
+                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">
+                      {formatIpAddress(entry.ip_address)}
+                    </code>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          </table>
+        </div>
+      </div>
+      
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">
+            {startIndex + 1}–{Math.min(endIndex, loginHistory.length)} von {loginHistory.length} Einträgen
+          </span>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={goToPrevPage}
+              disabled={currentPage === 1}
+              className="h-8 w-8 p-0"
+            >
+              <CaretLeft size={16} />
+            </Button>
+            <span className="text-xs text-muted-foreground px-2">
+              Seite {currentPage} von {totalPages}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+              className="h-8 w-8 p-0"
+            >
+              <CaretRight size={16} />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

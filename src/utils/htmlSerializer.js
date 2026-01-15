@@ -291,12 +291,25 @@ const ensureHeightEqualization = (clone) => {
     row.style.alignItems = 'stretch';
     
     // Find draggable blocks and force them to stretch
+    // IMPORTANT: Preserve existing flex/maxWidth values from Editor.js (columnRatio)
+    // Only set supplementary styles, don't override width distribution
     const draggableBlocks = row.querySelectorAll(':scope > .draggable-block');
     draggableBlocks.forEach(block => {
+      // Read original style BEFORE any modifications
+      const originalStyle = block.getAttribute('style') || '';
+      // Check for flex shorthand (not flex-direction, flex-grow, etc.)
+      // Pattern: "flex:" followed by a value that starts with a digit or space+digit
+      const hasFlexShorthand = /flex:\s*[0-9]/.test(originalStyle);
+      
+      // Set supplementary styles
       block.style.display = 'flex';
       block.style.flexDirection = 'column';
-      block.style.flex = '1 1 0%';
       block.style.alignSelf = 'stretch';
+      
+      // Only set flex if not already set (preserve columnRatio from Editor)
+      if (!hasFlexShorthand) {
+        block.style.flex = '1 1 0%';
+      }
     });
     
     // Find content-box-block elements and force them to stretch
@@ -326,20 +339,42 @@ const ensureHeightEqualization = (clone) => {
       container.style.height = '100%';
     });
     
-    // Find notion-box-shell elements and PRESERVE their minHeight
+    // Find notion-box-shell elements and RECALCULATE minHeight for export widths
+    // The Editor's minHeight was calculated for different widths, so we need to measure again
     const shells = row.querySelectorAll('.notion-box-shell');
-    shells.forEach(shell => {
-      // Store the current minHeight before overriding
-      const currentMinHeight = shell.style.minHeight;
-      shell.style.display = 'flex';
-      shell.style.flexDirection = 'column';
-      shell.style.flex = '1';
-      shell.style.height = '100%';
-      // Preserve the minHeight if it was set by useHeightEqualization
-      if (currentMinHeight && currentMinHeight !== '50px') {
-        shell.style.minHeight = currentMinHeight;
+    
+    if (shells.length === 2) {
+      // Reset minHeight to measure natural heights
+      shells.forEach(shell => {
+        shell.style.minHeight = '';
+        shell.style.display = 'flex';
+        shell.style.flexDirection = 'column';
+        shell.style.flex = '1';
+      });
+      
+      // Force layout recalculation
+      void row.offsetHeight;
+      
+      // Measure natural heights
+      const height1 = shells[0].getBoundingClientRect().height;
+      const height2 = shells[1].getBoundingClientRect().height;
+      
+      // Set both to the maximum height
+      const maxHeight = Math.max(height1, height2);
+      if (maxHeight > 0) {
+        shells.forEach(shell => {
+          shell.style.minHeight = `${maxHeight}px`;
+        });
       }
-    });
+    } else {
+      // Fallback for non-standard cases
+      shells.forEach(shell => {
+        shell.style.display = 'flex';
+        shell.style.flexDirection = 'column';
+        shell.style.flex = '1';
+        shell.style.height = '100%';
+      });
+    }
     
     // Keep icons centered
     const icons = row.querySelectorAll('.icon-container');
@@ -484,11 +519,12 @@ export const serializeToHTML = async (containerRef) => {
     }
     
     .block-row.two-columns {
-      gap: 16px !important;
+      gap: 20px !important; /* Same as App.css for consistency */
       margin-bottom: 1rem !important;
       margin-left: 0 !important;
-      margin-right: 0 !important; /* No margin - icon extends beyond */
+      margin-right: 0 !important;
       padding: 0 !important;
+      width: 100% !important; /* Full width like editor - icons use negative margins */
     }
     
     /* Height equalization - EXACTLY like App.css */
@@ -498,21 +534,22 @@ export const serializeToHTML = async (containerRef) => {
     }
     
     /* Draggable wrapper must stretch and pass height to children */
+    /* Preserve flex values from inline styles for correct width distribution */
     .block-row.two-columns.height-equalized > .draggable-block {
       display: flex !important;
       flex-direction: column !important;
-      flex: 1 1 0% !important;
-      height: auto !important;
+      align-self: stretch !important;
       min-height: 0 !important;
       min-width: 0 !important;
+      box-sizing: border-box !important;
     }
     
     /* Non-height-equalized two-column rows */
     .block-row.two-columns:not(.height-equalized) > .draggable-block {
-      flex: 1 1 0% !important;
       min-width: 0 !important;
       display: flex !important;
       flex-direction: column !important;
+      box-sizing: border-box !important;
     }
     
     /* ALL content boxes in two-column layout: NO margin (icon extends beyond) */
@@ -605,9 +642,21 @@ export const serializeToHTML = async (containerRef) => {
       padding: 4px 8px !important;
     }
     
-    /* Logo container */
+    /* Logo container - outer wrapper */
+    .sop-header > div.flex.items-start.justify-end,
     .sop-header > div.flex.items-center.justify-end {
       flex-shrink: 0 !important;
+      display: flex !important;
+      justify-content: flex-end !important;
+    }
+    
+    /* Logo print container - must be flex with right alignment */
+    .sop-header-logo-print {
+      display: flex !important;
+      justify-content: flex-end !important;
+      align-items: flex-start !important;
+      width: 100% !important;
+      height: 100% !important;
     }
     
     .sop-header img[alt="Logo"],
@@ -662,20 +711,14 @@ export const serializeToHTML = async (containerRef) => {
       margin-right: -14px !important;
     }
     
-    /* RIGHT icon (right column in two-column layout) - ABSOLUTE positioning
-       so it doesn't take up space in flex flow */
+    /* RIGHT icon (right column in two-column layout) - same as left icon, just mirrored */
+    /* Uses negative margin to overlap the box by 14px (same as editor) */
     .content-box-wrapper.flex-row-reverse > div[class*="ml-[-14px]"] {
-      position: absolute !important;
-      right: -16px !important; /* 30px icon - 14px overlap = 16px outside box */
-      top: 50% !important;
-      transform: translateY(-50%) !important;
-      margin-left: 0 !important;
-      z-index: 10 !important;
+      margin-left: -14px !important;
     }
     
-    /* Ensure wrapper has relative positioning for absolute icon */
+    /* Ensure wrapper allows icon overflow */
     .content-box-wrapper.flex-row-reverse {
-      position: relative !important;
       overflow: visible !important;
     }
     

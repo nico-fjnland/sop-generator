@@ -1,0 +1,120 @@
+/* Login page - Timeout warning frame styles */
+
+.login-wrapper {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 28rem; /* max-w-md */
+}
+
+/* The animated frame behind the login card */
+.login-timeout-frame {
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  top: -4px;
+  bottom: -4px;
+  background: #FAAD14;
+  border-radius: 12px;
+  z-index: 0;
+  overflow: hidden;
+  
+  /* Animation on mount */
+  animation: loginFrameAppear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes loginFrameAppear {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+/* Animated gradient container */
+.login-gradient-container {
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+  mix-blend-mode: overlay;
+}
+
+/* Smooth color transition for gradient */
+.login-gradient-container svg circle {
+  transition: fill 0.6s ease-in-out;
+}
+
+/* Timeout header at the top of the frame */
+.login-timeout-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 10px 16px;
+  box-sizing: border-box;
+  
+  /* Fade in animation */
+  animation: loginHeaderAppear 0.35s ease-out 0.1s forwards;
+  opacity: 0;
+}
+
+@keyframes loginHeaderAppear {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+/* Icon styling - vertically centered with text */
+.login-timeout-icon {
+  color: white;
+  flex-shrink: 0;
+  /* Align icon with first line of text */
+  margin-top: 1px;
+}
+
+/* Text styling */
+.login-timeout-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  text-align: left;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  text-wrap: balance;
+  flex: 1;
+}
+
+/* Login card sits on top of the frame */
+.login-card {
+  position: relative;
+  z-index: 1;
+}
+
+/* When timeout is shown, add top margin to make room for header */
+.login-wrapper.with-timeout .login-card {
+  margin-top: 72px;
+}
+
+/* Ensure the frame extends behind the card properly */
+.login-wrapper.with-timeout .login-timeout-frame {
+  top: -4px;
+  bottom: -4px;
+}

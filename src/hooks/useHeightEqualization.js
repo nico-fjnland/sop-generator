@@ -15,6 +15,7 @@ const useHeightEqualization = (
   const observerRef = useRef(null);
   const timeoutRef = useRef(null);
   const lastWidthsRef = useRef({ w1: 0, w2: 0 });
+  const lastZoomRef = useRef(window.devicePixelRatio || 1);
   const isProcessingRef = useRef(false);
 
   const equalizeHeights = useCallback(() => {
@@ -33,14 +34,21 @@ const useHeightEqualization = (
     const currentWidth1 = boxes[0].getBoundingClientRect().width;
     const currentWidth2 = boxes[1].getBoundingClientRect().width;
     
+    // Check if zoom level changed (browser zoom)
+    const currentZoom = window.devicePixelRatio || 1;
+    const zoomChanged = Math.abs(currentZoom - lastZoomRef.current) > 0.01;
+    
     const widthChanged = 
       Math.abs(currentWidth1 - lastWidthsRef.current.w1) > 1 ||
       Math.abs(currentWidth2 - lastWidthsRef.current.w2) > 1;
     
-    // Only proceed if widths changed or this is the first run
-    if (!widthChanged && lastWidthsRef.current.w1 !== 0) {
+    // Only proceed if widths changed, zoom changed, or this is the first run
+    if (!widthChanged && !zoomChanged && lastWidthsRef.current.w1 !== 0) {
       return;
     }
+    
+    // Update zoom tracking
+    lastZoomRef.current = currentZoom;
 
     // Prevent re-entry
     if (isProcessingRef.current) {
@@ -52,32 +60,35 @@ const useHeightEqualization = (
     lastWidthsRef.current = { w1: currentWidth1, w2: currentWidth2 };
 
     // Reset heights to measure natural heights
-    const savedH1 = boxes[0].style.minHeight;
-    const savedH2 = boxes[1].style.minHeight;
-    boxes[0].style.minHeight = '';
-    boxes[1].style.minHeight = '';
+    boxes[0].style.minHeight = '0';
+    boxes[1].style.minHeight = '0';
+    
+    // Force layout reflow to ensure reset takes effect
+    void boxes[0].offsetHeight;
+    void boxes[1].offsetHeight;
 
-    // Use requestAnimationFrame to get accurate measurements after reset
+    // Use double requestAnimationFrame to ensure layout is complete
     requestAnimationFrame(() => {
-      const height1 = boxes[0].getBoundingClientRect().height;
-      const height2 = boxes[1].getBoundingClientRect().height;
+      requestAnimationFrame(() => {
+        // Measure the scrollHeight (content height) instead of getBoundingClientRect
+        // scrollHeight gives the actual content height without minHeight inflation
+        const height1 = boxes[0].scrollHeight;
+        const height2 = boxes[1].scrollHeight;
 
-      if (height1 === 0 || height2 === 0) {
-        // Restore if measurement failed
-        boxes[0].style.minHeight = savedH1;
-        boxes[1].style.minHeight = savedH2;
-        isProcessingRef.current = false;
-        return;
-      }
+        if (height1 === 0 || height2 === 0) {
+          isProcessingRef.current = false;
+          return;
+        }
 
-      const maxHeight = Math.max(height1, height2);
-      boxes[0].style.minHeight = `${maxHeight}px`;
-      boxes[1].style.minHeight = `${maxHeight}px`;
+        const maxHeight = Math.max(height1, height2);
+        boxes[0].style.minHeight = `${maxHeight}px`;
+        boxes[1].style.minHeight = `${maxHeight}px`;
 
-      // Allow new processing after a delay
-      setTimeout(() => {
-        isProcessingRef.current = false;
-      }, 100);
+        // Allow new processing after a delay
+        setTimeout(() => {
+          isProcessingRef.current = false;
+        }, 100);
+      });
     });
   }, [containerRef, isTwoColumn]);
 
@@ -132,6 +143,9 @@ const useHeightEqualization = (
       }
     });
 
+    // Listen for window resize (triggered by browser zoom)
+    window.addEventListener('resize', debouncedEqualize);
+
     return () => {
       clearTimeout(initialTimeout);
       if (timeoutRef.current) {
@@ -140,6 +154,7 @@ const useHeightEqualization = (
       if (observerRef.current) {
         observerRef.current.disconnect();
       }
+      window.removeEventListener('resize', debouncedEqualize);
     };
   }, [containerRef, isTwoColumn, equalizeHeights]);
 

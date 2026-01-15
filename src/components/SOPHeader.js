@@ -394,14 +394,20 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
           </div>
           
           {/* Static logo for print */}
-          <div className="hidden print:block" style={{ width: '100%', height: '100%' }}>
+          <div className="hidden print:flex sop-header-logo-print" style={{ 
+            width: '100%', 
+            height: '100%',
+            justifyContent: 'flex-end',
+            alignItems: 'flex-start'
+          }}>
             {companyLogo ? (
               <img 
                 src={companyLogo} 
                 alt="Firmenlogo" 
                 style={{ 
-                  width: '100%', 
-                  height: '100%', 
+                  maxWidth: '100%', 
+                  height: '70px', 
+                  width: 'auto',
                   objectFit: 'contain',
                   objectPosition: 'right top'
                 }} 
@@ -411,8 +417,9 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                 src={logo} 
                 alt="Logo" 
                 style={{ 
-                  width: '100%', 
-                  height: '100%', 
+                  maxWidth: '100%', 
+                  height: '70px', 
+                  width: 'auto',
                   objectFit: 'contain',
                   objectPosition: 'right top'
                 }} 

@@ -870,6 +870,34 @@ logger.error('Error', err);   // Immer (auch Production)
 - Warn/Error bleiben für Fehlerdiagnose
 - Verhindert Leaking sensibler Infos in Browser-Konsole
 
+### Passwort-Policy Utility
+
+BSI-konforme Passwort-Validierung (`src/utils/passwordPolicy.js`):
+
+```javascript
+import { validatePassword, calculatePasswordStrength, PASSWORD_REQUIREMENTS } from '../utils/passwordPolicy';
+
+// Validierung
+const { isValid, errors, checks } = validatePassword('MeinPasswort123!');
+// checks: { minLength, hasUppercase, hasLowercase, hasNumber, hasSpecial }
+
+// Stärke-Berechnung
+const { score, label, color } = calculatePasswordStrength('MeinPasswort123!');
+// score: 0-100, label: "Sehr schwach" bis "Sehr stark", color: "red" bis "emerald"
+```
+
+**Anforderungen (BSI-konform):**
+- Mindestens 12 Zeichen
+- Mindestens ein Großbuchstabe (A-Z)
+- Mindestens ein Kleinbuchstabe (a-z)
+- Mindestens eine Zahl (0-9)
+- Mindestens ein Sonderzeichen (!@#$%...)
+
+**Komponente:** `src/components/auth/PasswordStrengthIndicator.jsx`
+- Zeigt Echtzeit-Feedback während der Passworteingabe
+- Farbcodierte Fortschrittsleiste
+- Checkliste mit erfüllten/fehlenden Anforderungen
+
 ---
 
 ## UI-Komponenten

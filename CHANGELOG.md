@@ -7,6 +7,62 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.17] - 2026-01-15
+
+### 🔒 Security
+
+- **Verschärfte Passwort-Policy (BSI-konform):**
+  - Neue Mindestanforderungen: 12 Zeichen, Groß-/Kleinbuchstaben, Zahl, Sonderzeichen
+  - Passwort-Stärke-Indikator mit Echtzeit-Feedback bei Registrierung und Passwort-Änderung
+  - Visuelle Checkliste zeigt erfüllte/fehlende Anforderungen
+  - Farbcodierte Stärkeanzeige (rot → grün) mit Fortschrittsbalken
+  - Bonus-Punkte für Passwörter länger als 12 Zeichen
+  - Neue Utility: `src/utils/passwordPolicy.js`
+  - Neue Komponente: `src/components/auth/PasswordStrengthIndicator.jsx`
+
+- **Account → Sicherheit überarbeitet:**
+  - Neuer Beschreibungstext für Passwort-Ändern mit BSI-Hinweis
+  - Anforderungs-Checkliste in linker Spalte, Passwortstärke-Skala neben Button
+  - Passwortfelder untereinander angeordnet
+  - Validierung verwendet BSI-konforme Policy
+
+- **Login-Historie verbessert:**
+  - Pagination mit max. 5 Einträgen pro Seite (statt Scroll)
+  - Zeigt jetzt die letzten 20 Sessions (statt 10)
+  - Feste Tabellenhöhe (312px) für konsistentes Layout
+  - Neuer Beschreibungstext mit Sicherheitshinweisen
+  - "Support kontaktieren" Button öffnet HelpScout Beacon
+
+### ✨ Features
+
+- **Session-Timeout-Meldung auf Login-Seite:**
+  - Bei automatischer Abmeldung durch Inaktivität wird der Nutzer auf die Login-Seite weitergeleitet
+  - Prominente Sicherheitshinweis-Box erklärt den Grund für die Abmeldung
+  - Meldung verschwindet nach Seitenaktualisierung (URL-Parameter wird bereinigt)
+  - Verbessert die User Experience bei Session-Timeouts
+
+### 🐛 Bugfixes
+
+- **Box-Leveling in zweispaltigen Layouts im Export korrigiert:**
+  - `htmlSerializer.js`: Verwendet jetzt exakt die gleiche Logik wie der Editor
+  - Zweispaltige Row ist 100% breit (wie Editor), Icons verwenden negative Margins (`-14px`)
+  - Einspaltige Boxen haben `margin-right: 14px` (wie Editor)
+  - Höhen werden im Serializer neu berechnet (wie `useHeightEqualization` Hook im Editor)
+  - Robustere Regex-Prüfung (`/flex:\s*[0-9]/`) für `flex` Shorthand-Erkennung
+  - Behebt Problem, bei dem Boxen im Export unterschiedliche Höhen/Breiten hatten
+
+- **Höhenanpassung reagiert jetzt auf Browser-Zoom:**
+  - `useHeightEqualization.js`: Hook erkennt jetzt Zoom-Änderungen via `devicePixelRatio`
+  - Bei Browser-Zoom werden die Box-Höhen automatisch neu berechnet
+  - Behebt Problem, bei dem Boxen nach Zoom-Änderung zu hoch angezeigt wurden
+
+- **Custom-Logo im Export jetzt rechtsbündig (wie im Editor):**
+  - `SOPHeader.js`: Print-Container verwendet jetzt `print:flex` statt `print:block` mit expliziter `justify-content: flex-end` Ausrichtung
+  - `htmlSerializer.js`: Neue CSS-Regel `.sop-header-logo-print` für konsistente Rechtsbündigkeit im PDF/Word-Export
+  - Logo-Ausrichtung in Editor und Export ist jetzt identisch
+
+---
+
 ## [0.9.16] - 2026-01-15
 
 ### ✨ Features

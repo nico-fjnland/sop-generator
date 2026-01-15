@@ -4,6 +4,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
+import { validatePassword } from '../utils/passwordPolicy';
+import { PasswordStrengthIndicator } from '../components/auth/PasswordStrengthIndicator';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -883,15 +885,19 @@ const ProfileView = React.memo(({
       </div>
 
       {/* Password Row - 1/3 : 2/3 Layout */}
-      <div className="grid grid-cols-[1fr_2fr] gap-8 items-center">
-        <div className="space-y-1">
-          <Label className="text-sm font-medium">Passwort ändern</Label>
-          <p className="text-xs text-muted-foreground">
-            Aktualisiere dein Passwort regelmäßig für erhöhte Sicherheit
-          </p>
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-start">
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <Label className="text-sm font-medium">Passwort ändern</Label>
+            <p className="text-xs text-muted-foreground">
+              Für die Sicherheit deines Accounts, ändere dein Passwort bitte regelmäßig nach BSI-konformen Standards:
+            </p>
+          </div>
+          {/* Anforderungs-Checkliste (ohne Stärke-Skala) */}
+          <PasswordStrengthIndicator password={newPassword} showRequirements={true} showStrengthBar={false} />
         </div>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="newPassword" className="text-xs text-muted-foreground">Neues Passwort</Label>
               <div className="relative">
@@ -935,7 +941,11 @@ const ProfileView = React.memo(({
               </div>
             </div>
           </div>
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between gap-4">
+            {/* Passwortstärke-Skala (ohne Checkliste) */}
+            <div className="w-1/3">
+              <PasswordStrengthIndicator password={newPassword} showRequirements={false} showStrengthBar={true} />
+            </div>
             <Button 
               onClick={updatePassword} 
               disabled={updatingPassword || !newPassword || !confirmPassword}
@@ -948,12 +958,32 @@ const ProfileView = React.memo(({
       </div>
 
       {/* Login-Historie Row - 1/3 : 2/3 Layout */}
-      <div className="grid grid-cols-[1fr_2fr] gap-8 items-start pt-6 border-t">
-        <div className="space-y-1">
-          <Label className="text-sm font-medium">Login-Historie</Label>
-          <p className="text-xs text-muted-foreground">
-            Deine letzten Anmeldungen
-          </p>
+      <div className="grid grid-cols-[1fr_2fr] gap-8 items-stretch pt-6 border-t">
+        <div className="flex flex-col justify-between">
+          <div className="space-y-1">
+            <Label className="text-sm font-medium">Login-Historie</Label>
+            <p className="text-xs text-muted-foreground">
+              Bitte überprüfe die Logins deines Accounts regelmäßig auf Unstimmigkeiten.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Sollte eine Sitzung von einem dir unbekannten Zeitpunkt, Gerät oder IP-Adresse stattgefunden haben, melde dich bei unserem Support und ändere zur Sicherheit dein Passwort.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              if (window.Beacon) {
+                window.Beacon('open');
+                window.Beacon('navigate', '/ask/');
+              }
+            }}
+            className="gap-2 self-start"
+          >
+            <ChatCircleDots size={16} />
+            Support kontaktieren
+          </Button>
         </div>
         <LoginHistory />
       </div>
@@ -1460,8 +1490,11 @@ export default function Account() {
       showError('Passwörter stimmen nicht überein.');
       return;
     }
-    if (newPassword.length < 6) {
-      showError('Das Passwort muss mindestens 6 Zeichen lang sein.');
+    
+    // BSI-konforme Passwort-Validierung
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.isValid) {
+      showError(`Passwort erfüllt nicht die Anforderungen: ${passwordValidation.errors[0]}`);
       return;
     }
 

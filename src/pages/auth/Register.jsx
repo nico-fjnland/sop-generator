@@ -8,6 +8,8 @@ import { Label } from '../../components/ui/label';
 import { Spinner } from '../../components/ui/spinner';
 import { PositionCombobox } from '../../components/ui/position-combobox';
 import { HospitalCombobox } from '../../components/ui/hospital-combobox';
+import { PasswordStrengthIndicator } from '../../components/auth/PasswordStrengthIndicator';
+import { validatePassword, PASSWORD_REQUIREMENTS } from '../../utils/passwordPolicy';
 import { 
   UserPlus, 
   ArrowLeft, 
@@ -24,7 +26,8 @@ import {
 const translateAuthError = (message) => {
   const translations = {
     'User already registered': 'Diese E-Mail-Adresse ist bereits registriert.',
-    'Password should be at least 6 characters': 'Das Passwort muss mindestens 6 Zeichen lang sein.',
+    'Password should be at least 6 characters': `Das Passwort muss mindestens ${PASSWORD_REQUIREMENTS.minLength} Zeichen lang sein.`,
+    'Password should be at least 12 characters': `Das Passwort muss mindestens ${PASSWORD_REQUIREMENTS.minLength} Zeichen lang sein.`,
     'Unable to validate email address: invalid format': 'Bitte gib eine gültige E-Mail-Adresse ein.',
     'Invalid email': 'Bitte gib eine gültige E-Mail-Adresse ein.',
     'Signup requires a valid password': 'Bitte gib ein gültiges Passwort ein.',
@@ -127,7 +130,7 @@ const Step1Account = ({ formData, setFormData, errors }) => {
             type={showPassword ? "text" : "password"}
             autoComplete="new-password"
             required
-            placeholder="Mindestens 6 Zeichen"
+            placeholder={`Mindestens ${PASSWORD_REQUIREMENTS.minLength} Zeichen`}
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             className={`pl-10 pr-10 ${errors.password ? 'border-destructive' : ''}`}
@@ -140,7 +143,9 @@ const Step1Account = ({ formData, setFormData, errors }) => {
             {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
           </button>
         </div>
-        {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+        {/* Passwort-Stärke-Indikator mit Echtzeit-Validierung */}
+        <PasswordStrengthIndicator password={formData.password} showRequirements={true} />
+        {errors.password && <p className="text-xs text-destructive mt-2">{errors.password}</p>}
       </div>
 
       <div className="space-y-2">
@@ -279,10 +284,10 @@ export default function Register() {
       newErrors.email = 'Bitte gib eine gültige E-Mail-Adresse ein';
     }
     
-    if (!formData.password) {
-      newErrors.password = 'Passwort ist erforderlich';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Passwort muss mindestens 6 Zeichen lang sein';
+    // Passwort-Validierung mit der verschärften Policy
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      newErrors.password = passwordValidation.errors[0]; // Ersten Fehler anzeigen
     }
     
     if (formData.password !== formData.confirmPassword) {
