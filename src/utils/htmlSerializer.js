@@ -12,7 +12,7 @@
  * um sicherzustellen, dass Editor und Export immer synchron sind.
  */
 
-import { generateExportCSS } from '../styles/editorStyles';
+import { generateExportCSS, EDITOR_STYLES } from '../styles/editorStyles';
 
 // Import font files - Webpack resolves these to hashed URLs in production
 // e.g. /static/media/Inter.abc123.woff2
@@ -636,7 +636,7 @@ export const serializeToHTML = async (containerRef) => {
     }
     
     .block-row.two-columns {
-      gap: 20px !important; /* Same as App.css for consistency */
+      gap: ${EDITOR_STYLES.twoColumnLayout.gap} !important;
       margin-bottom: 1rem !important;
       margin-left: 0 !important;
       margin-right: 0 !important;

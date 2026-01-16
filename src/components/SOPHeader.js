@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Trash } from '@phosphor-icons/react';
+import { EDITOR_STYLES } from '../styles/editorStyles';
 
 const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialStand = 'STAND 12/22', logo: initialLogo = null, onTitleChange, onStandChange, onLogoChange }) => {
   const { organization, organizationId } = useAuth();
@@ -169,44 +170,44 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               onChange={(e) => setStand(e.target.value)}
               onBlur={handleStandBlur}
               onKeyDown={handleStandKeyDown}
-              className="no-print"
-              style={{ 
-                fontFamily: "'Quicksand', sans-serif",
-                fontWeight: 600,
-                fontSize: '12px',
-                color: '#003366',
-                letterSpacing: '2px',
-                textTransform: 'uppercase',
-                lineHeight: '12px',
-                border: 'none',
-                borderRadius: '4px',
-                padding: '2px 4px',
-                background: 'transparent',
-                outline: 'none',
-                width: '120px',
-                height: '16px', // 12px content + 4px padding
-                boxSizing: 'border-box'
-              }}
-            />
+            className="no-print"
+            style={{ 
+              fontFamily: EDITOR_STYLES.sopHeader.standFontFamily,
+              fontWeight: EDITOR_STYLES.sopHeader.standFontWeight,
+              fontSize: EDITOR_STYLES.sopHeader.standFontSize,
+              color: EDITOR_STYLES.text.color,
+              letterSpacing: EDITOR_STYLES.sopHeader.standLetterSpacing,
+              textTransform: 'uppercase',
+              lineHeight: EDITOR_STYLES.sopHeader.standLineHeight,
+              border: 'none',
+              borderRadius: '4px',
+              padding: '2px 4px',
+              background: 'transparent',
+              outline: 'none',
+              width: '120px',
+              height: '16px', // 12px content + 4px padding
+              boxSizing: 'border-box'
+            }}
+          />
           ) : (
             <span 
               onClick={() => setIsEditingStand(true)}
-              className="cursor-text sop-header-editable print:cursor-default print:pointer-events-none"
-              style={{ 
-                fontFamily: "'Quicksand', sans-serif",
-                fontWeight: 600,
-                fontSize: '12px',
-                color: '#003366',
-                letterSpacing: '2px',
-                textTransform: 'uppercase',
-                lineHeight: '12px',
-                borderRadius: '4px',
-                padding: '2px 4px',
-                height: '16px', // 12px content + 4px padding
-                display: 'inline-block',
-                boxSizing: 'border-box'
-              }}
-            >
+            className="cursor-text sop-header-editable print:cursor-default print:pointer-events-none"
+            style={{ 
+              fontFamily: EDITOR_STYLES.sopHeader.standFontFamily,
+              fontWeight: EDITOR_STYLES.sopHeader.standFontWeight,
+              fontSize: EDITOR_STYLES.sopHeader.standFontSize,
+              color: EDITOR_STYLES.text.color,
+              letterSpacing: EDITOR_STYLES.sopHeader.standLetterSpacing,
+              textTransform: 'uppercase',
+              lineHeight: EDITOR_STYLES.sopHeader.standLineHeight,
+              borderRadius: '4px',
+              padding: '2px 4px',
+              height: '16px', // 12px content + 4px padding
+              display: 'inline-block',
+              boxSizing: 'border-box'
+            }}
+          >
               {stand || '\u00A0'} {/* Non-breaking space if empty */}
             </span>
           )}
@@ -223,13 +224,13 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
             className="no-print"
             rows={1}
             style={{ 
-              fontFamily: "'Roboto', sans-serif",
-              fontWeight: 600,
-              fontSize: '32px',
-              color: '#003366',
-              letterSpacing: '1.04px',
+              fontFamily: EDITOR_STYLES.sopHeader.titleFontFamily,
+              fontWeight: EDITOR_STYLES.sopHeader.titleFontWeight,
+              fontSize: EDITOR_STYLES.sopHeader.titleFontSize,
+              color: EDITOR_STYLES.text.color,
+              letterSpacing: EDITOR_STYLES.sopHeader.titleLetterSpacing,
               textTransform: 'uppercase',
-              lineHeight: '1.2',
+              lineHeight: EDITOR_STYLES.sopHeader.titleLineHeight,
               width: '100%',
               border: 'none',
               borderRadius: '6px',
@@ -252,13 +253,13 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
             onClick={() => setIsEditingTitle(true)}
             className="no-print cursor-text sop-header-title-editable"
             style={{ 
-              fontFamily: "'Roboto', sans-serif",
-              fontWeight: 600,
-              fontSize: '32px',
-              color: '#003366',
-              letterSpacing: '1.04px',
+              fontFamily: EDITOR_STYLES.sopHeader.titleFontFamily,
+              fontWeight: EDITOR_STYLES.sopHeader.titleFontWeight,
+              fontSize: EDITOR_STYLES.sopHeader.titleFontSize,
+              color: EDITOR_STYLES.text.color,
+              letterSpacing: EDITOR_STYLES.sopHeader.titleLetterSpacing,
               textTransform: 'uppercase',
-              lineHeight: '1.2',
+              lineHeight: EDITOR_STYLES.sopHeader.titleLineHeight,
               width: '100%',
               borderRadius: '6px',
               padding: '4px 8px',
@@ -276,13 +277,13 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
         <div 
           className="hidden print:block"
           style={{ 
-            fontFamily: "'Roboto', sans-serif",
-            fontWeight: 600,
-            fontSize: '32px',
-            color: '#003366',
-            letterSpacing: '1.04px',
+            fontFamily: EDITOR_STYLES.sopHeader.titleFontFamily,
+            fontWeight: EDITOR_STYLES.sopHeader.titleFontWeight,
+            fontSize: EDITOR_STYLES.sopHeader.titleFontSize,
+            color: EDITOR_STYLES.text.color,
+            letterSpacing: EDITOR_STYLES.sopHeader.titleLetterSpacing,
             textTransform: 'uppercase',
-            lineHeight: '1.2',
+            lineHeight: EDITOR_STYLES.sopHeader.titleLineHeight,
             width: '100%',
             padding: '4px 8px',
             overflowWrap: 'break-word',
@@ -345,7 +346,7 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                   alt="Logo" 
                   style={{ 
                     maxWidth: '100%', 
-                    height: '70px', 
+                    height: EDITOR_STYLES.sopHeader.logoHeight, 
                     width: 'auto',
                     objectFit: 'contain',
                     objectPosition: 'right top'

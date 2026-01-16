@@ -333,7 +333,7 @@ iframe[title*="Help Scout"] {
   }
   
   .block-row.two-columns {
-    gap: 16px !important;
+    gap: var(--editor-two-column-gap) !important;
     margin-bottom: 1rem !important; /* 16px - 8px less than single-column */
   }
   
@@ -1038,7 +1038,7 @@ body.export-ready .a4-page {
 }
 
 .block-row.two-columns {
-  gap: 20px;
+  gap: var(--editor-two-column-gap);
   margin-bottom: 1rem; /* 16px - 8px less than single-column to compensate for height equalization */
 }
 

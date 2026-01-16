@@ -54,6 +54,132 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 207 100% 60%;
     --radius: 0.5rem;
+
+    /* ============================================
+       EDITOR STYLES - CSS Custom Properties
+       Diese Variablen sind die CSS-Repräsentation der
+       JavaScript-Konstanten aus src/styles/editorStyles.js
+       für konsistentes Styling zwischen Editor und Export.
+       ============================================ */
+    
+    /* Fonts */
+    --editor-font-primary: 'Roboto', sans-serif;
+    --editor-font-heading: 'Quicksand', sans-serif;
+    
+    /* Text */
+    --editor-text-font-size: 11px;
+    --editor-text-line-height: 1.5;
+    --editor-text-font-weight: 400;
+    --editor-text-color: #003366;
+    
+    /* Small Text */
+    --editor-small-text-font-size: 9px;
+    --editor-small-text-font-weight: 500;
+    
+    /* Heading */
+    --editor-heading-font-size: 11px;
+    --editor-heading-line-height: 1.8;
+    --editor-heading-font-weight: 600;
+    
+    /* List */
+    --editor-list-padding-left: 12px;
+    --editor-list-item-margin-bottom: 2px;
+    
+    /* Highlight Item */
+    --editor-highlight-padding-left: 20px;
+    --editor-highlight-icon-top: 2px;
+    --editor-highlight-icon-size: 14px;
+    --editor-highlight-margin: 8px 0;
+    --editor-highlight-min-height: 18px;
+    
+    /* Content Box */
+    --editor-contentbox-border-width: 1.8px;
+    --editor-contentbox-border-radius: 6px;
+    --editor-contentbox-padding: 24px 26px 20px 26px;
+    --editor-contentbox-caption-font-size: 9px;
+    --editor-contentbox-caption-letter-spacing: 1.05px;
+    
+    /* Table */
+    --editor-table-cell-padding: 4px 14px;
+    --editor-table-header-background: #003366;
+    --editor-table-header-color: white;
+    --editor-table-border-color: #d1d5db;
+    --editor-table-wrapper-border-radius: 6px;
+    --editor-table-wrapper-border-width: 1.8px;
+    
+    /* Two-Column Layout */
+    --editor-two-column-gap: 20px;
+    
+    /* Flowchart */
+    --editor-flowchart-node-font-size: 11px;
+    --editor-flowchart-edge-stroke-color: #003366;
+    --editor-flowchart-edge-stroke-width: 1;
+    
+    /* Flowchart Node Colors - Start */
+    --editor-flowchart-start-fill: #E8FAF9;
+    --editor-flowchart-start-stroke: #47D1C6;
+    --editor-flowchart-start-text: #47D1C6;
+    
+    /* Flowchart Node Colors - Phase */
+    --editor-flowchart-phase-fill: #E5F2FF;
+    --editor-flowchart-phase-stroke: #003366;
+    --editor-flowchart-phase-text: #003366;
+    
+    /* Flowchart Node Colors - Aktion */
+    --editor-flowchart-aktion-fill: #FFFFFF;
+    --editor-flowchart-aktion-stroke: #003366;
+    --editor-flowchart-aktion-text: #003366;
+    
+    /* Flowchart Node Colors - Positive */
+    --editor-flowchart-positive-fill: #ECF9EB;
+    --editor-flowchart-positive-stroke: #52C41A;
+    --editor-flowchart-positive-text: #52C41A;
+    
+    /* Flowchart Node Colors - Negative */
+    --editor-flowchart-negative-fill: #FCEAE8;
+    --editor-flowchart-negative-stroke: #EB5547;
+    --editor-flowchart-negative-text: #EB5547;
+    
+    /* Flowchart Node Colors - Neutral */
+    --editor-flowchart-neutral-fill: #FFF7E6;
+    --editor-flowchart-neutral-stroke: #FAAD14;
+    --editor-flowchart-neutral-text: #B27700;
+    
+    /* Flowchart Node Colors - Label & Comment */
+    --editor-flowchart-label-text: #6b7280;
+    --editor-flowchart-comment-stroke: #3399FF;
+    --editor-flowchart-comment-text: #3399FF;
+    
+    /* Flowchart Icon Colors */
+    --editor-flowchart-icon-high: #EB5547;
+    --editor-flowchart-icon-low: #3399FF;
+    --editor-flowchart-icon-equal: #FAAD14;
+    
+    /* SOP Header */
+    --editor-header-title-font-family: 'Roboto', sans-serif;
+    --editor-header-title-font-size: 32px;
+    --editor-header-title-font-weight: 600;
+    --editor-header-title-letter-spacing: 1.04px;
+    --editor-header-title-line-height: 1.2;
+    --editor-header-stand-font-family: 'Quicksand', sans-serif;
+    --editor-header-stand-font-size: 12px;
+    --editor-header-stand-font-weight: 600;
+    --editor-header-stand-letter-spacing: 2px;
+    --editor-header-stand-line-height: 12px;
+    --editor-header-logo-max-width: 140px;
+    --editor-header-logo-height: 70px;
+    
+    /* SOP Footer */
+    --editor-footer-font-family: 'Inter', sans-serif;
+    --editor-footer-font-size: 10px;
+    --editor-footer-font-weight: 500;
+    --editor-footer-color: #003366;
+    --editor-footer-accent-color: #004D99;
+    --editor-footer-disclaimer-font-family: 'Roboto', sans-serif;
+    --editor-footer-disclaimer-line-height: 15px;
+    --editor-footer-underline-height: 1px;
+    --editor-footer-field-height: 24px;
+    --editor-footer-input-height: 19px;
   }
 }
 

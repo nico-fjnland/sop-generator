@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowsClockwise } from '@phosphor-icons/react';
 import { FOOTER } from '../constants/layout';
 import { useAuth } from '../contexts/AuthContext';
+import { EDITOR_STYLES } from '../styles/editorStyles';
 
 const FOOTER_VARIANTS = [
   { id: 'tiny', label: 'Tiny' },
@@ -74,13 +75,13 @@ const SignatureFields = ({ values = {}, onChange }) => {
         <div key={field.id} style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: '4px'
+          gap: '2px'
         }}>
           <span style={{
-            fontFamily: "'Inter', sans-serif",
-            fontWeight: 500,
-            fontSize: '10px',
-            color: '#003366',
+            fontFamily: EDITOR_STYLES.footer.fontFamily,
+            fontWeight: EDITOR_STYLES.footer.fontWeight,
+            fontSize: EDITOR_STYLES.footer.fontSize,
+            color: EDITOR_STYLES.footer.color,
             whiteSpace: 'nowrap'
           }}>
             {field.label}
@@ -88,7 +89,7 @@ const SignatureFields = ({ values = {}, onChange }) => {
           <div style={{
             position: 'relative',
             width: '100%',
-            height: '36px', // Fixed height: 16px top space + 20px input area
+            height: EDITOR_STYLES.footer.fieldHeight,
             marginTop: '0'
           }}>
             {/* Editable input field */}
@@ -103,16 +104,16 @@ const SignatureFields = ({ values = {}, onChange }) => {
                 bottom: '1px',
                 left: '0',
                 width: '100%',
-                height: '19px',
+                height: EDITOR_STYLES.footer.inputHeight,
                 border: '0',
                 borderStyle: 'none',
                 borderWidth: '0',
                 borderBottom: 'none',
                 background: 'transparent',
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '10px',
-                lineHeight: '19px',
-                color: '#003366',
+                fontFamily: EDITOR_STYLES.footer.fontFamily,
+                fontSize: EDITOR_STYLES.footer.fontSize,
+                lineHeight: EDITOR_STYLES.footer.inputHeight,
+                color: EDITOR_STYLES.footer.color,
                 padding: '0',
                 margin: '0',
                 outline: 'none',
@@ -132,8 +133,8 @@ const SignatureFields = ({ values = {}, onChange }) => {
               bottom: '0',
               left: '0',
               right: '0',
-              height: '1px',
-              backgroundColor: '#003366'
+              height: EDITOR_STYLES.footer.underlineHeight,
+              backgroundColor: EDITOR_STYLES.footer.color
             }} />
           </div>
         </div>

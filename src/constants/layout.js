@@ -71,7 +71,7 @@ export const FOOTER = {
   HEIGHTS: {
     tiny: 82,        // Logo + CC only
     small: 188,      // Logo + CC + Disclaimer text
-    signature: 207,  // Logo + CC + Signature fields (4 columns)
+    signature: 188,  // Logo + CC + Signature fields (4 columns) - same height as small
     placeholder: 152 // Placeholder box for hospital document systems
   },
   DEFAULT_VARIANT: 'tiny',

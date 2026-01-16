@@ -80,8 +80,8 @@
   border-radius: 4px;
   border: none;
   background: white;
-  font-family: 'Roboto', sans-serif;
-  font-size: 11px; /* Wert aus EDITOR_STYLES.flowchart.nodeFontSize */
+  font-family: var(--editor-font-primary);
+  font-size: var(--editor-flowchart-node-font-size);
   min-width: auto;
   min-height: 24px; /* 4er-Vielfaches für Grid-Raster */
   width: auto;
@@ -108,8 +108,8 @@
   border: none;
   outline: none;
   background: transparent;
-  font-family: 'Roboto', sans-serif;
-  font-size: 11px; /* Same as body text in ContentBox */
+  font-family: var(--editor-font-primary);
+  font-size: var(--editor-flowchart-node-font-size);
   text-align: center;
   font-weight: 400;
   padding: 0;
@@ -128,34 +128,34 @@
 
 /* Start Node - Teal/Cyan */
 .flowchart-node-start {
-  --node-border-color: #47D1C6;
-  background: #E8FAF9;
+  --node-border-color: var(--editor-flowchart-start-stroke);
+  background: var(--editor-flowchart-start-fill);
 }
 
 .flowchart-node-start .flowchart-node-input {
-  color: #47D1C6;
+  color: var(--editor-flowchart-start-text);
   font-weight: 400;
 }
 
 /* Phase Node - Dark Blue */
 .flowchart-node-phase {
-  --node-border-color: #003366;
-  background: #E5F2FF;
+  --node-border-color: var(--editor-flowchart-phase-stroke);
+  background: var(--editor-flowchart-phase-fill);
 }
 
 .flowchart-node-phase .flowchart-node-input {
-  color: #003366;
+  color: var(--editor-flowchart-phase-text);
   font-weight: 400;
 }
 
 /* Aktion Node - Dark Blue with White Background */
 .flowchart-node-aktion {
-  --node-border-color: #003366;
-  background: #FFFFFF;
+  --node-border-color: var(--editor-flowchart-aktion-stroke);
+  background: var(--editor-flowchart-aktion-fill);
 }
 
 .flowchart-node-aktion .flowchart-node-input {
-  color: #003366;
+  color: var(--editor-flowchart-aktion-text);
   font-weight: 400;
 }
 
@@ -169,15 +169,15 @@
 }
 
 .flowchart-node-label .flowchart-node-input {
-  color: #6b7280;
+  color: var(--editor-flowchart-label-text);
   font-weight: 400;
-  font-size: 11px; /* Same as body text in ContentBox */
+  font-size: var(--editor-flowchart-node-font-size);
 }
 
 /* Comment Node - Blue dashed border */
 .flowchart-node-comment {
   --node-border-color: transparent;
-  border: 1px dashed #3399FF;
+  border: 1px dashed var(--editor-flowchart-comment-stroke);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   background: white;
 }
@@ -187,73 +187,73 @@
 }
 
 .flowchart-node-comment .flowchart-node-input {
-  color: #3399FF;
+  color: var(--editor-flowchart-comment-text);
   font-weight: 400;
 }
 
 /* Positive Node - Green */
 .flowchart-node-positive {
-  --node-border-color: #52C41A;
-  background: #ECF9EB;
+  --node-border-color: var(--editor-flowchart-positive-stroke);
+  background: var(--editor-flowchart-positive-fill);
 }
 
 .flowchart-node-positive .flowchart-node-input {
-  color: #52C41A;
+  color: var(--editor-flowchart-positive-text);
   font-weight: 400;
 }
 
 /* Negative Node - Red */
 .flowchart-node-negative {
-  --node-border-color: #EB5547;
-  background: #FCEAE8;
+  --node-border-color: var(--editor-flowchart-negative-stroke);
+  background: var(--editor-flowchart-negative-fill);
 }
 
 .flowchart-node-negative .flowchart-node-input {
-  color: #EB5547;
+  color: var(--editor-flowchart-negative-text);
   font-weight: 400;
 }
 
 /* Neutral Node - Yellow/Orange */
 .flowchart-node-neutral {
-  --node-border-color: #FAAD14;
-  background: #FFF7E6;
+  --node-border-color: var(--editor-flowchart-neutral-stroke);
+  background: var(--editor-flowchart-neutral-fill);
 }
 
 .flowchart-node-neutral .flowchart-node-input {
-  color: #B27700;
+  color: var(--editor-flowchart-neutral-text);
   font-weight: 400;
 }
 
 /* High Node - Dark Blue border with red arrow icon */
 .flowchart-node-high {
-  --node-border-color: #003366;
+  --node-border-color: var(--editor-flowchart-phase-stroke);
   background: white;
 }
 
 .flowchart-node-high .flowchart-node-input {
-  color: #003366;
+  color: var(--editor-flowchart-phase-text);
   font-weight: 400;
 }
 
 /* Low Node - Dark Blue border with blue arrow icon */
 .flowchart-node-low {
-  --node-border-color: #003366;
+  --node-border-color: var(--editor-flowchart-phase-stroke);
   background: white;
 }
 
 .flowchart-node-low .flowchart-node-input {
-  color: #003366;
+  color: var(--editor-flowchart-phase-text);
   font-weight: 400;
 }
 
 /* Equal Node - Dark Blue border with yellow arrow icon */
 .flowchart-node-equal {
-  --node-border-color: #003366;
+  --node-border-color: var(--editor-flowchart-phase-stroke);
   background: white;
 }
 
 .flowchart-node-equal .flowchart-node-input {
-  color: #003366;
+  color: var(--editor-flowchart-phase-text);
   font-weight: 400;
 }
 
@@ -277,15 +277,15 @@
 }
 
 .flowchart-node-icon-high {
-  color: #EB5547;
+  color: var(--editor-flowchart-icon-high);
 }
 
 .flowchart-node-icon-low {
-  color: #3399FF;
+  color: var(--editor-flowchart-icon-low);
 }
 
 .flowchart-node-icon-equal {
-  color: #FAAD14;
+  color: var(--editor-flowchart-icon-equal);
 }
 
 /* ReactFlow Controls Styling - similar to inline text editor */
@@ -339,22 +339,22 @@
 
 /* Edge Styles */
 .react-flow__edge-path {
-  stroke: #003366;
-  stroke-width: 1;
+  stroke: var(--editor-flowchart-edge-stroke-color);
+  stroke-width: var(--editor-flowchart-edge-stroke-width);
 }
 
 .react-flow__edge.selected .react-flow__edge-path {
-  stroke: #47D1C6;
+  stroke: var(--editor-flowchart-start-stroke);
   stroke-width: 1.5;
 }
 
 .react-flow__edge .react-flow__edge-path {
-  stroke: #003366;
+  stroke: var(--editor-flowchart-edge-stroke-color);
 }
 
 /* Arrow marker color */
 .react-flow__arrowhead {
-  fill: #003366;
+  fill: var(--editor-flowchart-edge-stroke-color);
 }
 
 /* Handle Styles */
@@ -466,8 +466,8 @@
 
 /* Static text display for preview nodes */
 .flowchart-node-static-text {
-  font-family: 'Roboto', sans-serif;
-  font-size: 11px; /* Same as body text in ContentBox */
+  font-family: var(--editor-font-primary);
+  font-size: var(--editor-flowchart-node-font-size);
   text-align: center;
   font-weight: 400;
   line-height: 1.45; /* Angepasst für 4er-Grid-Raster */
@@ -480,47 +480,47 @@
 
 /* Apply node colors to static text */
 .flowchart-node-start .flowchart-node-static-text {
-  color: #47D1C6;
+  color: var(--editor-flowchart-start-text);
 }
 
 .flowchart-node-phase .flowchart-node-static-text {
-  color: #003366;
+  color: var(--editor-flowchart-phase-text);
 }
 
 .flowchart-node-aktion .flowchart-node-static-text {
-  color: #003366;
+  color: var(--editor-flowchart-aktion-text);
 }
 
 .flowchart-node-label .flowchart-node-static-text {
-  color: #6b7280;
+  color: var(--editor-flowchart-label-text);
 }
 
 .flowchart-node-comment .flowchart-node-static-text {
-  color: #3399FF;
+  color: var(--editor-flowchart-comment-text);
 }
 
 .flowchart-node-positive .flowchart-node-static-text {
-  color: #52C41A;
+  color: var(--editor-flowchart-positive-text);
 }
 
 .flowchart-node-negative .flowchart-node-static-text {
-  color: #EB5547;
+  color: var(--editor-flowchart-negative-text);
 }
 
 .flowchart-node-neutral .flowchart-node-static-text {
-  color: #B27700;
+  color: var(--editor-flowchart-neutral-text);
 }
 
 .flowchart-node-high .flowchart-node-static-text {
-  color: #003366;
+  color: var(--editor-flowchart-phase-text);
 }
 
 .flowchart-node-low .flowchart-node-static-text {
-  color: #003366;
+  color: var(--editor-flowchart-phase-text);
 }
 
 .flowchart-node-equal .flowchart-node-static-text {
-  color: #003366;
+  color: var(--editor-flowchart-phase-text);
 }
 
 /* Edit Overlay */

@@ -3,6 +3,7 @@ import { NotePencil, X, Plus, Table, Quotes, SortAscending, Infinity, ArrowCount
 import Block from '../Block';
 import { CategoryIconComponents } from '../icons/CategoryIcons';
 import { Input } from '../ui/input';
+import { EDITOR_STYLES } from '../../styles/editorStyles';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -906,10 +907,10 @@ const ContentBoxBlock = ({
                   : 'pt-[24px] px-[26px]'
               } ${columnCount === 2 ? 'two-column' : columnCount === 3 ? 'three-column' : 'flex flex-col gap-[8px]'}`}
               style={{
-                fontFamily: "'Roboto', sans-serif",
-                fontSize: '11px',
-                lineHeight: 1.5,
-                fontWeight: 400,
+                fontFamily: EDITOR_STYLES.fonts.primary,
+                fontSize: EDITOR_STYLES.text.fontSize,
+                lineHeight: EDITOR_STYLES.text.lineHeight,
+                fontWeight: EDITOR_STYLES.text.fontWeight,
                 '--content-box-color': effectiveColor,
               }}
             >

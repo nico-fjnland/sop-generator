@@ -88,7 +88,7 @@ export const EDITOR_STYLES = {
   // TABELLEN
   // ============================================
   table: {
-    cellPadding: '6px 14px',
+    cellPadding: '4px 14px',
     headerBackground: '#003366',
     headerColor: 'white',
     borderColor: '#d1d5db',
@@ -109,20 +109,41 @@ export const EDITOR_STYLES = {
   // SOP HEADER
   // ============================================
   sopHeader: {
+    titleFontFamily: "'Roboto', sans-serif",
     titleFontSize: '32px',
     titleFontWeight: 600,
     titleLetterSpacing: '1.04px',
+    titleLineHeight: 1.2,
+    standFontFamily: "'Quicksand', sans-serif",
     standFontSize: '12px',
+    standFontWeight: 600,
     standLetterSpacing: '2px',
+    standLineHeight: '12px',
     logoMaxWidth: '140px',
     logoHeight: '70px',
+  },
+
+  // ============================================
+  // SOP FOOTER
+  // ============================================
+  footer: {
+    fontFamily: "'Inter', sans-serif",
+    fontSize: '10px',
+    fontWeight: 500,
+    color: '#003366',
+    accentColor: '#004D99',
+    disclaimerFontFamily: "'Roboto', sans-serif",
+    disclaimerLineHeight: '15px',
+    underlineHeight: '1px',
+    fieldHeight: '24px',
+    inputHeight: '19px',
   },
 
   // ============================================
   // ZWEI-SPALTEN LAYOUT
   // ============================================
   twoColumnLayout: {
-    gap: '16px',
+    gap: '20px',
   },
 
   // ============================================

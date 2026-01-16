@@ -24,8 +24,8 @@
 /* Table Wrapper - Notion-like border */
 .tiptap-table-wrapper {
   overflow: hidden; /* Clip any overflow */
-  border-radius: 6px;
-  border: 1.8px solid #003366; /* Dark blue border to match the table color */
+  border-radius: var(--editor-table-wrapper-border-radius);
+  border: var(--editor-table-wrapper-border-width) solid var(--editor-text-color);
   position: relative;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
   width: 100%; /* Fill available space from parent */
@@ -91,15 +91,15 @@
 .tiptap-table-editor th {
   min-width: 30px; /* Minimum width for usability */
   max-width: 0; /* Force cells to respect column width from table-layout: fixed */
-  border-right: 1px solid hsl(var(--border));
-  border-bottom: 1px solid hsl(var(--border));
+  border-right: 1px solid var(--editor-table-border-color);
+  border-bottom: 1px solid var(--editor-table-border-color);
   vertical-align: top;
   box-sizing: border-box;
   position: relative;
-  font-family: 'Roboto', sans-serif;
-  font-size: 11px;
-  line-height: 1.5;
-  font-weight: 400;
+  font-family: var(--editor-font-primary);
+  font-size: var(--editor-text-font-size);
+  line-height: var(--editor-text-line-height);
+  font-weight: var(--editor-text-font-weight);
   transition: background-color 0.15s ease;
   /* Ensure text wraps and doesn't force column expansion */
   word-wrap: break-word;
@@ -113,7 +113,7 @@
 /* All cells have same padding - only color differs */
 .tiptap-table-editor th,
 .tiptap-table-editor td {
-  padding: 4px 0.875rem;
+  padding: var(--editor-table-cell-padding);
 }
 
 /* Default background for cells without custom color */
@@ -158,12 +158,12 @@
 
 /* Header Cells - Dark blue default styling */
 .tiptap-table-editor th:not([style*="background-color"]) {
-  background-color: #003366;
-  color: white;
+  background-color: var(--editor-table-header-background);
+  color: var(--editor-table-header-color);
 }
 
 .tiptap-table-editor th:not([style*="background-color"]) p {
-  color: white;
+  color: var(--editor-table-header-color);
 }
 
 .tiptap-table-editor th {
@@ -192,7 +192,7 @@
   top: 0;
   bottom: -2px;
   width: 4px;
-  background-color: #003366;
+  background-color: var(--editor-text-color);
   pointer-events: none;
   opacity: 0.8;
 }
@@ -273,7 +273,7 @@
 
 /* Header cells - no hover color change */
 .tiptap-table-editor th:not([style*="background-color"]):hover {
-  background-color: #003366;
+  background-color: var(--editor-table-header-background);
 }
 
 /* Cells with custom background colors get a subtle hover overlay */
@@ -357,14 +357,14 @@
   }
 
   .tiptap-table-editor th:not([style*="background-color"]) {
-    background-color: #003366 !important;
-    color: white !important;
+    background-color: var(--editor-table-header-background) !important;
+    color: var(--editor-table-header-color) !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
   
   .tiptap-table-editor th:not([style*="background-color"]) p {
-    color: white !important;
+    color: var(--editor-table-header-color) !important;
   }
   
   /* Preserve custom background colors in print */

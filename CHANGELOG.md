@@ -7,6 +7,45 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.22] - 2026-01-16
+
+### 🎨 Verbesserungen
+
+- **Signature Footer Höhe optimiert:**
+  - Höhe von 207px auf 188px reduziert (entspricht nun `small` Footer)
+  - `fieldHeight` von 36px auf 24px reduziert (unnötiger Leerraum über Input entfernt)
+  - Gap zwischen Label und Inputfeld von 4px auf 2px reduziert
+  - Konstante `FOOTER.HEIGHTS.signature` in `layout.js` aktualisiert
+
+### 🔧 Refactoring
+
+- **CSS Custom Properties Migration:**
+  - Neues Zwei-Stufen-System: `editorStyles.js` → `index.css` CSS Custom Properties → CSS-Dateien
+  - Alle export-relevanten CSS-Dateien auf `var(--editor-*)` umgestellt:
+    - `TextBlock.css`: Text, Heading, List, Highlight-Item Styles
+    - `TipTapTableBlock.css`: Tabellen-Styles (Border, Padding, Header)
+    - `FlowchartBlock.css`: Node-Farben, Edge-Styles, Icon-Farben
+    - `App.css`: Two-Column Layout Gap
+  - JavaScript-Komponenten verwenden nun `EDITOR_STYLES`:
+    - `SOPHeader.js`: Title und Stand Styles
+    - `SOPFooter.js`: Footer Styles
+    - `ContentBoxBlock.js`: Content-Area Text Styles
+  - `htmlSerializer.js` verwendet dynamische Werte aus EDITOR_STYLES
+
+- **Inkonsistenzen behoben:**
+  - Two-Column Gap vereinheitlicht auf 20px (war: 16px in editorStyles.js, 20px in CSS)
+  - Table Cell Padding korrigiert auf 4px 14px (war: 6px 14px in editorStyles.js)
+
+- **editorStyles.js erweitert:**
+  - Neue Kategorie `footer`: fontFamily, fontSize, fontWeight, color, etc.
+  - `sopHeader` erweitert: titleFontFamily, titleLineHeight, standFontFamily, etc.
+
+- **AGENTS.md aktualisiert:**
+  - Dokumentation der neuen CSS Custom Properties Strategie
+  - Anleitung für zukünftige Style-Änderungen
+
+---
+
 ## [0.9.21] - 2026-01-16
 
 ### 🐛 Bugfixes
