@@ -16,7 +16,6 @@ import StatusIndicator from './StatusIndicator';
 import { CATEGORIES } from './blocks/ContentBoxBlock';
 import { exportAsJson, importFromJson, exportAsWord, exportAsPdf } from '../utils/exportUtils';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
 import { useStatus } from '../contexts/StatusContext';
 import { saveDocument, getDocument, getDocuments, saveDocumentHtml } from '../services/documentService';
 import { serializeToHTML } from '../utils/htmlSerializer';
@@ -31,7 +30,6 @@ import { logger } from '../utils/logger';
 
 const Editor = () => {
   const { user, signOut, organizationId, organization, profile } = useAuth();
-  const { } = useTheme(); // Theme context available for future use
   const { showSuccess, showError, showSaving, showExporting, showConfirm } = useStatus();
   const navigate = useNavigate();
   const containerRef = useRef(null);
