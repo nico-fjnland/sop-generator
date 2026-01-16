@@ -7,6 +7,27 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.23] - 2026-01-16
+
+### 🎨 Verbesserungen
+
+- **Vercel Web Interface Guidelines Compliance:**
+  - **Accessibility:** `aria-label` zu Icon-only Buttons hinzugefügt (Passwort ein-/ausblenden in Login/Register, Logo-Entfernen-Button in SOPHeader)
+  - **Accessibility:** Theme-Toggle in AccountDropdown für Tastatur-Navigation optimiert (`role="button"`, `tabIndex`, `onKeyDown` Handler)
+  - **Performance:** `transition: all` durch explizite Properties ersetzt (13 CSS-Stellen in FlowchartBlock.css, FlowchartEditorModal.css, StatusIndicator.css, image-upload-node.scss)
+  - **Performance:** Explizite `width`/`height` Attribute zu dynamischen Bildern hinzugefügt (Avatar, Logo, Company Logo) zur CLS-Reduktion
+  - **Typografie:** Drei Punkte `...` durch typografisch korrektes Ellipsis `…` ersetzt (~20 Stellen in Placeholders und Loading-States)
+
+### 🐛 Bugfixes
+
+- **Layout-Shift beim Öffnen von Dropdown-Menüs behoben:**
+  - Auf bestimmten Windows-Konfigurationen (z.B. Chrome 143, 1905x1073 Auflösung) verschob sich das A4-Dokument leicht nach links wenn Hover-Button-Dropdowns geöffnet wurden
+  - Ursache: Portal-Elemente (Radix Dropdowns) ragten kurzzeitig über den Viewport hinaus und verursachten eine Neuberechnung der `margin: auto` Zentrierung
+  - Fix 1: `overflow-x: hidden` und `max-width: 100vw` für `html` und `body` in `index.css` hinzugefügt
+  - Fix 2: `collisionPadding.right` für alle Dropdown-Menüs am rechten Rand von 24px auf 48px erhöht (ContentBoxBlock, TipTapTableBlock, SourceBlock)
+
+---
+
 ## [0.9.22] - 2026-01-16
 
 ### 🎨 Verbesserungen

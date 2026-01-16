@@ -27,7 +27,7 @@ export function HospitalCombobox({
   value = '',
   onChange,
   onSelect,
-  placeholder = 'Krankenhaus suchen...',
+  placeholder = 'Krankenhaus suchen…',
   className,
   disabled = false,
 }) {

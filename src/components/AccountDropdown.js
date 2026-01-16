@@ -65,6 +65,8 @@ const AccountDropdown = ({
               src={avatarUrl} 
               alt="Profil" 
               className="w-full h-full object-cover"
+              width={size === 'lg' ? 48 : 32}
+              height={size === 'lg' ? 48 : 32}
             />
           ) : (
             <User size={size === 'lg' ? 24 : 16} weight="bold" />
@@ -112,8 +114,12 @@ const AccountDropdown = ({
           
           {/* Theme Toggle */}
           <div 
-            className="flex items-center justify-between px-2 py-1.5 text-sm select-none outline-none cursor-pointer hover:bg-accent hover:text-accent-foreground rounded-sm transition-colors mt-1"
+            role="button"
+            tabIndex={0}
+            className="flex items-center justify-between px-2 py-1.5 text-sm select-none cursor-pointer hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none rounded-sm transition-colors mt-1"
             onClick={(e) => { e.preventDefault(); toggleTime(); }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleTime(); } }}
+            aria-label={timeOfDay === 'day' ? 'Zu Nachtmodus wechseln' : 'Zu Tagmodus wechseln'}
           >
             <div className="flex items-center">
               {timeOfDay === 'night' ? <Moon className="mr-2 h-4 w-4" /> : <Sun className="mr-2 h-4 w-4" />}
@@ -122,6 +128,7 @@ const AccountDropdown = ({
             <Switch 
               checked={timeOfDay === 'night'} 
               className="data-[state=checked]:bg-primary scale-90 pointer-events-none"
+              aria-hidden="true"
             />
           </div>
         </DropdownMenuGroup>

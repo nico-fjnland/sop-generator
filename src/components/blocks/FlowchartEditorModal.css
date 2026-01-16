@@ -102,7 +102,7 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: filter 0.15s ease;
 }
 
 .flowchart-editor-save-btn:hover {
@@ -128,7 +128,7 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .flowchart-editor-close-btn:hover {
@@ -202,7 +202,7 @@
   color: #5f6368;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: background 0.12s ease, color 0.12s ease;
 }
 
 .flowchart-toolbar-btn:hover:not(:disabled) {
@@ -281,7 +281,7 @@
   background: transparent;
   border-radius: 10px;
   cursor: grab;
-  transition: all 0.15s ease;
+  transition: background 0.15s ease, transform 0.15s ease;
   position: relative;
 }
 
@@ -375,7 +375,7 @@
   height: 10px;
   background: #9ca3af;
   border: 2px solid white;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .flowchart-editor-modal .flowchart-custom-handle.react-flow__handle:hover {

@@ -30,6 +30,8 @@ const ImageBlock = ({ content, onChange }) => {
             src={imageUrl}
             alt="SOP Illustration"
             className="max-w-full h-auto rounded border border-sop-border"
+            style={{ aspectRatio: 'auto' }}
+            loading="lazy"
           />
           <button
             onClick={() => {
@@ -60,7 +62,7 @@ const ImageBlock = ({ content, onChange }) => {
                 type="text"
                 value={imageUrl}
                 onChange={handleUrlChange}
-                placeholder="https://..."
+                placeholder="https://…"
                 className="mt-2 w-full px-3 py-2 border border-input rounded outline-none focus:border-ring bg-background text-foreground"
               />
             </div>

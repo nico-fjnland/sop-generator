@@ -147,11 +147,11 @@ export const StatusProvider = ({ children }) => {
     showStatus('info', message, options);
   }, [showStatus]);
 
-  const showSaving = useCallback((message = 'Speichern...') => {
+  const showSaving = useCallback((message = 'Speichern…') => {
     showStatus('saving', message, { persistent: true });
   }, [showStatus]);
 
-  const showExporting = useCallback((message = 'Exportiere...') => {
+  const showExporting = useCallback((message = 'Exportiere…') => {
     showStatus('exporting', message, { persistent: true });
   }, [showStatus]);
 

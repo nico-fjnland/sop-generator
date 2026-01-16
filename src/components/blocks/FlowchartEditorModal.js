@@ -251,7 +251,7 @@ function FloatingEdge({ id, source, target, markerEnd, style, data, selected }) 
               onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               className="edge-label-input"
-              placeholder="Label..."
+              placeholder="Label…"
             />
           ) : (
             <div className="edge-label-text" title="Doppelklick zum Bearbeiten">

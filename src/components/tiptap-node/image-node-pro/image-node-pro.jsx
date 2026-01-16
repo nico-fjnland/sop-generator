@@ -225,6 +225,7 @@ export const ImageNodePro = ({ node, updateAttributes, deleteNode, selected, edi
             title={title || ""}
             className="image-node-pro-image"
             draggable={false}
+            loading="lazy"
           />
         </div>
 
@@ -239,7 +240,7 @@ export const ImageNodePro = ({ node, updateAttributes, deleteNode, selected, edi
                 onChange={handleCaptionChange}
                 onBlur={handleCaptionBlur}
                 onKeyDown={handleCaptionKeyDown}
-                placeholder="Bildunterschrift eingeben..."
+                placeholder="Bildunterschrift eingeben…"
                 className="image-node-pro-caption-input"
               />
             ) : (

@@ -331,6 +331,8 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               <img 
                 src={companyLogo} 
                 alt="Firmenlogo" 
+                width={140}
+                height={70}
                 style={{ 
                   maxWidth: '100%', 
                   height: '70px', 
@@ -344,6 +346,8 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                 <img 
                   src={logo} 
                   alt="Logo" 
+                  width={140}
+                  height={70}
                   style={{ 
                     maxWidth: '100%', 
                     height: EDITOR_STYLES.sopHeader.logoHeight, 
@@ -361,8 +365,9 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
                       onLogoChange(null);
                     }
                   }}
-                  className="absolute -top-4 -right-5 bg-destructive text-destructive-foreground p-1.5 rounded-full hover:bg-destructive/90 transition-all shadow-md opacity-0 group-hover/logo:opacity-100"
+                  className="absolute -top-4 -right-5 bg-destructive text-destructive-foreground p-1.5 rounded-full hover:bg-destructive/90 transition-colors shadow-md opacity-0 group-hover/logo:opacity-100"
                   title="Logo entfernen"
+                  aria-label="Logo entfernen"
                 >
                   <Trash size={12} weight="bold" />
                 </button>
@@ -405,6 +410,8 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               <img 
                 src={companyLogo} 
                 alt="Firmenlogo" 
+                width={140}
+                height={70}
                 style={{ 
                   maxWidth: '100%', 
                   height: '70px', 
@@ -417,6 +424,8 @@ const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialSta
               <img 
                 src={logo} 
                 alt="Logo" 
+                width={140}
+                height={70}
                 style={{ 
                   maxWidth: '100%', 
                   height: '70px', 

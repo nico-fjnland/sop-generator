@@ -433,6 +433,8 @@ const OrganizationView = React.memo(({
                   src={companyLogo}
                   alt="Firmenlogo"
                   className="w-full h-full object-contain p-2"
+                  width={200}
+                  height={120}
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center text-muted-foreground">
@@ -487,7 +489,7 @@ const OrganizationView = React.memo(({
             onSelect={(hospital) => {
               setSelectedHospital(hospital);
             }}
-            placeholder="Krankenhaus suchen oder eingeben..."
+            placeholder="Krankenhaus suchen oder eingeben…"
           />
         </div>
       </div>
@@ -638,7 +640,7 @@ const OrganizationView = React.memo(({
         <div></div>
         <div className="flex justify-end">
           <Button onClick={updateProfile} disabled={updating}>
-            {updating ? 'Wird gespeichert...' : 'Änderungen speichern'}
+            {updating ? 'Wird gespeichert…' : 'Änderungen speichern'}
           </Button>
         </div>
       </div>
@@ -759,6 +761,8 @@ const ProfileView = React.memo(({
                   src={avatarUrl}
                   alt="Avatar"
                   className="h-full w-full object-cover"
+                  width={96}
+                  height={96}
                 />
               ) : (
                 <div className="h-full w-full flex items-center justify-center text-muted-foreground">
@@ -829,7 +833,7 @@ const ProfileView = React.memo(({
           <PositionCombobox
             value={jobPosition}
             onChange={setJobPosition}
-            placeholder="Position auswählen oder eingeben..."
+            placeholder="Position auswählen oder eingeben…"
           />
         </div>
       </div>
@@ -858,7 +862,7 @@ const ProfileView = React.memo(({
         <div></div>
         <div className="flex justify-end">
           <Button type="submit" disabled={updating}>
-            {updating ? 'Wird gespeichert...' : 'Änderungen speichern'}
+            {updating ? 'Wird gespeichert…' : 'Änderungen speichern'}
           </Button>
         </div>
       </div>
@@ -939,7 +943,7 @@ const ProfileView = React.memo(({
               disabled={updatingPassword || !newPassword || !confirmPassword}
               variant="secondary"
             >
-              {updatingPassword ? 'Wird aktualisiert...' : 'Passwort ändern'}
+              {updatingPassword ? 'Wird aktualisiert…' : 'Passwort ändern'}
             </Button>
           </div>
         </div>
@@ -1005,7 +1009,7 @@ const ProfileView = React.memo(({
               className="gap-2"
             >
               <Trash size={16} weight="bold" />
-              {isDeletingAccount ? 'Wird gelöscht...' : 'Account dauerhaft löschen'}
+              {isDeletingAccount ? 'Wird gelöscht…' : 'Account dauerhaft löschen'}
             </Button>
           </div>
         </div>
@@ -1973,7 +1977,7 @@ export default function Account() {
               disabled={deleteConfirmText !== 'LÖSCHEN' || isDeletingAccount}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeletingAccount ? 'Wird gelöscht...' : 'Account löschen'}
+              {isDeletingAccount ? 'Wird gelöscht…' : 'Account löschen'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

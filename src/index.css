@@ -188,14 +188,21 @@
     @apply border-border;
   }
   /* Prevent layout shift from scrollbar appearing/disappearing */
+  /* Also prevent horizontal overflow from portal elements (dropdowns) causing centering shifts */
   html {
     overflow-y: scroll;
+    overflow-x: hidden;
     scrollbar-gutter: stable; /* Modern browsers: reserviert Platz für Scrollbar ohne sie immer anzuzeigen */
+    width: 100%;
+    max-width: 100vw;
   }
   body {
     @apply text-foreground;
     background: transparent; /* Allow AnimatedBackgroundGradient to show through */
     margin: 0;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
     font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen',
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
       sans-serif;

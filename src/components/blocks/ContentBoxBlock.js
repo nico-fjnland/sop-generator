@@ -479,7 +479,7 @@ const ContentBoxBlock = ({
             align="start" 
             side="right" 
             sideOffset={10}
-            collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }}
+            collisionPadding={{ top: 24, right: 48, bottom: 24, left: 24 }}
             avoidCollisions={true}
             onPointerDownOutside={(e) => {
               if (e.target.closest('.notion-control-button')) {
@@ -639,7 +639,7 @@ const ContentBoxBlock = ({
               align="start" 
               side="right" 
               sideOffset={10}
-              collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }}
+              collisionPadding={{ top: 24, right: 48, bottom: 24, left: 24 }}
               avoidCollisions={true}
               onPointerDownOutside={(e) => {
                 // Prevent closing when clicking on the trigger
@@ -829,7 +829,7 @@ const ContentBoxBlock = ({
                         </p>
                       </div>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="start" sideOffset={4} collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }} avoidCollisions={true}>
+                    <DropdownMenuContent className="w-56" align="start" sideOffset={4} collisionPadding={{ top: 24, right: 48, bottom: 24, left: 24 }} avoidCollisions={true}>
                       <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
                         <span>Kategorie ändern</span>
                         {onSortBlocks && (

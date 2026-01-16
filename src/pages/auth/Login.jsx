@@ -147,6 +147,7 @@ export default function Login() {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    aria-label={showPassword ? "Passwort verbergen" : "Passwort anzeigen"}
                   >
                     {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
                   </button>
@@ -163,7 +164,7 @@ export default function Login() {
                 {loading ? (
                   <>
                     <Spinner size="sm" />
-                    <span>Anmelden...</span>
+                    <span>Anmelden…</span>
                   </>
                 ) : (
                   <>

@@ -139,6 +139,7 @@ const Step1Account = ({ formData, setFormData, errors }) => {
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            aria-label={showPassword ? "Passwort verbergen" : "Passwort anzeigen"}
           >
             {showPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
           </button>
@@ -166,6 +167,7 @@ const Step1Account = ({ formData, setFormData, errors }) => {
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            aria-label={showConfirmPassword ? "Passwort verbergen" : "Passwort anzeigen"}
           >
             {showConfirmPassword ? <EyeSlash size={18} /> : <Eye size={18} />}
           </button>
@@ -215,7 +217,7 @@ const Step2Personal = ({ formData, setFormData, errors }) => {
         <PositionCombobox
           value={formData.jobPosition}
           onChange={(value) => setFormData({ ...formData, jobPosition: value })}
-          placeholder="Position auswählen oder eingeben..."
+          placeholder="Position auswählen oder eingeben…"
         />
       </div>
 
@@ -229,7 +231,7 @@ const Step2Personal = ({ formData, setFormData, errors }) => {
               setFormData({ ...formData, hospitalName: hospital.name });
             }
           }}
-          placeholder="Krankenhaus suchen oder eingeben..."
+          placeholder="Krankenhaus suchen oder eingeben…"
         />
       </div>
     </div>

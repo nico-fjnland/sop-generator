@@ -33,7 +33,7 @@ const MEDICAL_POSITIONS = [
 export function PositionCombobox({
   value = '',
   onChange,
-  placeholder = 'Position auswählen...',
+  placeholder = 'Position auswählen…',
   className,
   disabled = false,
 }) {

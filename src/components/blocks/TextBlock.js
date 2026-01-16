@@ -528,7 +528,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
       onChange={(e) => onChange(e.target.value)}
       onKeyDown={onKeyDown}
       onInput={handleInput}
-      placeholder="Text eingeben..."
+      placeholder="Text eingeben…"
       className="w-full text-base text-foreground border-none outline-none bg-transparent resize-none min-h-[1.5rem] mb-2 print:text-black"
       rows={1}
       style={{

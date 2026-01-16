@@ -81,7 +81,7 @@ const ProgressItem = ({ doc, status }) => (
     <span className="text-xs text-muted-foreground flex-shrink-0">
       {status === 'completed' && 'Fertig'}
       {status === 'error' && 'Fehler'}
-      {status === 'exporting' && 'Läuft...'}
+      {status === 'exporting' && 'Läuft…'}
       {status === 'pending' && 'Wartend'}
     </span>
   </div>
@@ -325,7 +325,7 @@ const BulkExportDialog = ({
             {isExporting 
               ? progress?.completed
                 ? `${progress?.results?.length || 0} von ${progress?.total || 0} erfolgreich exportiert${progress?.errors?.length > 0 ? `, ${progress.errors.length} fehlgeschlagen` : ''}`
-                : `Exportiere ${progress?.current || 0}/${progress?.total || docsToExport.length} Dokumente...`
+                : `Exportiere ${progress?.current || 0}/${progress?.total || docsToExport.length} Dokumente…`
               : `${selectedCount} Dokument${selectedCount !== 1 ? 'e' : ''} ausgewählt`}
           </AlertDialogDescription>
         </AlertDialogHeader>
