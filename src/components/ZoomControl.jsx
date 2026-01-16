@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, Minus } from '@phosphor-icons/react';
 import { Button } from './ui/button';
@@ -7,8 +7,8 @@ import { useZoom } from '../contexts/ZoomContext';
 const ZoomControl = () => {
   const { zoom, setZoom } = useZoom();
 
-  // Zoom-Stufen
-  const zoomLevels = [50, 75, 90, 100, 110, 125, 150, 175, 200];
+  // Zoom-Stufen (memoized to prevent dependency changes)
+  const zoomLevels = useMemo(() => [50, 75, 90, 100, 110, 125, 150, 175, 200], []);
 
   const handleZoomIn = useCallback(() => {
     const currentIndex = zoomLevels.indexOf(zoom);

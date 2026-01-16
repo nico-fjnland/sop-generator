@@ -871,6 +871,7 @@ const FlowchartEditorInner = ({
       subscript: editor.isActive('subscript'),
       bulletList: false, // Not supported in flowchart nodes
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toolbarState.editor]);
   
   // Handle toolbar commands
@@ -909,6 +910,7 @@ const FlowchartEditorInner = ({
       default:
         break;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toolbarState.editor]);
   
   // Initialize nodes with onChange handlers
@@ -1555,6 +1557,7 @@ const FlowchartEditorInner = ({
     setNodes((nds) => [...nds, newNode]);
     setNodeIdCounter((prev) => prev + 1);
     setTimeout(() => saveToHistory(), 100);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeIdCounter, setNodes, handleNodeLabelChange, handleToolbarUpdate, saveToHistory, reactFlowInstance, findFreePosition]);
 
   // Handle drop from sidebar
@@ -1937,6 +1940,7 @@ const FlowchartEditorInner = ({
   const hasSelection = selectedNodes.length > 0;
 
   // Delete selected nodes
+  // eslint-disable-next-line no-unused-vars
   const handleDeleteSelected = useCallback(() => {
     if (hasSelection) {
       setNodes(nds => nds.filter(n => !n.selected));

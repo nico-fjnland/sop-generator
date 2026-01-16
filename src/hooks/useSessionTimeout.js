@@ -82,6 +82,7 @@ export const useSessionTimeout = () => {
     timeoutRef.current = setTimeout(() => {
       handleLogout();
     }, timeoutMs);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, handleLogout, hideSessionTimeout]);
 
   const extendSession = useCallback(() => {

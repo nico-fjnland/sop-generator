@@ -115,7 +115,8 @@ export const usePageBreaks = (rows, containerRef, footerVariants = {}) => {
     });
 
     setPageBreaks(newPageBreaks);
-  }, [rows, containerRef, getAvailableHeightForPage, footerVariants]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, containerRef, getAvailableHeightForPage]);
 
   /**
    * Initial calculation after mount

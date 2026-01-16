@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect, memo, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Block from './Block';
@@ -31,8 +31,8 @@ import { logger } from '../utils/logger';
 
 const Editor = () => {
   const { user, signOut, organizationId, organization, profile } = useAuth();
-  const { timeOfDay, toggleTime } = useTheme();
-  const { showSuccess, showError, showSaving, showExporting, showSynced, showConfirm } = useStatus();
+  const { } = useTheme(); // Theme context available for future use
+  const { showSuccess, showError, showSaving, showExporting, showConfirm } = useStatus();
   const navigate = useNavigate();
   const containerRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -49,7 +49,7 @@ const Editor = () => {
   // Use Unified History Hook
   // Skip localStorage for DB documents to prevent state mixing
   // Pass documentId to enable draft saving for cloud documents
-  const { state, undo, redo, canUndo, canRedo, setEditorState, reset, isSaving } = useEditorHistory({
+  const { state, undo, redo, canUndo, canRedo, setEditorState, reset } = useEditorHistory({
     skipLocalStorage: !!documentId,
     documentId: documentId
   });
@@ -67,11 +67,12 @@ const Editor = () => {
       setProfileData({ firstName: '', lastName: '' });
       setDocumentsCount(0);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, organizationId]);
 
   async function getProfile() {
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('avatar_url, first_name, last_name')
         .eq('id', user.id)
@@ -92,7 +93,7 @@ const Editor = () => {
   async function loadDocumentsCount() {
     try {
       if (!organizationId) return;
-      const { data, error } = await getDocuments(organizationId);
+      const { data } = await getDocuments(organizationId);
       if (data) {
         const count = data.length;
         setDocumentsCount(count);
@@ -103,12 +104,14 @@ const Editor = () => {
     }
   }
 
+  // eslint-disable-next-line no-unused-vars
   const handleAccountClick = () => {
     if (!user) {
       navigate('/login');
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleSignOut = async () => {
     try {
       // Lokale Daten löschen
@@ -218,6 +221,7 @@ const Editor = () => {
       };
       loadDoc();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentId, user, setEditorState]);
 
   // Save to Cloud (includes HTML caching for bulk export)

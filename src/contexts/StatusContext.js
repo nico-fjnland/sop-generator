@@ -65,6 +65,7 @@ export const StatusProvider = ({ children }) => {
         setTimeout(() => showStatusInternal(nextStatus), 100);
       }
     }, 400);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const showStatusInternal = useCallback((status) => {

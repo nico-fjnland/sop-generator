@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { cn } from '../../lib/utils';
 import { 
-  UserCircle, 
   MagnifyingGlass, 
   CaretUpDown,
   Check,
@@ -156,7 +155,6 @@ export function PositionCombobox({
   };
 
   const displayValue = searchTerm || value;
-  const selectedPosition = MEDICAL_POSITIONS.find(p => p.label === value);
 
   return (
     <div ref={containerRef} className={cn('relative', className)}>

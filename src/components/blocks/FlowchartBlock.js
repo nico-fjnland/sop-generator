@@ -33,7 +33,7 @@ const FlowchartBlock = ({ content, onChange, boxLabel = 'Diag. Algorithmus' }) =
         setAccentColor(computedColor);
       }
     }
-  });
+  }, []);
 
   // Track last width to only react to actual width changes
   const lastWidthRef = useRef(0);

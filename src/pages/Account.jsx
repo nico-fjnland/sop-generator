@@ -10,7 +10,6 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Checkbox } from '../components/ui/checkbox';
-import { Spinner } from '../components/ui/spinner';
 import EmptyState from '../components/EmptyState';
 import DocumentCard, { MEDICAL_CATEGORIES } from '../components/DocumentCard';
 import DocumentCardSkeleton from '../components/DocumentCardSkeleton';
@@ -24,7 +23,6 @@ import {
   Layout,
   ArrowLeft,
   Export,
-  CloudArrowUp,
   Globe,
   ChatCircleDots,
   Trash,

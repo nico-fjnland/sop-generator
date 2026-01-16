@@ -194,7 +194,7 @@ const ContentBoxBlock = ({
   };
 
   const initialContent = getInitializedContent(content);
-  const [contentData, setContentData] = useState(initialContent);
+  const [, setContentData] = useState(initialContent);
   const [selectedCategory, setSelectedCategory] = useState(
     initialContent.category || 'definition'
   );

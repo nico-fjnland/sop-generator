@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { Trash } from '@phosphor-icons/react';
 
 const SOPHeader = ({ title: initialTitle = 'SOP Überschrift', stand: initialStand = 'STAND 12/22', logo: initialLogo = null, onTitleChange, onStandChange, onLogoChange }) => {
-  const { user, organization, organizationId } = useAuth();
+  const { organization, organizationId } = useAuth();
   const [title, setTitle] = useState(initialTitle);
   const [stand, setStand] = useState(initialStand);
   const [isEditingTitle, setIsEditingTitle] = useState(false);

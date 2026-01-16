@@ -28,7 +28,7 @@ const ImageBlock = ({ content, onChange }) => {
         <div className="relative">
           <img
             src={imageUrl}
-            alt="SOP Image"
+            alt="SOP Illustration"
             className="max-w-full h-auto rounded border border-sop-border"
           />
           <button

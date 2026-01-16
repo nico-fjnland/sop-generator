@@ -9,7 +9,7 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
-import { NotePencil, X, Plus, Check, Table as TableIcon, SortAscending, Infinity, ArrowCounterClockwise } from '@phosphor-icons/react';
+import { NotePencil, X, Plus, Table as TableIcon, SortAscending, Infinity, ArrowCounterClockwise } from '@phosphor-icons/react';
 import { Switch } from '../ui/switch';
 import { CategoryIconComponents } from '../icons/CategoryIcons';
 import InlineTextToolbar from '../InlineTextToolbar';

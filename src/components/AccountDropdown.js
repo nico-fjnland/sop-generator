@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { logger } from '../utils/logger';
 import { 
@@ -30,7 +29,6 @@ const AccountDropdown = ({
   dropdownPosition = 'right', // 'right' oder 'bottom'
   size = 'default' // 'default' (h-8) oder 'lg' (h-10)
 }) => {
-  const navigate = useNavigate();
   const { timeOfDay, toggleTime } = useTheme();
 
   // Navigation handler that works reliably with Radix UI Portals

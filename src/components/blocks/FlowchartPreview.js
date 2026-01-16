@@ -429,7 +429,7 @@ const FlowchartPreviewInner = ({ nodes, edges, containerWidth, onHeightChange, o
 
   // Calculate zoom and height based on MEASURED flowchart bounds and container width
   // Uses measured nodes from ReactFlow store for accurate dimensions
-  const { zoom: calculatedZoom, height: calculatedHeight, bounds } = useMemo(() => {
+  const { height: calculatedHeight } = useMemo(() => {
     // Use measured nodes if available, otherwise fall back to display nodes
     const nodesForCalculation = measuredNodes.length > 0 ? measuredNodes : displayNodes;
     return calculateZoomAndHeight(nodesForCalculation, containerWidth || 500);

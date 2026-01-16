@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ArrowsClockwise } from '@phosphor-icons/react';
 import { FOOTER } from '../constants/layout';
 import { useAuth } from '../contexts/AuthContext';

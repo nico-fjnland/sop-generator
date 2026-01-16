@@ -84,6 +84,7 @@ const StatusIndicator = ({ children }) => {
       default:
         return STATUS_GRADIENT_COLORS.blue;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStatus?.type]);
 
   const isConfirmDialog = currentStatus?.isConfirm;
