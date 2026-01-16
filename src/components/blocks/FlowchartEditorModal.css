@@ -544,8 +544,10 @@
   border: 1px solid var(--minimap-accent, #47D1C6) !important;
   border-radius: 4px !important;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
-  padding: 0 !important;
+  padding: 3px !important; /* Consistent padding inside border */
+  padding-left: 0 !important; /* No left padding (icon overlaps) */
   margin: 0 !important;
+  box-sizing: content-box !important;
 }
 
 /* MiniMap SVG - aspect ratio matching modal canvas (~1.5:1) */
@@ -555,8 +557,7 @@
   display: block !important;
   background: white !important;
   border-radius: 3px !important;
-  margin: 3px !important;
-  margin-left: 0 !important;
+  margin: 0 !important; /* Remove margin, use padding on parent instead */
 }
 
 /* Viewport mask styling - hidden */

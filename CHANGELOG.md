@@ -7,6 +7,28 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.19] - 2026-01-16
+
+### 🐛 Bugfixes
+
+- **Flowchart: Abgeschnittene Ränder am unteren und rechten Rand behoben:**
+  - Bei manchen Bildschirmkonfigurationen (z.B. Windows mit bestimmten Auflösungen) erschienen die Ränder der Algorithmus-Box am unteren und rechten Rand dünner oder abgeschnitten
+  - Ursache: Der Flowchart-Container füllte den gesamten Platz aus und überlagerte die ContentBox-Border
+  - Fix in `FlowchartBlock.css`:
+    - `width: calc(100% - 2px)` verhindert Überlappung am rechten Rand
+    - `margin-bottom: 2px` verhindert Überlappung am unteren Rand
+    - `box-sizing: border-box` für konsistente Größenberechnung
+
+- **Flowchart-Editor: Abgeschnittene Minimap-Ränder behoben:**
+  - Die Minimap im Flowchart-Editor hatte ebenfalls ungleichmäßige Ränder
+  - Ursache: Asymmetrische Margin-Einstellungen auf der SVG (`margin: 3px` aber `margin-left: 0`)
+  - Fix in `FlowchartEditorModal.css`:
+    - Margin von SVG auf Padding am Parent-Container verschoben
+    - Konsistentes Spacing: `padding: 3px` (außer links wegen Icon-Überlappung)
+    - `box-sizing: content-box` für korrekte Minimap-Größe
+
+---
+
 ## [0.9.18] - 2026-01-16
 
 ### ✨ Features

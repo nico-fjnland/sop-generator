@@ -1,13 +1,15 @@
 /* Flowchart Block Container - used inside Algorithmus box without padding */
 .flowchart-block-container {
-  width: 100%;
+  width: calc(100% - 2px); /* Prevent border overlap on right edge */
   min-height: 200px; /* Minimum height for empty/small flowcharts */
   margin: 0;
+  margin-bottom: 2px; /* Prevent border overlap on bottom edge */
   border: none;
   border-radius: 4px 4px 0 0; /* Rounded corners at top to match box */
   overflow: hidden; /* Keep content within bounds */
   position: relative;
   background: white;
+  box-sizing: border-box;
 }
 
 .flowchart-wrapper {
@@ -429,6 +431,7 @@
   overflow: hidden; /* Keep content within bounds */
   position: relative;
   background: white;
+  box-sizing: border-box;
 }
 
 .flowchart-preview-wrapper {
