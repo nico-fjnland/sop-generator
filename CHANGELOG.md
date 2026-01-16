@@ -7,6 +7,18 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.20] - 2026-01-16
+
+### 🎨 UI/UX
+
+- **Flowchart-Editor: Mauszeiger-Verhalten verbessert:**
+  - Hover auf Nodes: Standard-Pfeil (default)
+  - Hover auf Connectoren/Handles: Crosshair-Cursor für Verbindungen
+  - Beim Verschieben (Maus gedrückt): Move-Cursor (Kreuz mit Pfeilen)
+  - Text-Cursor bleibt beim Bearbeiten von Nodes im Edit-Modus erhalten
+
+---
+
 ## [0.9.19] - 2026-01-16
 
 ### 🐛 Bugfixes

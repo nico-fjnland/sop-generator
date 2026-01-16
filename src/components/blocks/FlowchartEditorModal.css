@@ -318,6 +318,36 @@
   cursor: default !important;
 }
 
+/* Node cursor in select mode - default arrow on hover */
+.flowchart-editor-canvas .react-flow.select-mode .flowchart-node,
+.flowchart-editor-canvas .react-flow.select-mode .react-flow__node,
+.flowchart-editor-canvas .react-flow.select-mode .react-flow__node.selectable,
+.flowchart-editor-canvas .react-flow.select-mode .react-flow__node.draggable {
+  cursor: default !important;
+}
+
+/* Handle/connector cursor - crosshair when hovering over connection points */
+.flowchart-editor-canvas .react-flow.select-mode .flowchart-custom-handle.react-flow__handle {
+  cursor: crosshair !important;
+}
+
+/* Override ReactFlow's internal grab/grabbing cursors completely */
+.flowchart-editor-canvas .react-flow.select-mode .react-flow__node.draggable:not(.dragging),
+.flowchart-editor-canvas .react-flow.select-mode .react-flow__node.draggable:not(.dragging) .flowchart-node {
+  cursor: default !important;
+}
+
+/* When node is being dragged, show move cursor */
+/* This must override ReactFlow's grabbing cursor */
+.flowchart-editor-canvas .react-flow.select-mode .react-flow__node.dragging,
+.flowchart-editor-canvas .react-flow.select-mode .react-flow__node.dragging *,
+.flowchart-editor-canvas .react-flow.select-mode .react-flow__node.dragging .flowchart-node,
+.flowchart-editor-canvas .react-flow.select-mode .react-flow__node.dragging .flowchart-node-content,
+.flowchart-editor-canvas .react-flow.select-mode .react-flow__node.draggable.dragging,
+.flowchart-editor-canvas .react-flow.select-mode .react-flow__node.draggable.dragging * {
+  cursor: move !important;
+}
+
 /* Pan mode cursor for canvas */
 .flowchart-editor-canvas .react-flow.pan-mode,
 .flowchart-editor-canvas .react-flow.pan-mode .react-flow__pane,
@@ -805,8 +835,10 @@
 }
 
 /* Cursor change to indicate editable text when in edit mode */
-.flowchart-node.editing .flowchart-node-content {
-  cursor: text;
+.flowchart-node.editing .flowchart-node-content,
+.flowchart-editor-canvas .react-flow.select-mode .flowchart-node.editing,
+.flowchart-editor-canvas .react-flow.select-mode .flowchart-node.editing .flowchart-node-content {
+  cursor: text !important;
 }
 
 /* Subtle background highlight for the editor area when editing */
