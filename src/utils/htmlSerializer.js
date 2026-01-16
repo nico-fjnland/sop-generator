@@ -12,7 +12,7 @@
  * um sicherzustellen, dass Editor und Export immer synchron sind.
  */
 
-import { generateExportCSS, EDITOR_STYLES } from '../styles/editorStyles';
+import { generateExportCSS } from '../styles/editorStyles';
 
 // Import font files - Webpack resolves these to hashed URLs in production
 // e.g. /static/media/Inter.abc123.woff2

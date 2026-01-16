@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -38,7 +38,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showTimeoutMessage, setShowTimeoutMessage] = useState(false);
   const { signIn } = useAuth();
-  const navigate = useNavigate();
+  // Navigation handled by App.js after successful login
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Check for timeout reason in URL

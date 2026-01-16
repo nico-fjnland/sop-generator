@@ -26,7 +26,6 @@ import {
   Export,
   CloudArrowUp,
   Globe,
-  SignOut,
   ChatCircleDots,
   Trash,
   Warning,
@@ -64,17 +63,8 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '../components/ui/select';
 import { useKlinikAtlas } from '../hooks/useKlinikAtlas';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1029,7 +1019,7 @@ const ProfileView = React.memo(({
 
 export default function Account() {
   const { user, signOut, organization, organizationId, refreshOrganization, loading: authLoading, profile } = useAuth();
-  const { showSuccess, showError, showWarning, showSaving, showConfirm: showConfirmDialog } = useStatus();
+  const { showSuccess, showError, showWarning, showConfirm: showConfirmDialog } = useStatus();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const fileInputRef = useRef(null);
@@ -1153,7 +1143,7 @@ export default function Account() {
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [updatingEmail, setUpdatingEmail] = useState(false);
+  const [, setUpdatingEmail] = useState(false);
   const [updatingPassword, setUpdatingPassword] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -1460,6 +1450,7 @@ export default function Account() {
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const updateEmail = async (e) => {
     e.preventDefault();
     if (!newEmail || newEmail === user.email) {
@@ -1677,6 +1668,7 @@ export default function Account() {
     fileInputRef.current?.click();
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -1842,7 +1834,7 @@ export default function Account() {
         }
       } else {
         // PDF/Word export uses the new bulk export service with cached HTML
-        const { results, errors, total: exportTotal } = await bulkExportFromCache(
+        const { results, errors } = await bulkExportFromCache(
           docsToExport,
           format,
           (current, exportTotal, status, currentDoc) => {
