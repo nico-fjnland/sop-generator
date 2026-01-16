@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ArrowsClockwise } from '@phosphor-icons/react';
 import { FOOTER } from '../constants/layout';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -43,10 +44,25 @@ const SealCheckIcon = () => (
   </svg>
 );
 
+// Signature Fields Configuration
+const SIGNATURE_FIELDS = [
+  { id: 'created', label: 'Erstellt:' },
+  { id: 'modified', label: 'Modifiziert/Geprüft:' },
+  { id: 'approved', label: 'Freigegeben:' },
+  { id: 'validFrom', label: 'Gültig ab:' },
+];
+
 // Signature Fields Component
-const SignatureFields = () => {
-  const fields = ['Erstellt:', 'Modifiziert/Geprüft:', 'Freigegeben:', 'Gültig ab:'];
-  
+const SignatureFields = ({ values = {}, onChange }) => {
+  const handleChange = (fieldId, value) => {
+    if (onChange) {
+      onChange({
+        ...values,
+        [fieldId]: value
+      });
+    }
+  };
+
   return (
     <div style={{
       display: 'grid',
@@ -54,11 +70,11 @@ const SignatureFields = () => {
       gap: '16px',
       width: '100%'
     }}>
-      {fields.map((label) => (
-        <div key={label} style={{
+      {SIGNATURE_FIELDS.map((field) => (
+        <div key={field.id} style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: '24px'
+          gap: '4px'
         }}>
           <span style={{
             fontFamily: "'Inter', sans-serif",
@@ -67,13 +83,59 @@ const SignatureFields = () => {
             color: '#003366',
             whiteSpace: 'nowrap'
           }}>
-            {label}
+            {field.label}
           </span>
           <div style={{
-            borderBottom: '1px solid #003366',
+            position: 'relative',
             width: '100%',
-            minHeight: '1px'
-          }} />
+            height: '36px', // Fixed height: 16px top space + 20px input area
+            marginTop: '0'
+          }}>
+            {/* Editable input field */}
+            <input
+              type="text"
+              value={values[field.id] || ''}
+              onChange={(e) => handleChange(field.id, e.target.value)}
+              placeholder=""
+              className="signature-field-input"
+              style={{
+                position: 'absolute',
+                bottom: '1px',
+                left: '0',
+                width: '100%',
+                height: '19px',
+                border: '0',
+                borderStyle: 'none',
+                borderWidth: '0',
+                borderBottom: 'none',
+                background: 'transparent',
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '10px',
+                lineHeight: '19px',
+                color: '#003366',
+                padding: '0',
+                margin: '0',
+                outline: 'none',
+                boxShadow: 'none',
+                boxSizing: 'border-box',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                appearance: 'none',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+            />
+            {/* Fixed underline - always visible */}
+            <div style={{
+              position: 'absolute',
+              bottom: '0',
+              left: '0',
+              right: '0',
+              height: '1px',
+              backgroundColor: '#003366'
+            }} />
+          </div>
         </div>
       ))}
     </div>
@@ -169,21 +231,32 @@ const HospitalLicenseBadge = () => (
 );
 
 
-const SOPFooter = ({ variant: initialVariant = 'tiny', onVariantChange }) => {
-  const [variant, setVariant] = useState(initialVariant);
+const SOPFooter = ({ 
+  variant = 'tiny',  // Controlled: variant comes from parent
+  pageNumber = 1,    // Which page this footer is on
+  onVariantChange,   // Callback: (pageNumber, newVariant) => void
+  signatureData = {},  // Controlled: signature data comes from parent
+  onSignatureChange    // Callback: (newData) => void
+}) => {
   const { organization } = useAuth();
   
   // Get license model from organization (default to creative_commons for backwards compatibility)
   const licenseModel = organization?.license_model || 'creative_commons';
   const isHospitalLicense = licenseModel === 'hospital_license';
 
-  const handleFooterClick = () => {
+  const handleCycleVariant = (e) => {
+    e.stopPropagation();
     const currentIndex = FOOTER_VARIANTS.findIndex(v => v.id === variant);
     const nextIndex = (currentIndex + 1) % FOOTER_VARIANTS.length;
     const nextVariant = FOOTER_VARIANTS[nextIndex].id;
-    setVariant(nextVariant);
     if (onVariantChange) {
-      onVariantChange(nextVariant);
+      onVariantChange(pageNumber, nextVariant);
+    }
+  };
+
+  const handleSignatureChange = (newData) => {
+    if (onSignatureChange) {
+      onSignatureChange(newData);
     }
   };
 
@@ -270,7 +343,10 @@ const SOPFooter = ({ variant: initialVariant = 'tiny', onVariantChange }) => {
         {/* Signature Fields */}
         {hasSignature && (
           <div style={{ paddingTop: '8px', paddingBottom: '12px', width: '100%' }}>
-            <SignatureFields />
+            <SignatureFields 
+              values={signatureData} 
+              onChange={handleSignatureChange} 
+            />
           </div>
         )}
       </div>
@@ -279,8 +355,7 @@ const SOPFooter = ({ variant: initialVariant = 'tiny', onVariantChange }) => {
 
   return (
     <div 
-      className="sop-footer" 
-      onClick={handleFooterClick}
+      className="sop-footer group relative" 
       style={{
         position: 'absolute',
         bottom: 0,
@@ -293,6 +368,19 @@ const SOPFooter = ({ variant: initialVariant = 'tiny', onVariantChange }) => {
         paddingBottom: `${FOOTER.PADDING.BOTTOM}px`
       }}
     >
+      {/* Hover control button - appears on the right side when hovering */}
+      <div className="sop-footer-controls no-print">
+        <button
+          type="button"
+          className="sop-footer-control-button"
+          onClick={handleCycleVariant}
+          aria-label="Footer-Variante wechseln"
+          title="Footer-Variante wechseln"
+        >
+          <ArrowsClockwise className="h-4 w-4 text-white" weight="regular" />
+        </button>
+      </div>
+
       {/* Footer Content */}
       <div style={{
         display: 'flex',

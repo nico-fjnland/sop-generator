@@ -70,6 +70,7 @@
   min-width: auto;
   min-height: 24px; /* 4er-Vielfaches für Grid-Raster */
   width: auto;
+  max-width: 300px; /* Prevent nodes from becoming too wide */
   display: inline-block;
   box-sizing: border-box;
   line-height: 1.45; /* ~16px bei 11px font → 4+16+4=24px */
@@ -456,6 +457,9 @@
   line-height: 1.45; /* Angepasst für 4er-Grid-Raster */
   white-space: pre-wrap;
   word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 /* Apply node colors to static text */
@@ -559,6 +563,9 @@
 .flowchart-node-html-content p {
   margin: 0;
   padding: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .flowchart-node-html-content strong {

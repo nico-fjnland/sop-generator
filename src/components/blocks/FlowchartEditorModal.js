@@ -526,17 +526,19 @@ const FlowchartNodeEditor = ({
 // ============================================
 
 const NodeHandles = ({ selected }) => {
-  const handleStyle = { visibility: selected ? 'visible' : 'hidden' };
-  // Source handles are always invisible - they're only needed for connection functionality
-  // Target handles are the visible dots that users interact with
-  const sourceHandleStyle = { visibility: 'hidden', opacity: 0, pointerEvents: 'none' };
+  // Target handles: visible when selected, hidden otherwise
+  const targetHandleStyle = { visibility: selected ? 'visible' : 'hidden' };
+  // Source handles: always visually hidden but MUST remain interactable for connections
+  // Using opacity: 0 keeps them interactable while invisible
+  // CRITICAL: Do NOT set pointerEvents: 'none' - this breaks connection dragging!
+  const sourceHandleStyle = { opacity: 0 };
   
   return (
     <>
-      <Handle type="target" position={Position.Top} id="top" style={handleStyle} className="flowchart-custom-handle" />
-      <Handle type="target" position={Position.Bottom} id="bottom" style={handleStyle} className="flowchart-custom-handle" />
-      <Handle type="target" position={Position.Left} id="left" style={handleStyle} className="flowchart-custom-handle" />
-      <Handle type="target" position={Position.Right} id="right" style={handleStyle} className="flowchart-custom-handle" />
+      <Handle type="target" position={Position.Top} id="top" style={targetHandleStyle} className="flowchart-custom-handle" />
+      <Handle type="target" position={Position.Bottom} id="bottom" style={targetHandleStyle} className="flowchart-custom-handle" />
+      <Handle type="target" position={Position.Left} id="left" style={targetHandleStyle} className="flowchart-custom-handle" />
+      <Handle type="target" position={Position.Right} id="right" style={targetHandleStyle} className="flowchart-custom-handle" />
       <Handle type="source" position={Position.Top} id="top-source" style={sourceHandleStyle} className="flowchart-custom-handle" />
       <Handle type="source" position={Position.Bottom} id="bottom-source" style={sourceHandleStyle} className="flowchart-custom-handle" />
       <Handle type="source" position={Position.Left} id="left-source" style={sourceHandleStyle} className="flowchart-custom-handle" />

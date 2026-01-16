@@ -249,6 +249,34 @@ const replaceInputsWithValues = (clone) => {
   // Replace text inputs with spans showing their value
   const textInputs = clone.querySelectorAll('input[type="text"], input:not([type])');
   textInputs.forEach(input => {
+    // Special handling for signature fields: Use block-level div to maintain full width
+    if (input.classList.contains('signature-field-input')) {
+      const div = document.createElement('div');
+      div.textContent = input.value || '';
+      div.className = 'signature-field-replacement';
+      // Apply inline styles - NO border since there's a separate underline div
+      div.style.display = 'block';
+      div.style.width = '100%';
+      div.style.border = 'none';
+      div.style.background = 'transparent';
+      div.style.fontFamily = "'Inter', sans-serif";
+      div.style.fontSize = '10px';
+      div.style.lineHeight = '19px';
+      div.style.color = '#003366';
+      div.style.padding = '0';
+      div.style.margin = '0';
+      div.style.boxSizing = 'border-box';
+      div.style.height = '19px';
+      div.style.position = 'absolute';
+      div.style.bottom = '1px';
+      div.style.left = '0';
+      if (input.parentNode) {
+        input.parentNode.replaceChild(div, input);
+      }
+      return; // Skip normal processing for this input
+    }
+    
+    // Default handling: Replace with span
     const span = document.createElement('span');
     span.textContent = input.value || '';
     // Copy relevant styles
@@ -386,6 +414,92 @@ const ensureHeightEqualization = (clone) => {
 };
 
 /**
+ * Fixes footer positioning and sizing for export
+ * The footer has inline styles that need to be overridden directly
+ * All footer variants must have the same width constraints
+ * @param {HTMLElement} clone - The cloned element to process
+ */
+const fixFooterForExport = (clone) => {
+  const footer = clone.querySelector('.sop-footer');
+  if (!footer) return;
+  
+  // Fix footer positioning - align with content boxes
+  // Content boxes have: page-content padding (32px) + icon offset (16px) on left
+  // and margin-right (14px) on right
+  // Footer should match: left: 48px, right: 46px from page edge
+  footer.style.left = '48px';
+  footer.style.right = '46px';
+  footer.style.width = 'auto'; // Remove width: 100%
+  footer.style.maxWidth = 'calc(100% - 94px)'; // CRITICAL: 48px + 46px = 94px margin
+  footer.style.paddingLeft = '0';
+  footer.style.paddingRight = '0';
+  footer.style.boxSizing = 'border-box';
+  footer.style.overflow = 'hidden'; // CRITICAL: Prevent any overflow
+  
+  // Fix ALL nested containers - CRITICAL for all footer variants
+  const allContainers = footer.querySelectorAll('div');
+  allContainers.forEach(container => {
+    container.style.maxWidth = '100%';
+    container.style.boxSizing = 'border-box';
+    container.style.overflow = 'hidden'; // Prevent overflow in all containers
+  });
+  
+  // Fix paragraph elements (disclaimer text in "small" variant)
+  const paragraphs = footer.querySelectorAll('p');
+  paragraphs.forEach(p => {
+    p.style.maxWidth = '100%';
+    p.style.boxSizing = 'border-box';
+    p.style.overflow = 'hidden';
+    p.style.wordWrap = 'break-word';
+    p.style.overflowWrap = 'break-word';
+  });
+  
+  // Fix span elements (labels, text)
+  const spans = footer.querySelectorAll('span');
+  spans.forEach(span => {
+    span.style.maxWidth = '100%';
+    span.style.overflow = 'hidden';
+  });
+  
+  // Fix signature grid - ensure children can shrink
+  const signatureGrid = footer.querySelector('div[style*="grid-template-columns"]');
+  if (signatureGrid) {
+    signatureGrid.style.display = 'grid';
+    signatureGrid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+    signatureGrid.style.width = '100%';
+    signatureGrid.style.maxWidth = '100%';
+    signatureGrid.style.boxSizing = 'border-box';
+    signatureGrid.style.overflow = 'hidden';
+    
+    // Fix grid children - CRITICAL: min-width: 0 allows grid children to shrink
+    const gridChildren = signatureGrid.children;
+    for (let i = 0; i < gridChildren.length; i++) {
+      const child = gridChildren[i];
+      child.style.minWidth = '0';
+      child.style.maxWidth = '100%';
+      child.style.overflow = 'hidden';
+    }
+  }
+  
+  // Fix signature field replacements - text should not overflow
+  const signatureFields = footer.querySelectorAll('.signature-field-replacement');
+  signatureFields.forEach(field => {
+    field.style.overflow = 'hidden';
+    field.style.textOverflow = 'ellipsis';
+    field.style.whiteSpace = 'nowrap';
+    field.style.maxWidth = '100%';
+  });
+  
+  // Fix placeholder footer box
+  const placeholderBox = footer.querySelector('.placeholder-footer-box');
+  if (placeholderBox) {
+    placeholderBox.style.maxWidth = '100%';
+    placeholderBox.style.boxSizing = 'border-box';
+    placeholderBox.style.overflow = 'hidden';
+  }
+};
+
+/**
  * Creates a print-ready clone of the container with all styles inline
  * @param {HTMLElement} containerRef - The editor container element
  * @returns {Promise<string>} Complete HTML document as string
@@ -428,8 +542,11 @@ export const serializeToHTML = async (containerRef) => {
   
   // 4. Ensure all two-column rows have height-equalized class
   ensureHeightEqualization(clone);
+  
+  // 5. Fix footer positioning and sizing for export
+  fixFooterForExport(clone);
 
-  // 5. Convert images to base64
+  // 6. Convert images to base64
   await convertImagesToBase64(clone);
 
   // Fetch font CSS
@@ -966,13 +1083,18 @@ export const serializeToHTML = async (containerRef) => {
       left: 48px !important;
       right: 46px !important;
       width: auto !important;
+      max-width: calc(100% - 94px) !important; /* CRITICAL: 48px + 46px */
       /* Reset any inline padding */
       padding-left: 0 !important;
       padding-right: 0 !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
     }
     
     .sop-footer * {
       font-family: inherit !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
     }
     
     /* Placeholder Footer - nur als Weißraum im Export */
@@ -984,6 +1106,76 @@ export const serializeToHTML = async (containerRef) => {
     .placeholder-footer-content,
     .placeholder-footer-text {
       visibility: hidden !important;
+    }
+    
+    /* Footer content containers - ensure width constraints */
+    .sop-footer > div {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+    }
+    
+    /* Footer boxes (small, signature variants) */
+    .sop-footer > div > div {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+    }
+    
+    /* All nested divs in footer */
+    .sop-footer div {
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+    }
+    
+    /* All text elements in footer */
+    .sop-footer p,
+    .sop-footer span {
+      max-width: 100% !important;
+      overflow: hidden !important;
+      word-wrap: break-word !important;
+      overflow-wrap: break-word !important;
+    }
+    
+    /* Signature Fields Grid - force proper grid layout with constraints */
+    .sop-footer div[style*="grid-template-columns"] {
+      display: grid !important;
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 16px !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    
+    /* Signature field columns */
+    .sop-footer div[style*="grid-template-columns"] > div {
+      min-width: 0 !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+    }
+    
+    /* Signature field replacement (after replaceInputsWithValues) */
+    /* Note: Underline is now a separate div element, not border on text */
+    .signature-field-replacement {
+      display: block !important;
+      width: 100% !important;
+      border: none !important;
+      background: transparent !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 10px !important;
+      line-height: 19px !important;
+      color: #003366 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      height: 19px !important;
+      position: absolute !important;
+      bottom: 1px !important;
+      left: 0 !important;
+      box-sizing: border-box !important;
+      min-height: 18px !important;
     }
     
     /* ============================================

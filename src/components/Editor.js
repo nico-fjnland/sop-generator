@@ -21,7 +21,7 @@ import { useStatus } from '../contexts/StatusContext';
 import { saveDocument, getDocument, getDocuments, saveDocumentHtml } from '../services/documentService';
 import { serializeToHTML } from '../utils/htmlSerializer';
 import AccountDropdown from './AccountDropdown';
-import { getInitialState } from '../hooks/useEditorHistory';
+import { getInitialState, loadDraft, clearDraft } from '../hooks/useEditorHistory';
 import { supabase } from '../lib/supabase';
 import { DragDropProvider } from '../contexts/DragDropContext';
 import SortableRow from './dnd/SortableRow';
@@ -48,10 +48,12 @@ const Editor = () => {
   
   // Use Unified History Hook
   // Skip localStorage for DB documents to prevent state mixing
+  // Pass documentId to enable draft saving for cloud documents
   const { state, undo, redo, canUndo, canRedo, setEditorState, reset, isSaving } = useEditorHistory({
-    skipLocalStorage: !!documentId
+    skipLocalStorage: !!documentId,
+    documentId: documentId
   });
-  const { rows, headerTitle, headerStand, headerLogo, footerVariant } = state;
+  const { rows, headerTitle, headerStand, headerLogo, footerVariants = {}, signatureData = {} } = state;
 
   // Load user profile data for Account Button
   useEffect(() => {
@@ -161,6 +163,7 @@ const Editor = () => {
   }, [isNewDoc, setEditorState, searchParams, setSearchParams]);
 
   // Load document if ID present
+  // Also check for local draft (unsaved changes from previous session)
   useEffect(() => {
     if (documentId && user) {
       const loadDoc = async () => {
@@ -169,14 +172,44 @@ const Editor = () => {
           if (error) throw error;
           if (data) {
             // Ensure content has correct structure
-            const content = data.content;
-            setEditorState({
-              rows: content.rows || [],
-              headerTitle: data.title || 'SOP Überschrift',
-              headerStand: data.version || 'STAND 12/22',
-              headerLogo: content.headerLogo || null,
-              footerVariant: content.footerVariant || 'tiny'
-            }, { history: 'replace' }); // Don't add initial load to history
+            const cloudContent = data.content;
+            const cloudUpdatedAt = new Date(data.updated_at).getTime();
+            
+            // Check if there's a local draft that's newer than the cloud version
+            const draft = loadDraft(documentId);
+            let useLocalDraft = false;
+            
+            if (draft && draft.savedAt > cloudUpdatedAt) {
+              // Local draft is newer - ask user which version to use
+              // For now, automatically use the newer draft (better UX for crash recovery)
+              useLocalDraft = true;
+              logger.info('Local draft found, using newer local version', { 
+                draftTime: new Date(draft.savedAt).toISOString(),
+                cloudTime: data.updated_at
+              });
+            }
+            
+            if (useLocalDraft && draft?.content) {
+              // Use local draft
+              setEditorState(draft.content, { history: 'replace' });
+            } else {
+              // Use cloud version
+              setEditorState({
+                rows: cloudContent.rows || [],
+                headerTitle: data.title || 'SOP Überschrift',
+                headerStand: data.version || 'STAND 12/22',
+                headerLogo: cloudContent.headerLogo || null,
+                // Support both legacy single footerVariant and new per-page footerVariants
+                footerVariants: cloudContent.footerVariants || (cloudContent.footerVariant ? { 1: cloudContent.footerVariant } : {}),
+                // Load signature data (per-page)
+                signatureData: cloudContent.signatureData || {}
+              }, { history: 'replace' }); // Don't add initial load to history
+              
+              // Clear any stale draft since we're using cloud version
+              if (draft && draft.savedAt <= cloudUpdatedAt) {
+                clearDraft(documentId);
+              }
+            }
           }
         } catch (error) {
           logger.error('Error loading document:', error);
@@ -206,7 +239,8 @@ const Editor = () => {
       const contentToSave = {
         rows: state.rows,
         headerLogo: state.headerLogo,
-        footerVariant: state.footerVariant
+        footerVariants: state.footerVariants || {},
+        signatureData: state.signatureData || {}
       };
 
       const { data, error } = await saveDocument(
@@ -222,6 +256,11 @@ const Editor = () => {
       
       // Get the document ID (either from existing documentId or newly created)
       const savedDocId = data?.id || documentId;
+      
+      // Clear local draft after successful cloud save
+      if (savedDocId) {
+        clearDraft(savedDocId);
+      }
       
       // Cache HTML for bulk export (non-blocking)
       // This enables PDF/Word export from "Meine Leitfäden" without opening each document
@@ -268,8 +307,26 @@ const Editor = () => {
     setEditorState(prev => ({ ...prev, headerLogo: logo }));
   }, [setEditorState]);
 
-  const setFooterVariant = useCallback((variant) => {
-    setEditorState(prev => ({ ...prev, footerVariant: variant }));
+  // Update footer variant for a specific page
+  const setFooterVariant = useCallback((pageNumber, variant) => {
+    setEditorState(prev => ({
+      ...prev,
+      footerVariants: {
+        ...(prev.footerVariants || {}),
+        [pageNumber]: variant
+      }
+    }));
+  }, [setEditorState]);
+
+  // Update signature data for a specific page
+  const setSignatureData = useCallback((pageNumber, data) => {
+    setEditorState(prev => ({
+      ...prev,
+      signatureData: {
+        ...(prev.signatureData || {}),
+        [pageNumber]: data
+      }
+    }));
   }, [setEditorState]);
 
   // Handle Export
@@ -358,8 +415,8 @@ const Editor = () => {
   const [resizingRowId, setResizingRowId] = useState(null);
   const resizingStateRef = useRef({ startX: 0, startRatio: 0.5, rowWidth: 0 });
 
-  // Use new page breaks hook with row-based measurements
-  const { pageBreaks, setRowRef } = usePageBreaks(rows, containerRef, footerVariant);
+  // Use new page breaks hook with per-page footer variants
+  const { pageBreaks, setRowRef } = usePageBreaks(rows, containerRef, footerVariants);
 
   const addBlock = useCallback((type, afterId = null, category = 'definition') => {
     const newBlock = type === 'contentbox' 
@@ -937,8 +994,11 @@ const Editor = () => {
               width: '100%',
             }}>
               <SOPFooter 
-                variant={footerVariant}
+                variant={footerVariants[pageIndex + 1] || 'tiny'}
+                pageNumber={pageIndex + 1}
                 onVariantChange={setFooterVariant}
+                signatureData={signatureData[pageIndex + 1] || {}}
+                onSignatureChange={(data) => setSignatureData(pageIndex + 1, data)}
               />
             </div>
           </Page>

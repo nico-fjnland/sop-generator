@@ -1,8 +1,24 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { PAGE, FOOTER, HEADER, PAGE_HEADER } from '../constants/layout';
 
-// Calculates page breaks based on row heights using IntersectionObserver
-export const usePageBreaks = (rows, containerRef, footerVariant = 'tiny') => {
+/**
+ * Get footer height for a specific page based on its variant
+ * Uses predefined heights from constants (no DOM measurement needed)
+ */
+const getFooterHeightForPage = (pageNumber, footerVariants) => {
+  const variant = footerVariants[pageNumber] || FOOTER.DEFAULT_VARIANT;
+  return FOOTER.HEIGHTS[variant] || FOOTER.HEIGHTS[FOOTER.DEFAULT_VARIANT];
+};
+
+/**
+ * Calculates page breaks based on row heights
+ * Supports per-page footer variants for accurate height calculations
+ * 
+ * @param {Array} rows - Array of row objects with id
+ * @param {React.RefObject} containerRef - Ref to the container element
+ * @param {Object} footerVariants - Object mapping page numbers to footer variants { 1: 'signature', 2: 'tiny', ... }
+ */
+export const usePageBreaks = (rows, containerRef, footerVariants = {}) => {
   const rowRefsMap = useRef(new Map());
   const [pageBreaks, setPageBreaks] = useState(new Set());
   const observerRef = useRef(null);
@@ -18,14 +34,31 @@ export const usePageBreaks = (rows, containerRef, footerVariant = 'tiny') => {
   }, []);
 
   /**
-   * Calculate available heights for pages
+   * Calculate available height for a specific page
    */
-  const getPageHeights = useCallback(() => {
-    if (!containerRef.current) {
-      return null;
+  const getAvailableHeightForPage = useCallback((pageNumber, headerHeight) => {
+    const totalPageHeight = PAGE.HEIGHT_PX;
+    const footerHeight = getFooterHeightForPage(pageNumber, footerVariants);
+    
+    if (pageNumber === 1) {
+      // First page: includes full header
+      return totalPageHeight - headerHeight - PAGE.TOP_PADDING - footerHeight;
+    } else {
+      // Subsequent pages: no main header, but have page header (title + page number)
+      return totalPageHeight - (PAGE.TOP_PADDING * 2) - PAGE_HEADER.HEIGHT - footerHeight;
+    }
+  }, [footerVariants]);
+
+  /**
+   * Calculate page breaks based on actual DOM measurements and per-page footer heights
+   */
+  const calculatePageBreaks = useCallback(() => {
+    if (!containerRef.current || rows.length === 0) {
+      setPageBreaks(new Set());
+      return;
     }
 
-    // Measure header height
+    // Measure header height (only exists on first page)
     let headerHeight = 0;
     const headerElement = containerRef.current.querySelector('.sop-header');
     if (headerElement) {
@@ -35,58 +68,10 @@ export const usePageBreaks = (rows, containerRef, footerVariant = 'tiny') => {
       headerHeight = HEADER.PADDING.TOP + HEADER.PADDING.BOTTOM + 60;
     }
 
-    // Measure footer height dynamically from DOM
-    let footerHeight = 0;
-    const footerElement = containerRef.current.querySelector('.sop-footer');
-    if (footerElement) {
-      footerHeight = footerElement.offsetHeight;
-    } else {
-      // Fallback: use padding only (footer content height will be 0 until DOM is ready)
-      // This is a conservative estimate that will be corrected on next calculation
-      footerHeight = FOOTER.PADDING.TOP + FOOTER.PADDING.BOTTOM;
-    }
-
-    const totalPageHeight = PAGE.HEIGHT_PX;
-    
-    // First page: includes header
-    // Footer height already includes its own padding, so no additional BOTTOM_PADDING needed
-    const firstPageAvailableHeight = 
-      totalPageHeight - headerHeight - PAGE.TOP_PADDING - footerHeight;
-    
-    // Subsequent pages: no main header, but have page header (title + page number)
-    // Also includes double top padding
-    const subsequentPageAvailableHeight = 
-      totalPageHeight - (PAGE.TOP_PADDING * 2) - PAGE_HEADER.HEIGHT - footerHeight;
-
-    return {
-      totalPageHeight,
-      firstPageAvailableHeight,
-      subsequentPageAvailableHeight,
-      headerHeight,
-      footerHeight
-    };
-  }, [containerRef, footerVariant]);
-
-  /**
-   * Calculate page breaks based on actual DOM measurements
-   * This runs less frequently than the old ResizeObserver approach
-   */
-  const calculatePageBreaks = useCallback(() => {
-    if (!containerRef.current || rows.length === 0) {
-      setPageBreaks(new Set());
-      return;
-    }
-
-    const pageHeights = getPageHeights();
-    if (!pageHeights) {
-      return;
-    }
-
-    const { firstPageAvailableHeight, subsequentPageAvailableHeight } = pageHeights;
     const newPageBreaks = new Set();
-    
+    let currentPageNumber = 1;
     let currentPageHeight = 0;
-    let availableHeight = firstPageAvailableHeight;
+    let availableHeight = getAvailableHeightForPage(1, headerHeight);
 
     // Iterate through rows and calculate where page breaks should occur
     rows.forEach((row, index) => {
@@ -109,14 +94,17 @@ export const usePageBreaks = (rows, containerRef, footerVariant = 'tiny') => {
         // Row doesn't fit - insert page break BEFORE this row
         newPageBreaks.add(row.id);
         
-        // Reset for new page
+        // Move to next page
+        currentPageNumber++;
         currentPageHeight = totalRowHeight;
-        availableHeight = subsequentPageAvailableHeight;
+        
+        // Get available height for the NEW page (with its specific footer variant)
+        availableHeight = getAvailableHeightForPage(currentPageNumber, headerHeight);
 
         // Warn if single row is larger than page height (no split allowed)
-        if (totalRowHeight > subsequentPageAvailableHeight) {
+        if (totalRowHeight > availableHeight) {
           console.warn(
-            `Row ${row.id} (height: ${totalRowHeight}px) exceeds available page height (${subsequentPageAvailableHeight}px). ` +
+            `Row ${row.id} (height: ${totalRowHeight}px) exceeds available page height (${availableHeight}px). ` +
             `Content will be moved to next page but may overflow.`
           );
         }
@@ -127,19 +115,16 @@ export const usePageBreaks = (rows, containerRef, footerVariant = 'tiny') => {
     });
 
     setPageBreaks(newPageBreaks);
-  }, [rows, containerRef, getPageHeights]);
+  }, [rows, containerRef, getAvailableHeightForPage, footerVariants]);
 
   /**
-   * Setup IntersectionObserver for intelligent recalculation
-   * Only recalculates when rows are added, removed, or significantly change
+   * Initial calculation after mount
    */
   useEffect(() => {
-    // Initial calculation after mount
     calculationTimeoutRef.current = setTimeout(() => {
       calculatePageBreaks();
     }, 100);
 
-    // Cleanup
     return () => {
       if (calculationTimeoutRef.current) {
         clearTimeout(calculationTimeoutRef.current);
@@ -148,12 +133,10 @@ export const usePageBreaks = (rows, containerRef, footerVariant = 'tiny') => {
   }, [calculatePageBreaks]);
 
   /**
-   * Recalculate on window resize (viewport changes)
-   * This is the only event-driven recalculation
+   * Recalculate on window resize
    */
   useEffect(() => {
     const handleResize = () => {
-      // Debounce resize events
       if (calculationTimeoutRef.current) {
         clearTimeout(calculationTimeoutRef.current);
       }
@@ -174,11 +157,8 @@ export const usePageBreaks = (rows, containerRef, footerVariant = 'tiny') => {
 
   /**
    * Recalculate when rows change (added/removed)
-   * This is intentionally triggered only on rows array changes,
-   * NOT on content changes within rows
    */
   useEffect(() => {
-    // Small delay to ensure DOM is ready
     calculationTimeoutRef.current = setTimeout(() => {
       calculatePageBreaks();
     }, 50);
@@ -188,32 +168,26 @@ export const usePageBreaks = (rows, containerRef, footerVariant = 'tiny') => {
         clearTimeout(calculationTimeoutRef.current);
       }
     };
-  }, [rows.length, calculatePageBreaks]); // Only re-run when row count changes
+  }, [rows.length, calculatePageBreaks]);
 
   /**
    * Setup IntersectionObserver for each row to detect significant changes
-   * This observes when rows cross into/out of view, which can indicate
-   * major layout changes that require recalculation
    */
   useEffect(() => {
     if (!containerRef.current || typeof IntersectionObserver === 'undefined') {
       return;
     }
 
-    // Cleanup previous observer
     if (observerRef.current) {
       observerRef.current.disconnect();
     }
 
-    // Create new observer with generous thresholds
     const observer = new IntersectionObserver(
       (entries) => {
-        // Check if any entry indicates a significant visibility change
         const hasSignificantChange = entries.some(
           entry => Math.abs(entry.intersectionRatio - (entry.isIntersecting ? 1 : 0)) > 0.1
         );
 
-        // Only recalculate if there's a significant change
         if (hasSignificantChange) {
           if (calculationTimeoutRef.current) {
             clearTimeout(calculationTimeoutRef.current);
@@ -225,14 +199,13 @@ export const usePageBreaks = (rows, containerRef, footerVariant = 'tiny') => {
       },
       {
         root: null,
-        rootMargin: '100px', // Generous margin to catch nearby changes
+        rootMargin: '100px',
         threshold: [0, 0.25, 0.5, 0.75, 1.0]
       }
     );
 
     observerRef.current = observer;
 
-    // Observe all rows
     rowRefsMap.current.forEach((element) => {
       if (element) {
         observer.observe(element);

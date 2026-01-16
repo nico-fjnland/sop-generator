@@ -326,6 +326,17 @@ const StaticNeutralNode = ({ data }) => {
   );
 };
 
+const StaticAktionNode = ({ data }) => {
+  return (
+    <div className="flowchart-node flowchart-node-aktion">
+      <StaticNodeHandles />
+      <div className="flowchart-node-content">
+        <StaticNodeText content={data.label} fallback="Aktion" />
+      </div>
+    </div>
+  );
+};
+
 const StaticHighNode = ({ data }) => {
   return (
     <div className="flowchart-node flowchart-node-high">
@@ -371,6 +382,7 @@ const StaticEqualNode = ({ data }) => {
 const nodeTypes = {
   start: StaticStartNode,
   phase: StaticPhaseNode,
+  aktion: StaticAktionNode,
   label: StaticLabelNode,
   comment: StaticCommentNode,
   positive: StaticPositiveNode,

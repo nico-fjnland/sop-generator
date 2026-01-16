@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { logger } from '../utils/logger';
 
 const STORAGE_KEY = 'sop-editor-state-v1';
+const DRAFT_KEY_PREFIX = 'sop-draft-'; // For cloud document drafts
 const HISTORY_LIMIT = 50;
 const DEBOUNCE_SAVE_DELAY = 1000;
 
@@ -26,17 +27,67 @@ export const getInitialState = () => ({
   headerTitle: 'SOP Überschrift',
   headerStand: 'STAND 12/22',
   headerLogo: null,
+  // Per-page footer variants: { pageNumber: variant }
+  // Pages without explicit variant use default ('tiny')
+  footerVariants: {},
+  // Per-page signature data: { pageNumber: { created: '', modified: '', approved: '', validFrom: '' } }
+  signatureData: {},
+  // Legacy support: single footerVariant (deprecated, for migration)
   footerVariant: 'tiny'
 });
 
 /**
+ * Get draft key for a specific document
+ * @param {string} documentId - The document ID
+ * @returns {string} The localStorage key for this document's draft
+ */
+export const getDraftKey = (documentId) => `${DRAFT_KEY_PREFIX}${documentId}`;
+
+/**
+ * Load draft for a cloud document (if exists and is newer)
+ * @param {string} documentId - The document ID
+ * @returns {object|null} The draft data or null if no valid draft exists
+ */
+export const loadDraft = (documentId) => {
+  if (!documentId) return null;
+  try {
+    const draftKey = getDraftKey(documentId);
+    const saved = localStorage.getItem(draftKey);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.content && parsed.savedAt) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    logger.error('Failed to load draft', e);
+  }
+  return null;
+};
+
+/**
+ * Clear draft for a cloud document (e.g., after successful cloud save)
+ * @param {string} documentId - The document ID
+ */
+export const clearDraft = (documentId) => {
+  if (!documentId) return;
+  try {
+    const draftKey = getDraftKey(documentId);
+    localStorage.removeItem(draftKey);
+  } catch (e) {
+    logger.error('Failed to clear draft', e);
+  }
+};
+
+/**
  * @param {Object} options - Hook options
  * @param {boolean} options.skipLocalStorage - If true, don't load from or save to localStorage (for DB documents)
+ * @param {string} options.documentId - The document ID (for cloud document draft saving)
  */
-export const useEditorHistory = ({ skipLocalStorage = false } = {}) => {
+export const useEditorHistory = ({ skipLocalStorage = false, documentId = null } = {}) => {
   // State to hold the history
   const [history, setHistory] = useState(() => {
-    // Skip localStorage for DB documents
+    // Skip localStorage for DB documents (initial state will be loaded from cloud)
     if (skipLocalStorage) {
       return {
         past: [],
@@ -76,13 +127,10 @@ export const useEditorHistory = ({ skipLocalStorage = false } = {}) => {
   const [isSaving, setIsSaving] = useState(false);
   const isFirstRender = useRef(true);
 
-  // Save to local storage whenever present state changes (only for non-DB documents)
+  // Save to local storage whenever present state changes
+  // For local documents: save to STORAGE_KEY
+  // For cloud documents: save to draft key (DRAFT_KEY_PREFIX + documentId)
   useEffect(() => {
-    // Skip localStorage saving for DB documents
-    if (skipLocalStorage) {
-      return;
-    }
-    
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
@@ -96,7 +144,18 @@ export const useEditorHistory = ({ skipLocalStorage = false } = {}) => {
 
     saveTimeoutRef.current = setTimeout(() => {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(history.present));
+        if (skipLocalStorage && documentId) {
+          // Cloud document: save as draft with timestamp
+          const draftKey = getDraftKey(documentId);
+          const draftData = {
+            content: history.present,
+            savedAt: Date.now(),
+          };
+          localStorage.setItem(draftKey, JSON.stringify(draftData));
+        } else if (!skipLocalStorage) {
+          // Local document: save normally
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(history.present));
+        }
         setIsSaving(false);
       } catch (e) {
         logger.error('Failed to save to local storage', e);
@@ -109,7 +168,7 @@ export const useEditorHistory = ({ skipLocalStorage = false } = {}) => {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [history.present, skipLocalStorage]);
+  }, [history.present, skipLocalStorage, documentId]);
 
   // Undo function
   const undo = useCallback(() => {

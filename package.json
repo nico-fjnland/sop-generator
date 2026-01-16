@@ -1,6 +1,6 @@
 {
   "name": "sop-editor",
-  "version": "0.9.17",
+  "version": "0.9.18",
   "private": true,
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

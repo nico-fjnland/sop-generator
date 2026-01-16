@@ -109,10 +109,10 @@ iframe[title*="Help Scout"] {
     padding-top: 8px !important;
   }
   
-  /* Footer clickable in screen mode only */
+  /* Footer cursor - no longer clickable (use control button instead) */
   @media screen {
     .sop-footer {
-      cursor: pointer !important;
+      cursor: default !important;
     }
   }
   
@@ -699,6 +699,7 @@ iframe[title*="Help Scout"] {
 /* Hide specific controls that definitely shouldn't be seen */
 .exporting-mode .notion-box-controls,
 .exporting-mode .notion-box-controls-left,
+.exporting-mode .sop-footer-controls,
 .exporting-mode .inline-text-toolbar,
 .exporting-mode .column-resizer {
   display: none !important;
@@ -828,6 +829,111 @@ body.export-ready .a4-page {
   /* Footer positioning in screen mode - fixed at bottom */
   .a4-page .sop-footer {
     width: 100%;
+  }
+
+  /* Footer control button - appears on hover */
+  /* Uses bottom position to stay fixed relative to page bottom, since footer is position: absolute; bottom: 0 */
+  .sop-footer-controls {
+    position: absolute;
+    right: -10px;
+    bottom: 40px; /* Fixed position from bottom - consistent across all footer variants */
+    top: auto; /* Override any inherited top value */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(0);
+    z-index: 50;
+    will-change: opacity, transform;
+    transition: opacity 0.2s ease 0.3s, transform 0.2s ease 0.3s, pointer-events 0s 0.5s;
+  }
+
+  /* Create invisible hover bridge using pseudo-element */
+  .sop-footer-controls::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    bottom: 0;
+    width: 50px;
+    height: 60px;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* Show controls on hover */
+  .sop-footer:hover .sop-footer-controls,
+  .sop-footer:focus-within .sop-footer-controls,
+  .sop-footer-controls:hover {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(10px);
+    transition: opacity 0.15s ease 0s, transform 0.15s ease 0s, pointer-events 0s 0s;
+  }
+
+  /* Enable hover bridge pointer events when controls visible */
+  .sop-footer:hover .sop-footer-controls::before,
+  .sop-footer:focus-within .sop-footer-controls::before,
+  .sop-footer-controls:hover::before {
+    pointer-events: auto;
+  }
+
+  .sop-footer-control-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    border: none;
+    background: #3399FF; /* Light blue - matches brand color */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateX(10px);
+    transition: transform 0.15s ease 0.05s, opacity 0.15s ease 0.05s, background-color 0.15s ease;
+    pointer-events: auto;
+    will-change: opacity, transform;
+  }
+
+  /* Show button on hover */
+  .sop-footer:hover .sop-footer-control-button,
+  .sop-footer:focus-within .sop-footer-control-button,
+  .sop-footer-controls:hover .sop-footer-control-button {
+    opacity: 1;
+    transform: translateX(0);
+    transition: transform 0.15s ease 0s, opacity 0.15s ease 0s, background-color 0.15s ease;
+  }
+
+  .sop-footer-control-button:hover {
+    background: #004D99; /* Darker blue on hover */
+    transform: scale(1.05);
+  }
+
+  .sop-footer-control-button:active {
+    transform: scale(0.95);
+  }
+
+  /* Signature field input styling */
+  /* Note: Underline is now a separate div element, not border-bottom on input */
+  .signature-field-input {
+    transition: background-color 0.15s ease;
+    border: none !important; /* Remove any border */
+  }
+
+  .signature-field-input:hover {
+    background-color: rgba(51, 153, 255, 0.05);
+  }
+
+  .signature-field-input:focus {
+    background-color: rgba(51, 153, 255, 0.08);
+  }
+
+  /* Hide signature field inputs in print/export - show only the values */
+  @media print {
+    .signature-field-input {
+      background: transparent !important;
+    }
   }
   
   .icon-container {

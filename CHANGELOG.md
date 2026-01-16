@@ -7,6 +7,72 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.18] - 2026-01-16
+
+### ✨ Features
+
+- **Per-Page Footer-Varianten:**
+  - Jede Seite kann nun eine eigene Footer-Variante haben (Tiny, Small, Signature, Placeholder)
+  - Footer-Button ändert nur den Footer der jeweiligen Seite, nicht aller Seiten
+  - Ermöglicht optimale Platznutzung: z.B. Signature-Footer auf Seite 1, Tiny-Footer auf Seite 2
+  - State-Struktur geändert von `footerVariant` (einzelner Wert) zu `footerVariants` (pro Seite)
+  - Abwärtskompatibilität: Alte Dokumente mit `footerVariant` werden automatisch migriert
+
+- **Intelligente Seitenumbruch-Berechnung mit per-page Footer-Höhen:**
+  - `usePageBreaks.js`: Berechnet verfügbare Höhe pro Seite basierend auf individueller Footer-Variante
+  - Vordefinierte Footer-Höhen in `layout.js` für zuverlässige Berechnungen:
+    - Tiny: 82px → 955px verfügbarer Platz auf Folgeseiten
+    - Small: 188px → 849px verfügbarer Platz
+    - Signature: 207px → 830px verfügbarer Platz
+    - Placeholder: 152px → 885px verfügbarer Platz
+  - Behebt Problem, bei dem Inhalte auf eine zusätzliche Seite verschoben wurden, obwohl mit kleinerem Footer genug Platz gewesen wäre
+
+- **Signature-Footer-Felder persistieren Daten:**
+  - Texte in den Signaturfeldern (Erstellt, Modifiziert, Freigegeben, Gültig ab) werden jetzt gespeichert
+  - Per-page Struktur: Jede Seite kann eigene Signaturdaten haben
+  - State-Erweiterung: `signatureData: { 1: { created: '...', ... }, 2: { ... } }`
+  - Daten werden beim Neuladen wiederhergestellt
+
+### 🐛 Bugfixes
+
+- **Signature-Footer Unterstriche im Export korrigiert:**
+  - Unterstriche sind jetzt separate div-Elemente statt Input-Borders
+  - Konsistente Darstellung in Editor und Export
+  - Behebt Problem mit doppelten oder fehlenden Unterstrichen
+  - `htmlSerializer.js`: Angepasste Ersetzungslogik für Signature-Felder
+
+- **Text-Overflow mit Ellipsis in Signature-Feldern:**
+  - Lange Texte werden im Editor mit `...` abgekürzt (wie im Export)
+  - Verhindert horizontales Überlaufen der Textfelder
+
+- **Flowchart: Aktion-Nodes wurden nicht korrekt gerendert:**
+  - "Aktion"-Nodes zeigten rohen HTML-Code (`<p class="flowchart-tiptap-paragraph">Aktion</p>`) statt nur den Text
+  - Ursache: `StaticAktionNode`-Komponente fehlte im `nodeTypes`-Mapping in `FlowchartPreview.js`
+  - Fix: Neue `StaticAktionNode`-Komponente hinzugefügt und im Preview registriert
+
+- **Flowchart: Langer Text lief über Box-Grenzen hinaus:**
+  - Text ohne Leerzeichen (z.B. lange Zeichenketten) brach nicht um und überschritt die Node-Grenzen
+  - Fix: `max-width: 300px` für `.flowchart-node` und `word-break: break-word` für Text-Container
+  - Betrifft sowohl Preview als auch Print-Export
+
+- **Flowchart: Connector-Lines konnten nicht erstellt werden:**
+  - Verbindungslinien zwischen Nodes funktionierten nicht mehr nach vorherigen Änderungen am Klick-Verhalten
+  - Ursache: Source-Handles hatten `pointerEvents: 'none'`, was das Starten von Verbindungen blockierte
+  - Fix: Source-Handles verwenden jetzt `opacity: 0` statt `visibility: hidden` + `pointerEvents: 'none'`
+  - Handles bleiben unsichtbar aber interaktiv für Drag-Verbindungen
+
+- **Flowchart: Änderungen gingen bei Seitenneuladen verloren (Cloud-Dokumente):**
+  - Bei Cloud-Dokumenten wurde localStorage komplett deaktiviert (`skipLocalStorage: true`)
+  - Änderungen im Flowchart-Editor wurden nicht zwischengespeichert und gingen bei Verbindungsabbruch verloren
+  - Fix: Neues Draft-System für Cloud-Dokumente implementiert:
+    - Dokumentspezifischer Draft-Key (`sop-draft-{documentId}`) mit Zeitstempel
+    - Beim Laden wird geprüft, ob ein neuerer lokaler Draft existiert
+    - Nach erfolgreichem Cloud-Speichern wird der Draft automatisch gelöscht
+  - `useEditorHistory.js`: Neue Funktionen `loadDraft()`, `clearDraft()`, `getDraftKey()`
+  - `Editor.js`: Draft-Logik beim Laden und Speichern integriert
+
+---
+
 ## [0.9.17] - 2026-01-15
 
 ### 🔒 Security

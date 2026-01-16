@@ -64,9 +64,17 @@ export const FOOTER = {
     BOTTOM: 46,
     LEFT: 46,
   },
-  // Note: Footer height is measured dynamically from DOM in usePageBreaks.js
-  // These are available variants (content height is determined by actual content)
+  // Available variants
   VARIANTS: ['tiny', 'small', 'signature', 'placeholder'],
+  // Pre-measured heights for each variant (used for page break calculation)
+  // These are the total heights including padding, measured from actual DOM
+  HEIGHTS: {
+    tiny: 82,        // Logo + CC only
+    small: 188,      // Logo + CC + Disclaimer text
+    signature: 207,  // Logo + CC + Signature fields (4 columns)
+    placeholder: 152 // Placeholder box for hospital document systems
+  },
+  DEFAULT_VARIANT: 'tiny',
 };
 
 // Header configuration
