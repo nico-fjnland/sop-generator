@@ -1,3 +1,16 @@
+/**
+ * Flowchart Block Styles
+ * 
+ * WICHTIG: Die Farben und Schriftgrößen in dieser Datei müssen mit
+ * src/styles/editorStyles.js synchron gehalten werden!
+ * 
+ * Zentrale Werte in editorStyles.js:
+ * - flowchart.nodeFontSize (aktuell: 11px)
+ * - flowchart.nodeStyles (fill, stroke, textColor pro Node-Typ)
+ * - flowchart.iconColors (high, low, equal)
+ * - flowchart.edgeStrokeColor, edgeStrokeWidth, edgeBorderRadius, edgeGap
+ */
+
 /* Flowchart Block Container - used inside Algorithmus box without padding */
 .flowchart-block-container {
   width: calc(100% - 2px); /* Prevent border overlap on right edge */
@@ -68,7 +81,7 @@
   border: none;
   background: white;
   font-family: 'Roboto', sans-serif;
-  font-size: 11px; /* Same as body text in ContentBox */
+  font-size: 11px; /* Wert aus EDITOR_STYLES.flowchart.nodeFontSize */
   min-width: auto;
   min-height: 24px; /* 4er-Vielfaches für Grid-Raster */
   width: auto;

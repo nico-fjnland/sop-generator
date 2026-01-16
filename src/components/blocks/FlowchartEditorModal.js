@@ -156,12 +156,35 @@ function FloatingEdge({ id, source, target, markerEnd, style, data, selected }) 
   const targetX = targetAbsPos.x + targetHandleCoords.x;
   const targetY = targetAbsPos.y + targetHandleCoords.y;
   
+  // Edge-Snap: Kleine Differenzen ausgleichen für gerade Linien
+  const snapThreshold = EDITOR_STYLES.flowchart.edgeSnapThreshold;
+  let finalSourceX = sourceX;
+  let finalSourceY = sourceY;
+  let finalTargetX = targetX;
+  let finalTargetY = targetY;
+  
+  if (sourcePos === Position.Left || sourcePos === Position.Right) {
+    // Horizontale Verbindung - Y angleichen wenn Differenz klein
+    if (Math.abs(sourceY - targetY) < snapThreshold) {
+      const avgY = (sourceY + targetY) / 2;
+      finalSourceY = avgY;
+      finalTargetY = avgY;
+    }
+  } else {
+    // Vertikale Verbindung - X angleichen wenn Differenz klein
+    if (Math.abs(sourceX - targetX) < snapThreshold) {
+      const avgX = (sourceX + targetX) / 2;
+      finalSourceX = avgX;
+      finalTargetX = avgX;
+    }
+  }
+  
   const [edgePath, labelX, labelY] = getSmoothStepPath({
-    sourceX,
-    sourceY,
+    sourceX: finalSourceX,
+    sourceY: finalSourceY,
     sourcePosition: sourcePos,
-    targetX,
-    targetY,
+    targetX: finalTargetX,
+    targetY: finalTargetY,
     targetPosition: targetPos,
     borderRadius: EDITOR_STYLES.flowchart.edgeBorderRadius,
   });
@@ -1587,7 +1610,7 @@ const FlowchartEditorInner = ({
   );
 
   // Generate static SVG from current nodes and edges for print export
-  // Matches the exact styles from FlowchartBlock.css
+  // Uses centralized styles from EDITOR_STYLES for consistency with Editor
   const generateStaticSvg = useCallback(() => {
     if (nodes.length === 0) return null;
     
@@ -1605,21 +1628,14 @@ const FlowchartEditorInner = ({
     const padding = 20;
     const viewBox = `${minX - padding} ${minY - padding} ${maxX - minX + padding * 2} ${maxY - minY + padding * 2}`;
     
-    // Node type styles - matching FlowchartBlock.css exactly
-    // Text color = border color (as per the CSS)
-    const nodeStyles = {
-      start: { fill: '#E8FAF9', stroke: '#47D1C6', textColor: '#47D1C6', strokeStyle: 'solid' },
-      phase: { fill: '#E5F2FF', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
-      aktion: { fill: '#FFFFFF', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
-      positive: { fill: '#ECF9EB', stroke: '#52C41A', textColor: '#52C41A', strokeStyle: 'solid' },
-      negative: { fill: '#FCEAE8', stroke: '#EB5547', textColor: '#EB5547', strokeStyle: 'solid' },
-      neutral: { fill: '#FFF7E6', stroke: '#FAAD14', textColor: '#B27700', strokeStyle: 'solid' },
-      high: { fill: 'white', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
-      low: { fill: 'white', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
-      equal: { fill: 'white', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
-      label: { fill: 'transparent', stroke: 'none', textColor: '#6b7280', strokeStyle: 'none' },
-      comment: { fill: 'white', stroke: '#3399FF', textColor: '#3399FF', strokeStyle: 'dashed' },
-    };
+    // Node type styles from centralized EDITOR_STYLES
+    const nodeStyles = EDITOR_STYLES.flowchart.nodeStyles;
+    
+    // Icon colors from centralized EDITOR_STYLES
+    const iconColors = EDITOR_STYLES.flowchart.iconColors;
+    
+    // Node font size from centralized EDITOR_STYLES (remove 'px' suffix for SVG)
+    const nodeFontSize = EDITOR_STYLES.flowchart.nodeFontSize.replace('px', '');
     
     // Strip HTML tags for SVG text
     const stripHtml = (html) => {
@@ -1635,12 +1651,6 @@ const FlowchartEditorInner = ({
       low: 'M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm37.66,109.66-32,32a8,8,0,0,1-11.32,0l-32-32a8,8,0,0,1,11.32-11.32L120,140.69V88a8,8,0,0,1,16,0v52.69l18.34-18.35a8,8,0,0,1,11.32,11.32Z',
       // ArrowCircleRight - filled  
       equal: 'M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm45.66,109.66-32,32a8,8,0,0,1-11.32-11.32L148.69,136H88a8,8,0,0,1,0-16h60.69l-18.35-18.34a8,8,0,0,1,11.32-11.32l32,32A8,8,0,0,1,173.66,133.66Z',
-    };
-    
-    const iconColors = {
-      high: '#EB5547',
-      low: '#3399FF', 
-      equal: '#FAAD14',
     };
 
     // Generate node elements
@@ -1665,7 +1675,7 @@ const FlowchartEditorInner = ({
               dominant-baseline="middle" 
               fill="${style.textColor}"
               font-family="Roboto, sans-serif"
-              font-size="12"
+              font-size="${nodeFontSize}"
               font-weight="400"
             >${label}</text>
           </g>
@@ -1709,7 +1719,7 @@ const FlowchartEditorInner = ({
             dominant-baseline="middle" 
             fill="${style.textColor}"
             font-family="Roboto, sans-serif"
-            font-size="12"
+            font-size="${nodeFontSize}"
             font-weight="400"
           >${label}</text>
           ${hasIcon ? `
@@ -1779,6 +1789,24 @@ const FlowchartEditorInner = ({
         }
       }
       
+      // Edge-Snap: Kleine Differenzen ausgleichen für gerade Linien
+      const snapThreshold = EDITOR_STYLES.flowchart.edgeSnapThreshold;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontale Verbindung - Y angleichen wenn Differenz klein
+        if (Math.abs(startY - endY) < snapThreshold) {
+          const avgY = (startY + endY) / 2;
+          startY = avgY;
+          endY = avgY;
+        }
+      } else {
+        // Vertikale Verbindung - X angleichen wenn Differenz klein
+        if (Math.abs(startX - endX) < snapThreshold) {
+          const avgX = (startX + endX) / 2;
+          startX = avgX;
+          endX = avgX;
+        }
+      }
+      
       // Create smooth step path with rounded corners (matching getSmoothStepPath borderRadius)
       const borderRadius = EDITOR_STYLES.flowchart.edgeBorderRadius;
       const midY = (startY + endY) / 2;
@@ -1834,6 +1862,8 @@ const FlowchartEditorInner = ({
             fill="none" 
             stroke="${EDITOR_STYLES.flowchart.edgeStrokeColor}" 
             stroke-width="${EDITOR_STYLES.flowchart.edgeStrokeWidth}"
+            stroke-linejoin="round"
+            stroke-linecap="round"
             marker-end="url(#arrowhead)"
           />
           ${label ? `

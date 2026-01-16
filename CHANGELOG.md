@@ -7,6 +7,31 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.21] - 2026-01-16
+
+### 🐛 Bugfixes
+
+- **Flowchart: Sprungkanten bei fast ausgerichteten Nodes behoben:**
+  - Bei horizontal oder vertikal nahezu (aber nicht exakt) ausgerichteten Nodes entstanden kleine "Sprungkanten" in den Connector-Linien
+  - Ursache: `getSmoothStepPath` erzeugt einen Step um minimale Y/X-Differenzen auszugleichen
+  - Fix: Edge-Snapping implementiert - kleine Koordinatendifferenzen (< 10px) werden automatisch angeglichen
+  - Neue Konfiguration `edgeSnapThreshold` in `editorStyles.js` für zentrale Steuerung
+  - Konsistent in Editor, Preview und PDF-Export implementiert
+
+- **Flowchart-Export: Darstellung 1:1 wie im Editor:**
+  - Node-Schriftgröße im Export korrigiert (war 12px, jetzt 11px wie im Editor)
+  - Spitze Kanten bei Connector-Linien behoben durch `stroke-linejoin="round"` und `stroke-linecap="round"`
+
+### 🔧 Refactoring
+
+- **Flowchart-Styles zentralisiert in `editorStyles.js`:**
+  - Neue Konfiguration: `nodeFontSize`, `nodeStyles`, `iconColors`
+  - `generateStaticSvg()` verwendet nun zentrale EDITOR_STYLES statt lokaler Definitionen
+  - FlowchartBlock.css mit Dokumentations-Kommentaren versehen
+  - Single Source of Truth für Editor und Export
+
+---
+
 ## [0.9.20] - 2026-01-16
 
 ### 🎨 UI/UX

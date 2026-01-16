@@ -137,6 +137,35 @@ export const EDITOR_STYLES = {
     edgeStrokeColor: '#003366',
     /** Stroke-Breite für Edges */
     edgeStrokeWidth: 1,
+    /** Schwellenwert für Edge-Snapping (px) - Differenz unter der Edges gerade gezeichnet werden */
+    edgeSnapThreshold: 10,
+    
+    /** Font-Size für Node-Text (muss mit FlowchartBlock.css synchron sein) */
+    nodeFontSize: '11px',
+    
+    /** Node-Type-spezifische Styles (fill, stroke, textColor, strokeStyle)
+     *  Diese Werte müssen mit FlowchartBlock.css synchron gehalten werden!
+     */
+    nodeStyles: {
+      start: { fill: '#E8FAF9', stroke: '#47D1C6', textColor: '#47D1C6', strokeStyle: 'solid' },
+      phase: { fill: '#E5F2FF', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
+      aktion: { fill: '#FFFFFF', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
+      positive: { fill: '#ECF9EB', stroke: '#52C41A', textColor: '#52C41A', strokeStyle: 'solid' },
+      negative: { fill: '#FCEAE8', stroke: '#EB5547', textColor: '#EB5547', strokeStyle: 'solid' },
+      neutral: { fill: '#FFF7E6', stroke: '#FAAD14', textColor: '#B27700', strokeStyle: 'solid' },
+      high: { fill: 'white', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
+      low: { fill: 'white', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
+      equal: { fill: 'white', stroke: '#003366', textColor: '#003366', strokeStyle: 'solid' },
+      label: { fill: 'transparent', stroke: 'none', textColor: '#6b7280', strokeStyle: 'none' },
+      comment: { fill: 'white', stroke: '#3399FF', textColor: '#3399FF', strokeStyle: 'dashed' },
+    },
+    
+    /** Icon-Farben für high/low/equal Nodes */
+    iconColors: {
+      high: '#EB5547',
+      low: '#3399FF',
+      equal: '#FAAD14',
+    },
   },
 };
 

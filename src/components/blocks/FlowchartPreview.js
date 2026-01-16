@@ -154,12 +154,35 @@ function FloatingEdgePreview({ id, source, target, markerEnd, style, data }) {
   const targetX = targetAbsPos.x + targetHandleCoords.x;
   const targetY = targetAbsPos.y + targetHandleCoords.y;
   
+  // Edge-Snap: Kleine Differenzen ausgleichen für gerade Linien
+  const snapThreshold = EDITOR_STYLES.flowchart.edgeSnapThreshold;
+  let finalSourceX = sourceX;
+  let finalSourceY = sourceY;
+  let finalTargetX = targetX;
+  let finalTargetY = targetY;
+  
+  if (sourcePos === Position.Left || sourcePos === Position.Right) {
+    // Horizontale Verbindung - Y angleichen wenn Differenz klein
+    if (Math.abs(sourceY - targetY) < snapThreshold) {
+      const avgY = (sourceY + targetY) / 2;
+      finalSourceY = avgY;
+      finalTargetY = avgY;
+    }
+  } else {
+    // Vertikale Verbindung - X angleichen wenn Differenz klein
+    if (Math.abs(sourceX - targetX) < snapThreshold) {
+      const avgX = (sourceX + targetX) / 2;
+      finalSourceX = avgX;
+      finalTargetX = avgX;
+    }
+  }
+  
   const [edgePath, labelX, labelY] = getSmoothStepPath({
-    sourceX,
-    sourceY,
+    sourceX: finalSourceX,
+    sourceY: finalSourceY,
     sourcePosition: sourcePos,
-    targetX,
-    targetY,
+    targetX: finalTargetX,
+    targetY: finalTargetY,
     targetPosition: targetPos,
     borderRadius: EDITOR_STYLES.flowchart.edgeBorderRadius,
   });
