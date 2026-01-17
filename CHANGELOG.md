@@ -7,6 +7,20 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.25] - 2026-01-17
+
+### ✨ Neue Features
+
+- **Wirkstoff-Autovervollständigung in Tabellen:**
+  - `#`-Trigger funktioniert jetzt auch in Tabellenzellen (TipTapTableBlock)
+  - Gleiche Funktionalität wie im Textblock: Suche, Icons, Einfügen des kanonischen Namens
+
+- **Wirkstoff-Autovervollständigung im Flowchart-Editor:**
+  - `#`-Trigger funktioniert jetzt auch in Flowchart-Node-Textfeldern
+  - Ermöglicht schnelle Eingabe von Wirkstoffen in Flussdiagrammen
+
+---
+
 ## [0.9.24] - 2026-01-17
 
 ### ✨ Neue Features

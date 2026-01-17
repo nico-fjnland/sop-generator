@@ -19,12 +19,16 @@ import ReactFlow, {
   EdgeLabelRenderer,
 } from 'reactflow';
 import { EDITOR_STYLES } from '../../styles/editorStyles';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, ReactRenderer } from '@tiptap/react';
+import { PluginKey } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import { Mark, mergeAttributes } from '@tiptap/core';
+import tippy from 'tippy.js';
+import DrugSuggestionMenu from '../DrugSuggestionMenu';
+import { DrugCommand } from '../extensions/DrugCommand';
 import 'reactflow/dist/style.css';
 import './FlowchartEditorModal.css';
 import { 
@@ -387,6 +391,9 @@ const HeadingFont = Mark.create({
 // FLOWCHART NODE EDITOR COMPONENT (TipTap)
 // ============================================
 
+// Plugin-Key für die Drug-Suggestion im Flowchart
+const flowchartDrugSuggestionPluginKey = new PluginKey('flowchartDrugSuggestion');
+
 const FlowchartNodeEditor = ({ 
   content, 
   onChange, 
@@ -424,6 +431,68 @@ const FlowchartNodeEditor = ({
       Superscript,
       SmallFont,
       HeadingFont,
+      DrugCommand.configure({
+        suggestion: {
+          pluginKey: flowchartDrugSuggestionPluginKey,
+          items: () => {
+            return [];
+          },
+          render: () => {
+            let component;
+            let popup;
+
+            return {
+              onStart: (props) => {
+                component = new ReactRenderer(DrugSuggestionMenu, {
+                  props,
+                  editor: props.editor,
+                });
+
+                if (!props.clientRect) {
+                  return;
+                }
+
+                popup = tippy('body', {
+                  getReferenceClientRect: props.clientRect,
+                  appendTo: () => document.body,
+                  content: component.element,
+                  showOnCreate: true,
+                  interactive: true,
+                  trigger: 'manual',
+                  placement: 'bottom',
+                  arrow: false,
+                });
+              },
+
+              onUpdate(props) {
+                component.updateProps(props);
+
+                if (!props.clientRect) {
+                  return;
+                }
+
+                popup[0].setProps({
+                  getReferenceClientRect: props.clientRect,
+                });
+              },
+
+              onKeyDown(props) {
+                if (props.event.key === 'Escape') {
+                  popup[0].hide();
+                  return true;
+                }
+
+                return component.ref?.onKeyDown(props);
+              },
+
+              onExit() {
+                popup[0].destroy();
+                component.destroy();
+              },
+            };
+          },
+        },
+      }),
     ],
     content: content || '',
     editable: editable, // Control editability based on double-click state

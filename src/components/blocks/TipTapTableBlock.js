@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback, useState, forwardRef, useImperativeHandle, useRef } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, ReactRenderer } from '@tiptap/react';
 import { Mark } from '@tiptap/core';
+import { PluginKey } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Superscript from '@tiptap/extension-superscript';
@@ -9,10 +10,13 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
+import tippy from 'tippy.js';
 import { NotePencil, X, Plus, Table as TableIcon, SortAscending, Infinity, ArrowCounterClockwise } from '@phosphor-icons/react';
 import { Switch } from '../ui/switch';
 import { CategoryIconComponents } from '../icons/CategoryIcons';
 import InlineTextToolbar from '../InlineTextToolbar';
+import DrugSuggestionMenu from '../DrugSuggestionMenu';
+import { DrugCommand } from '../extensions/DrugCommand';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +31,9 @@ import {
 import { CATEGORIES, ADDITIONAL_ELEMENTS } from './ContentBoxBlock';
 import { useTipTapFocus } from '../../contexts/TipTapFocusContext';
 import './TipTapTableBlock.css';
+
+// Plugin-Key für die Drug-Suggestion
+const tableDrugSuggestionPluginKey = new PluginKey('tableDrugSuggestion');
 
 // Custom TableCell that supports colspan/rowspan and background color
 const CustomTableCell = TableCell.extend({
@@ -258,6 +265,68 @@ const TipTapTableBlock = forwardRef(({
       TableRow,
       CustomTableCell,
       CustomTableHeader,
+      DrugCommand.configure({
+        suggestion: {
+          pluginKey: tableDrugSuggestionPluginKey,
+          items: () => {
+            return [];
+          },
+          render: () => {
+            let component;
+            let popup;
+
+            return {
+              onStart: (props) => {
+                component = new ReactRenderer(DrugSuggestionMenu, {
+                  props,
+                  editor: props.editor,
+                });
+
+                if (!props.clientRect) {
+                  return;
+                }
+
+                popup = tippy('body', {
+                  getReferenceClientRect: props.clientRect,
+                  appendTo: () => document.body,
+                  content: component.element,
+                  showOnCreate: true,
+                  interactive: true,
+                  trigger: 'manual',
+                  placement: 'bottom',
+                  arrow: false,
+                });
+              },
+
+              onUpdate(props) {
+                component.updateProps(props);
+
+                if (!props.clientRect) {
+                  return;
+                }
+
+                popup[0].setProps({
+                  getReferenceClientRect: props.clientRect,
+                });
+              },
+
+              onKeyDown(props) {
+                if (props.event.key === 'Escape') {
+                  popup[0].hide();
+                  return true;
+                }
+
+                return component.ref?.onKeyDown(props);
+              },
+
+              onExit() {
+                popup[0].destroy();
+                component.destroy();
+              },
+            };
+          },
+        },
+      }),
     ],
     content: getInitialContent(),
     editorProps: {
