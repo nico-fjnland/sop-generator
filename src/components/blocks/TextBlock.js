@@ -7,17 +7,23 @@ import Superscript from '@tiptap/extension-superscript';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Extension, Mark, mergeAttributes } from '@tiptap/core';
+import { PluginKey } from '@tiptap/pm/state';
 import { ReactRenderer } from '@tiptap/react';
 import tippy from 'tippy.js';
 import InlineTextToolbar from '../InlineTextToolbar';
 import SlashMenu from '../SlashMenu';
+import DrugSuggestionMenu from '../DrugSuggestionMenu';
 import { SlashCommand } from '../extensions/SlashCommand';
+import { DrugCommand } from '../extensions/DrugCommand';
 import { HighlightItem } from '../extensions/HighlightItem';
 import { ImageUploadNode } from '../tiptap-node/image-upload-node';
 import { ImageNodePro } from '../tiptap-node/image-node-pro';
 import { handleImageUpload } from '../../lib/tiptap-utils';
 import { useTipTapFocus } from '../../contexts/TipTapFocusContext';
 import './TextBlock.css';
+
+// Eigener Plugin-Key für die Drug-Suggestion (um Konflikt mit SlashCommand zu vermeiden)
+const drugSuggestionPluginKey = new PluginKey('drugSuggestion');
 
 // Extension to handle trailing empty paragraph behavior
 const TrailingParagraph = Extension.create({
@@ -178,7 +184,7 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
         placeholder: ({ editor }) => {
           // Only show placeholder when the entire editor is empty
           if (editor.isEmpty) {
-            return 'Schreibe oder gib "/" für Befehle ein';
+            return 'Schreibe, "/" für Befehle, "#" für Wirkstoffe';
           }
           return '';
         },
@@ -242,6 +248,68 @@ const TextBlock = forwardRef(({ content, onChange, onKeyDown, isInsideContentBox
                   ...props,
                   onAddFlowchart: handleAddFlowchart,
                 });
+
+                if (!props.clientRect) {
+                  return;
+                }
+
+                popup[0].setProps({
+                  getReferenceClientRect: props.clientRect,
+                });
+              },
+
+              onKeyDown(props) {
+                if (props.event.key === 'Escape') {
+                  popup[0].hide();
+                  return true;
+                }
+
+                return component.ref?.onKeyDown(props);
+              },
+
+              onExit() {
+                popup[0].destroy();
+                component.destroy();
+              },
+            };
+          },
+        },
+      }),
+      DrugCommand.configure({
+        suggestion: {
+          pluginKey: drugSuggestionPluginKey,
+          items: () => {
+            return [];
+          },
+          render: () => {
+            let component;
+            let popup;
+
+            return {
+              onStart: (props) => {
+                component = new ReactRenderer(DrugSuggestionMenu, {
+                  props,
+                  editor: props.editor,
+                });
+
+                if (!props.clientRect) {
+                  return;
+                }
+
+                popup = tippy('body', {
+                  getReferenceClientRect: props.clientRect,
+                  appendTo: () => document.body,
+                  content: component.element,
+                  showOnCreate: true,
+                  interactive: true,
+                  trigger: 'manual',
+                  placement: 'bottom',
+                  arrow: false,
+                });
+              },
+
+              onUpdate(props) {
+                component.updateProps(props);
 
                 if (!props.clientRect) {
                   return;

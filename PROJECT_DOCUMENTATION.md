@@ -135,7 +135,8 @@ src/
 │   ├── SOPHeader.js          # Dokument-Header (Titel, Version, Logo)
 │   ├── SOPPageHeader.js      # Seitenkopf für Folgeseiten (Titel + Seitenzahl)
 │   ├── SOPFooter.js          # Dokument-Footer (Lizenz, Disclaimer)
-│   ├── SlashMenu.jsx         # Slash-Kommando Menü
+│   ├── SlashMenu.jsx         # Slash-Kommando Menü (/)
+│   ├── DrugSuggestionMenu.jsx # Wirkstoff-Autovervollständigung (#)
 │   ├── InlineTextToolbar.js  # Formatierungs-Toolbar
 │   ├── ZoomControl.jsx       # Zoom-Steuerung
 │   ├── ZoomWrapper.jsx       # Zoom-Container
@@ -166,7 +167,8 @@ src/
 │   │   └── DropIndicator.jsx     # Visuelle Drop-Indikatoren
 │   │
 │   ├── extensions/           # TipTap-Erweiterungen
-│   │   ├── SlashCommand.js       # Slash-Kommando Extension
+│   │   ├── SlashCommand.js       # Slash-Kommando Extension (/)
+│   │   ├── DrugCommand.js        # Wirkstoff-Suggestion Extension (#)
 │   │   └── HighlightItem.js      # Hervorhebung
 │   │
 │   ├── tiptap-node/          # TipTap Node-Komponenten
@@ -524,6 +526,32 @@ CREATE TABLE documents (
   "footerVariant": "tiny"
 }
 ```
+
+### drugs (Supabase)
+
+```sql
+CREATE TABLE drugs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  canonical TEXT NOT NULL,        -- Kanonischer Wirkstoffname (z.B. Paracetamol)
+  variant TEXT NOT NULL,          -- Suchvariante (z.B. pcm, perfalgan)
+  type TEXT NOT NULL,             -- inn, trade, abbrev, typo, combo, solution, etc.
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_drugs_variant ON drugs(variant);
+CREATE INDEX idx_drugs_canonical ON drugs(canonical);
+```
+
+**Zweck:** Globale Liste von Wirkstoffen/Medikamenten für die Autovervollständigung im Editor. Typen:
+- `inn`: Offizieller Wirkstoffname (INN)
+- `trade`: Handelsname
+- `abbrev`: Abkürzung/Klinik-Slang
+- `typo`: Häufiger Tippfehler
+- `combo`: Kombinationswirkstoff
+- `solution`: Infusions-/Trägerlösung
+- `colloid`: Kolloidale Volumenersatzmittel
+- `blood_product`: Blutprodukte
+- `medical_adjacent`: Medizinprodukt-nahe Stoffe
 
 ### Row Level Security (RLS)
 

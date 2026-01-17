@@ -7,11 +7,32 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.24] - 2026-01-17
+
+### ✨ Neue Features
+
+- **Wirkstoff-Autovervollständigung:**
+  - Neue TipTap-Extension `DrugCommand` mit `#` als Trigger-Zeichen
+  - Dropdown-Menü `DrugSuggestionMenu` für Wirkstoff-Suche
+  - Sucht in Varianten (INN, Handelsnamen, Abkürzungen, Tippfehler) und fügt kanonischen Namen ein
+  - Placeholder-Text aktualisiert: "Schreibe, "/" für Befehle, "#" für Wirkstoffe"
+  - **Kategorie-spezifische Icons:** Pill (Medikamente), Drop (Infusionen/Blutprodukte), Syringe (Medizinprodukte)
+
+### 🗃️ Datenbank
+
+- **Neue Tabelle `drugs`:**
+  - ~477 Einträge aus 9 Kategorien: Wirkstoffe, Handelsnamen, Abkürzungen, Lösungen, Blutprodukte, Kolloide, Medizinprodukte, Kombinationen, Tippfehler
+  - Spalten: `canonical` (Wirkstoffname), `variant` (Suchbegriff), `type` (inn/trade/abbrev/typo/solution/blood_product/colloid/medical_adjacent/combo)
+  - Indizes auf `variant` und `canonical` für schnelle Suche
+  - RLS-Policy: Lesezugriff für alle Nutzer (authentifiziert und anonym)
+
+---
+
 ## [0.9.23] - 2026-01-16
 
 ### 🎨 Verbesserungen
 
-- **Vercel Web Interface Guidelines Compliance:**
+- **Web Interface Guidelines Compliance:**
   - **Accessibility:** `aria-label` zu Icon-only Buttons hinzugefügt (Passwort ein-/ausblenden in Login/Register, Logo-Entfernen-Button in SOPHeader)
   - **Accessibility:** Theme-Toggle in AccountDropdown für Tastatur-Navigation optimiert (`role="button"`, `tabIndex`, `onKeyDown` Handler)
   - **Performance:** `transition: all` durch explizite Properties ersetzt (13 CSS-Stellen in FlowchartBlock.css, FlowchartEditorModal.css, StatusIndicator.css, image-upload-node.scss)
