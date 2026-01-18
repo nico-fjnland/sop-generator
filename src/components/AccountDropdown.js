@@ -15,6 +15,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuGroup,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from './ui/dropdown-menu';
 
 const AccountDropdown = ({ 
@@ -168,31 +171,44 @@ const AccountDropdown = ({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de/legal/impressum', '_blank')} className="cursor-pointer">
-            <IdentificationCard className="mr-2 h-4 w-4" />
-            <span>Impressum</span>
-            <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de/legal/datenschutz', '_blank')} className="cursor-pointer">
-            <ShieldCheck className="mr-2 h-4 w-4" />
-            <span>Datenschutz</span>
-            <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de/legal/agb', '_blank')} className="cursor-pointer">
-            <Scroll className="mr-2 h-4 w-4" />
-            <span>Geschäftsbedingungen</span>
-            <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de/legal/editor', '_blank')} className="cursor-pointer">
-            <ListChecks className="mr-2 h-4 w-4" />
-            <span>Nutzungsbedingungen</span>
-            <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de/legal/compliance', '_blank')} className="cursor-pointer">
-            <Scales className="mr-2 h-4 w-4" />
-            <span>Compliance</span>
-            <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
-          </DropdownMenuItem>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger className="cursor-pointer">
+              <Scales className="mr-2 h-4 w-4" />
+              <span>Rechtliches</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent 
+              className="w-56"
+              sideOffset={4}
+              collisionPadding={{ top: 24, right: 24, bottom: 24, left: 24 }}
+              avoidCollisions={true}
+            >
+              <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de/legal/impressum', '_blank')} className="cursor-pointer">
+                <IdentificationCard className="mr-2 h-4 w-4" />
+                <span>Impressum</span>
+                <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de/legal/datenschutz', '_blank')} className="cursor-pointer">
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                <span>Datenschutz</span>
+                <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de/legal/agb', '_blank')} className="cursor-pointer">
+                <Scroll className="mr-2 h-4 w-4" />
+                <span>Geschäftsbedingungen</span>
+                <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de/legal/editor', '_blank')} className="cursor-pointer">
+                <ListChecks className="mr-2 h-4 w-4" />
+                <span>Nutzungsbedingungen</span>
+                <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => window.open('https://sop-notaufnahme.de/legal/compliance', '_blank')} className="cursor-pointer">
+                <Scales className="mr-2 h-4 w-4" />
+                <span>Compliance</span>
+                <ArrowUpRight className="ml-auto h-3 w-3 text-muted-foreground" />
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={handleSignOut} className="text-destructive focus:text-destructive cursor-pointer">

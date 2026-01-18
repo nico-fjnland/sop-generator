@@ -45,6 +45,7 @@ import {
   ChatCircleText,
   FloppyDisk,
   Trash,
+  Backspace,
   Cursor,
   Hand,
   Eraser as EraserIcon,
@@ -1023,8 +1024,24 @@ const FlowchartEditorInner = ({
   const [helperLineHorizontal, setHelperLineHorizontal] = useState(null);
   const [helperLineVertical, setHelperLineVertical] = useState(null);
   const [distanceIndicators, setDistanceIndicators] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
+  // Initialize history with the initial state so Undo can return to it
+  // This fixes a bug where the first action couldn't be undone because
+  // the original state was never recorded in history
+  const [history, setHistory] = useState(() => {
+    // Save initial state immediately so Undo can restore it
+    const initialState = {
+      nodes: initialNodes.map(({ data, ...node }) => ({
+        ...node,
+        data: { label: data?.label },
+      })),
+      edges: initialEdges.map(({ data, ...edge }) => ({
+        ...edge,
+        data: { label: data?.label },
+      })),
+    };
+    return [initialState];
+  });
+  const [historyIndex, setHistoryIndex] = useState(0); // Start at 0 (pointing to initial state)
   const [interactionMode, setInteractionMode] = useState('select'); // 'select' or 'pan'
   const [editingNodeId, setEditingNodeId] = useState(null); // Track which node is in edit mode
 
@@ -1119,6 +1136,7 @@ const FlowchartEditorInner = ({
   }, [handleEdgeLabelChange, setEdges]);
 
   // Save current state to history
+  // Uses functional updates to avoid race conditions between history and historyIndex
   const saveToHistory = useCallback(() => {
     const currentState = {
       nodes: nodes.map(({ data, ...node }) => ({
@@ -1131,52 +1149,71 @@ const FlowchartEditorInner = ({
       })),
     };
 
-    setHistory((prev) => {
-      const newHistory = prev.slice(0, historyIndex + 1);
-      return [...newHistory, currentState];
+    // Update both history and index atomically using refs to track the new index
+    setHistoryIndex((prevIndex) => {
+      // Schedule history update with the correct index
+      setHistory((prevHistory) => {
+        // Truncate any "future" states and append new state
+        const newHistory = prevHistory.slice(0, prevIndex + 1);
+        return [...newHistory, currentState];
+      });
+      return prevIndex + 1;
     });
-    setHistoryIndex((prev) => prev + 1);
-  }, [nodes, edges, historyIndex]);
+  }, [nodes, edges]);
   
   // Update ref after saveToHistory is defined
   useEffect(() => {
     saveToHistoryRef.current = saveToHistory;
   }, [saveToHistory]);
 
-  // Undo function
+  // Undo function with defensive null checks
   const handleUndo = useCallback(() => {
-    if (historyIndex > 0) {
-      const previousState = history[historyIndex - 1];
-      const restoredNodes = previousState.nodes.map(node => ({
-        ...node,
-        data: {
-          ...node.data,
-          onChange: (newLabel) => handleNodeLabelChange(node.id, newLabel),
-          onToolbarUpdate: handleToolbarUpdate,
-        },
-      }));
-      setNodes(restoredNodes);
-      setEdges(previousState.edges);
-      setHistoryIndex((prev) => prev - 1);
+    if (historyIndex <= 0) return;
+    
+    const previousState = history[historyIndex - 1];
+    
+    // Defensive check: ensure previousState exists and has valid structure
+    if (!previousState || !Array.isArray(previousState.nodes) || !Array.isArray(previousState.edges)) {
+      console.warn('Undo: Invalid history state at index', historyIndex - 1, previousState);
+      return;
     }
+    
+    const restoredNodes = previousState.nodes.map(node => ({
+      ...node,
+      data: {
+        ...node.data,
+        onChange: (newLabel) => handleNodeLabelChange(node.id, newLabel),
+        onToolbarUpdate: handleToolbarUpdate,
+      },
+    }));
+    setNodes(restoredNodes);
+    setEdges(previousState.edges);
+    setHistoryIndex((prev) => Math.max(0, prev - 1));
   }, [history, historyIndex, setNodes, setEdges, handleNodeLabelChange, handleToolbarUpdate]);
 
-  // Redo function
+  // Redo function with defensive null checks
   const handleRedo = useCallback(() => {
-    if (historyIndex < history.length - 1) {
-      const nextState = history[historyIndex + 1];
-      const restoredNodes = nextState.nodes.map(node => ({
-        ...node,
-        data: {
-          ...node.data,
-          onChange: (newLabel) => handleNodeLabelChange(node.id, newLabel),
-          onToolbarUpdate: handleToolbarUpdate,
-        },
-      }));
-      setNodes(restoredNodes);
-      setEdges(nextState.edges);
-      setHistoryIndex((prev) => prev + 1);
+    if (historyIndex >= history.length - 1) return;
+    
+    const nextState = history[historyIndex + 1];
+    
+    // Defensive check: ensure nextState exists and has valid structure
+    if (!nextState || !Array.isArray(nextState.nodes) || !Array.isArray(nextState.edges)) {
+      console.warn('Redo: Invalid history state at index', historyIndex + 1, nextState);
+      return;
     }
+    
+    const restoredNodes = nextState.nodes.map(node => ({
+      ...node,
+      data: {
+        ...node.data,
+        onChange: (newLabel) => handleNodeLabelChange(node.id, newLabel),
+        onToolbarUpdate: handleToolbarUpdate,
+      },
+    }));
+    setNodes(restoredNodes);
+    setEdges(nextState.edges);
+    setHistoryIndex((prev) => Math.min(history.length - 1, prev + 1));
   }, [history, historyIndex, setNodes, setEdges, handleNodeLabelChange, handleToolbarUpdate]);
 
   // Reset Zoom function
@@ -2034,22 +2071,32 @@ const FlowchartEditorInner = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleSave, onCancel, handleUndo, handleRedo, editingNodeId]);
 
-  // Get selected nodes for delete/duplicate actions
+  // Get selected nodes and edges for delete actions
   const selectedNodes = nodes.filter(n => n.selected);
-  const hasSelection = selectedNodes.length > 0;
+  const selectedEdges = edges.filter(e => e.selected);
+  const hasSelection = selectedNodes.length > 0 || selectedEdges.length > 0;
 
-  // Delete selected nodes
-  // eslint-disable-next-line no-unused-vars
+  // Delete selected nodes and edges (like Backspace key)
   const handleDeleteSelected = useCallback(() => {
-    if (hasSelection) {
+    if (!hasSelection) return;
+    
+    // Delete selected edges first
+    if (selectedEdges.length > 0) {
+      const selectedEdgeIds = selectedEdges.map(e => e.id);
+      setEdges(eds => eds.filter(e => !selectedEdgeIds.includes(e.id)));
+    }
+    
+    // Delete selected nodes and their connected edges
+    if (selectedNodes.length > 0) {
       setNodes(nds => nds.filter(n => !n.selected));
       setEdges(eds => {
-        const selectedIds = selectedNodes.map(n => n.id);
-        return eds.filter(e => !selectedIds.includes(e.source) && !selectedIds.includes(e.target));
+        const selectedNodeIds = selectedNodes.map(n => n.id);
+        return eds.filter(e => !selectedNodeIds.includes(e.source) && !selectedNodeIds.includes(e.target));
       });
-      setTimeout(() => saveToHistory(), 100);
     }
-  }, [hasSelection, selectedNodes, setNodes, setEdges, saveToHistory]);
+    
+    setTimeout(() => saveToHistory(), 100);
+  }, [hasSelection, selectedNodes, selectedEdges, setNodes, setEdges, saveToHistory]);
 
   return (
     <>
@@ -2331,6 +2378,15 @@ const FlowchartEditorInner = ({
               <EraserIcon size={16} weight="regular" />
             </button>
             <div className="flowchart-toolbar-separator" />
+            {/* Delete Selected Elements */}
+            <button
+              onClick={handleDeleteSelected}
+              disabled={!hasSelection}
+              title="Ausgewählte Elemente löschen (Backspace)"
+              className="flowchart-toolbar-btn"
+            >
+              <Backspace size={16} weight="regular" />
+            </button>
             {/* Reset Flowchart */}
             <button
               onClick={handleResetFlowchart}

@@ -7,6 +7,25 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ---
 
+## [0.9.26] - 2026-01-18
+
+### ✨ Neue Features
+
+- **Flowchart-Editor: Löschen-Button für ausgewählte Elemente:**
+  - Neues Backspace-Symbol in der Toolbar neben dem Mülleimer-Symbol
+  - Löscht ausgewählte Nodes und/oder Edges (gleiche Funktion wie Backspace-Taste)
+  - Button ist ausgegraut wenn nichts ausgewählt ist
+
+### 🐛 Bugfixes
+
+- **Flowchart-Editor: Undo/Redo funktionierte nicht korrekt (Firefox/Windows):**
+  - Der initiale Zustand wurde nicht in die History gespeichert, wodurch die erste Aktion nicht rückgängig gemacht werden konnte
+  - History-Index startete bei -1 statt 0, was die Undo-Bedingung fehlschlagen ließ
+  - Race-Condition: `history` und `historyIndex` wurden separat aktualisiert, was zu `TypeError: can't access property "nodes", e is undefined` führte
+  - Fix: Initialer Zustand wird beim Mounten gespeichert, atomische History-Updates, defensive Null-Checks für robuste Fehlerbehandlung
+
+---
+
 ## [0.9.25] - 2026-01-17
 
 ### ✨ Neue Features
@@ -18,6 +37,16 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - **Wirkstoff-Autovervollständigung im Flowchart-Editor:**
   - `#`-Trigger funktioniert jetzt auch in Flowchart-Node-Textfeldern
   - Ermöglicht schnelle Eingabe von Wirkstoffen in Flussdiagrammen
+
+### 🎨 Verbesserungen
+
+- **AccountDropdown - Rechtliches Untermenü:**
+  - Rechtliche Links (Impressum, Datenschutz, Geschäftsbedingungen, Nutzungsbedingungen, Compliance) in einem "Rechtliches"-Untermenü zusammengefasst
+  - Nutzt Collision-Control für optimale Positionierung des Untermenüs
+  - `DropdownMenuSubContent` um `collisionPadding` und `avoidCollisions` Props erweitert
+
+- **Dropdown-Untermenü Pfeil-Icon verkleinert:**
+  - CaretRight-Icon in `DropdownMenuSubTrigger` von 16px auf 12px reduziert (gilt für AccountDropdown und TabellenOptionen)
 
 ---
 
